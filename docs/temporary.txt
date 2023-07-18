@@ -1,0 +1,5 @@
+TODO Βάλε screenshot για το πώς αλλάζω Java Version σε windows.
+```
+mvn spring-boot:run
+```
+

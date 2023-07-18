@@ -1,0 +1,39 @@
+logging:
+  level:
+    ROOT: ERROR
+    gr.hua.dit.iotvm.iotgateway: INFO
+
+spring:
+  application:
+    name: iotgateway
+  profiles:
+    active: dev
+  task:
+    scheduling:
+      pool:
+        size: 8
+    execution:
+      pool:
+        core-size: 4
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: iotcore_demonstration_processor_group_1
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+server:
+  port: 8080
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json,image/svg+xml
+    min-response-size: 1024
+  servlet:
+    session:
+      cookie:
+        http-only: true

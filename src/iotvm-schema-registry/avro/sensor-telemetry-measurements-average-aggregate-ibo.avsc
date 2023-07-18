@@ -1,0 +1,31 @@
+{
+  "namespace": "org.softwareforce.iotvm.shared.event",
+  "type": "record",
+  "name": "SensorTelemetryMeasurementsAverageAggregateIBO",
+  "fields": [
+    {
+      "name": "average",
+      "type": "org.softwareforce.iotvm.shared.event.MeasurementIBO"
+    },
+    {
+      "name": "events",
+      "type": {
+        "type": "map",
+        "values": "org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementEventIBO",
+        "avro.java.string": "String"
+      }
+    },
+    {
+      "name": "timestamps",
+      "type": "org.softwareforce.iotvm.shared.event.TimestampsIBO"
+    },
+    {
+      "name": "additional",
+      "type": {
+        "type": "map",
+        "values": ["string", "int", "double", "long", "boolean", "null"],
+        "avro.java.string": "String"
+      }
+    }
+  ]
+}

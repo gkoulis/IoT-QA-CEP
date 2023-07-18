@@ -1,0 +1,19 @@
+{
+  "namespace": "org.softwareforce.iotvm.shared.event",
+  "type": "record",
+  "name": "TimestampsIBO",
+  "fields": [
+    {
+      "name": "defaultTimestamp",
+      "type": ["long", "null"]
+    },
+    {
+      "name": "timestamps",
+      "type": {
+        "type": "map",
+        "values": ["long", "null"],
+        "avro.java.string": "String"
+      }
+    }
+  ]
+}

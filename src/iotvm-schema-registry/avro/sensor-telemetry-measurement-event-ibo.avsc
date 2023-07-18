@@ -1,0 +1,32 @@
+{
+  "namespace": "org.softwareforce.iotvm.shared.event",
+  "type": "record",
+  "name": "SensorTelemetryMeasurementEventIBO",
+  "fields": [
+    {
+      "name": "sensorId",
+      "type": "string",
+      "avro.java.string": "String"
+    },
+    {
+      "name": "measurement",
+      "type": "org.softwareforce.iotvm.shared.event.MeasurementIBO"
+    },
+    {
+      "name": "timestamps",
+      "type": "org.softwareforce.iotvm.shared.event.TimestampsIBO"
+    },
+    {
+      "name": "identifiers",
+      "type": "org.softwareforce.iotvm.shared.event.IdentifiersIBO"
+    },
+    {
+      "name": "additional",
+      "type": {
+        "type": "map",
+        "values": ["string", "int", "double", "long", "boolean", "null"],
+        "avro.java.string": "String"
+      }
+    }
+  ]
+}

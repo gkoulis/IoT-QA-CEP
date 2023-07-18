@@ -1,0 +1,270 @@
+{
+	"info": {
+		"_postman_id": "67bd12f4-6a6c-418c-b7d0-5fde387f9879",
+		"name": "IoT VM Examples",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Simple Examples",
+			"item": [
+				{
+					"name": "Sensor 1",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-1\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 21.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 21.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor 2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-2\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 22.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 22.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor 3",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-3\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 23.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 23.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor 4",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-4\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 24.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 24.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor 5",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-5\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 25.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 25.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor 6",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sensorTelemetryEvent\": {\r\n        \"sensorId\": \"sensor-6\",\r\n        \"measurements\": [\r\n            {\r\n                \"name\": \"temperature\",\r\n                \"value\": 26.0,\r\n                \"unit\": \"CELSIUS\"\r\n            },\r\n            {\r\n                \"name\": \"humidity\",\r\n                \"value\": 26.0,\r\n                \"unit\": \"PERCENTAGE\"\r\n            }\r\n        ],\r\n        \"timestamp\": null,\r\n        \"additional\": {\r\n            \"origin\": \"postman\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/http-transport/sensor-telemetry-events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"http-transport",
+								"sensor-telemetry-events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Monitoring",
+			"item": [
+				{
+					"name": "Subscribe to monitoring events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:9001/application/api/v1/monitoring/subscribe",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9001",
+							"path": [
+								"application",
+								"api",
+								"v1",
+								"monitoring",
+								"subscribe"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

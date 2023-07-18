@@ -1,0 +1,89 @@
+logging:
+  level:
+    ROOT: ERROR
+    software.dgk: INFO
+
+spring:
+  application:
+    name: mozart_prototype1
+  profiles:
+    active: dev
+    include:
+      - UC1Producer
+      - UC1Consumer
+  task:
+    scheduling:
+      pool:
+        size: 8
+    execution:
+      pool:
+        core-size: 4
+  kafka:
+    streams:
+      properties:
+        spring:
+          json:
+            value:
+              default:
+                type: 'software.dgk.mozart.prototype1.usecase1.UC1GenericEvent'
+            add:
+              type:
+                headers: true
+            trusted:
+              packages: 'software.dgk.mozart.prototype1.usecase1'
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: mozart_prototype1_group_1
+      auto-offset-reset: earliest
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            value:
+              default:
+                type: 'software.dgk.mozart.prototype1.usecase1.UC1GenericEvent'
+            trusted:
+              packages: 'software.dgk.mozart.prototype1.usecase1'
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            add:
+              type:
+                headers: true
+            trusted:
+              packages: 'software.dgk.mozart.prototype1.usecase1'
+  json:
+    value:
+      default:
+        type: 'software.dgk.mozart.prototype1.usecase1.UC1GenericEvent'
+    add:
+      type:
+        headers: true
+    trusted:
+      packages: 'software.dgk.mozart.prototype1.usecase1'
+
+#  data:
+#    mongodb:
+#      uri: mongodb://localhost:27017
+#      database: d0Atlas
+
+server:
+  port: 8080
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json,image/svg+xml
+    min-response-size: 1024
+  servlet:
+    session:
+      cookie:
+        http-only: true

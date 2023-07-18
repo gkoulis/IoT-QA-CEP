@@ -1,0 +1,50 @@
+[
+  {
+    "sensor_id": "sensor-1",
+    "timestamp": "2023-01-01 10:00:00",
+    "measurements": [
+      {
+        "name": "air_temperature",
+        "value": 20.0,
+        "unit": "CELSIUS"
+      },
+      {
+        "name": "air_humidity",
+        "value": 30.0,
+        "unit": "PERCENTAGE"
+      }
+    ]
+  },
+  {
+    "sensor_id": "sensor-1",
+    "timestamp": "2023-01-01 10:00:10",
+    "measurements": [
+      {
+        "name": "air_temperature",
+        "value": 20.1,
+        "unit": "CELSIUS"
+      },
+      {
+        "name": "air_humidity",
+        "value": 30.0,
+        "unit": "PERCENTAGE"
+      }
+    ]
+  },
+  {
+    "sensor_id": "sensor-2",
+    "timestamp": "2023-01-01 10:00:15",
+    "measurements": [
+      {
+        "name": "air_temperature",
+        "value": 21.0,
+        "unit": "CELSIUS"
+      },
+      {
+        "name": "air_humidity",
+        "value": 30.0,
+        "unit": "PERCENTAGE"
+      }
+    ]
+  }
+]

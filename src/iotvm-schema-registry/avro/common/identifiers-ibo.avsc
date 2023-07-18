@@ -1,0 +1,20 @@
+{
+  "namespace": "org.softwareforce.iotvm.shared.event",
+  "type": "record",
+  "name": "IdentifiersIBO",
+  "fields": [
+    {
+      "name": "clientSideId",
+      "type": ["string", "null"],
+      "avro.java.string": "String"
+    },
+    {
+      "name": "correlationIds",
+      "type": {
+        "type": "map",
+        "values": ["string", "null"],
+        "avro.java.string": "String"
+      }
+    }
+  ]
+}

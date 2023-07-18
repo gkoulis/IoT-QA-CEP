@@ -1,0 +1,82 @@
+version: '3.8'
+services:
+
+  iotvm-zookeeper:
+    container_name: 'iotvm_zookeeper'
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: iotvm-zookeeper
+    ports:
+      - "10100:10100"
+    restart: "no"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 10100
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - iotvm-zookeeper-data:/var/lib/zookeeper/data
+      - iotvm-zookeeper-logs:/var/lib/zookeeper/log
+
+  iotvm-kafka:
+    container_name: 'iotvm_kafka'
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: iotvm-kafka
+    ports:
+      - "10101:10101"
+    restart: "no"
+    depends_on:
+      - iotvm-zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: iotvm-zookeeper:10100
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://iotvm-kafka:29092,PLAINTEXT_HOST://localhost:10101
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_HOST_NAME: iotvm-kafka
+    volumes:
+      - iotvm-kafka-data:/var/lib/kafka/data
+
+  iotvm-schemaregistry:
+    container_name: 'iotvm_schemaregistry'
+    image: confluentinc/cp-schema-registry:7.4.0
+    hostname: iotvm-schemaregistry
+    ports:
+      - "10102:10102"
+    restart: "no"
+    depends_on:
+      - iotvm-kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: iotvm-schemaregistry
+      # TODO Σωστά, αλλά λίγο καλύτερα. Να δεσμεύσω δύο ports?
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "iotvm-kafka:29092"
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:10102"
+
+  iotvm-mongodb:
+    container_name: 'iotvm_mongodb'
+    image: mongo:latest
+    hostname: iotvm-mongodb
+    ports:
+      - "27017:27017"
+    restart: "no"
+    volumes:
+      - iotvm-mongodb-data:/data/db
+
+  # Applications
+
+#  iotvm-kafdrop:
+#    container_name: 'iotvm_kafdrop'
+#    image: obsidiandynamics/kafdrop
+#    hostname: iotvm-kafdrop
+#    ports:
+#      - "9000:9000"
+#    restart: "no"
+#    depends_on:
+#      - iotvm-kafka
+#    environment:
+#      KAFKA_BROKERCONNECT: "iotvm-kafka:29092"
+#      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+
+volumes:
+  iotvm-kafka-data:
+  iotvm-zookeeper-data:
+  iotvm-zookeeper-logs:
+  iotvm-mongodb-data:

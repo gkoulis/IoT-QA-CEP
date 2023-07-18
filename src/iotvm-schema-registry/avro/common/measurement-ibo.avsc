@@ -1,0 +1,20 @@
+{
+  "namespace": "org.softwareforce.iotvm.shared.event",
+  "type": "record",
+  "name": "MeasurementIBO",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string",
+      "avro.java.string": "String"
+    },
+    {
+      "name": "value",
+      "type": ["double", "null"]
+    },
+    {
+      "name": "unit",
+      "type": ["string", "null"]
+    }
+  ]
+}
