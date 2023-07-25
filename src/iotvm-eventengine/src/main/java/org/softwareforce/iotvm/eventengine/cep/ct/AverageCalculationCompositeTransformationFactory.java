@@ -28,6 +28,7 @@ import org.softwareforce.iotvm.eventengine.cep.ct.specifics.FixedSizeTimeWindowS
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestampExtractor;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.AggregatorImpl;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.InitializerImpl;
+import org.softwareforce.iotvm.eventengine.experimental.SensorTelemetryMeasurementEventForecastingService;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.QualityPropertiesIBO;
@@ -51,12 +52,16 @@ public class AverageCalculationCompositeTransformationFactory
   private final AverageCalculationCompositeTransformationParameters parameters;
   private final FixedSizeTimeWindowSpec fixedSizeTimeWindowSpec;
   private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final SensorTelemetryMeasurementEventForecastingService
+      sensorTelemetryMeasurementEventForecastingService;
 
   /* ------------ Constructors ------------ */
 
   public AverageCalculationCompositeTransformationFactory(
       AverageCalculationCompositeTransformationParameters parameters,
-      IBOPersistenceServiceImpl iboPersistenceService) {
+      IBOPersistenceServiceImpl iboPersistenceService,
+      SensorTelemetryMeasurementEventForecastingService
+          sensorTelemetryMeasurementEventForecastingService) {
     this.parameters = parameters;
     this.fixedSizeTimeWindowSpec =
         new FixedSizeTimeWindowSpec(
@@ -64,6 +69,8 @@ public class AverageCalculationCompositeTransformationFactory
             this.parameters.getTimeWindowGrace(),
             this.parameters.getTimeWindowAdvance());
     this.iboPersistenceService = iboPersistenceService;
+    this.sensorTelemetryMeasurementEventForecastingService =
+        sensorTelemetryMeasurementEventForecastingService;
   }
 
   /* ------------ Quality Properties Calculators ------------ */
@@ -276,7 +283,14 @@ public class AverageCalculationCompositeTransformationFactory
         .mapValues(
             (key, value) -> {
               value.getAdditional().put("softSensingActivated", false);
-
+              value.getAdditional().put("pastEventsCount", 0);
+              value.getAdditional().put("forecastedEventsCount", 0);
+              return value;
+            })
+        // TODO Create contracts for missing events.
+        //  Like Spring filters. shouldProceed, proceed, etc.
+        .mapValues(
+            (key, value) -> {
               if (value.getQualityProperties().getCompleteness() >= 1) {
                 return value;
               }
@@ -290,6 +304,8 @@ public class AverageCalculationCompositeTransformationFactory
               value.getAdditional().put("softSensingActivated", true);
 
               final List<String> missingSensorIds = new ArrayList<>();
+
+              // TODO If all sensor IDs are missing?
 
               for (final String sensorId : Constants.SENSOR_IDS) {
                 if (!value.getEvents().containsKey(sensorId)) {
@@ -306,6 +322,7 @@ public class AverageCalculationCompositeTransformationFactory
               final long startTimestamp = pastFixedSizeTimeWindowsLimits.getStart().toEpochMilli();
               final long endTimestamp = pastFixedSizeTimeWindowsLimits.getEnd().toEpochMilli();
 
+              int pastEventsCount = 0;
               for (final String sensorId : missingSensorIds) {
                 final Optional<SensorTelemetryMeasurementEventIBO> result =
                     this.iboPersistenceService.findPastSensorTelemetryMeasurementEventIBO(
@@ -321,8 +338,71 @@ public class AverageCalculationCompositeTransformationFactory
                   continue;
                 }
                 value.getEvents().put(sensorId, result.get());
+                pastEventsCount++;
               }
 
+              value.getAdditional().put("pastEventsCount", pastEventsCount);
+              value
+                  .getAdditional()
+                  .put("completenessReal", value.getQualityProperties().getCompleteness());
+              value
+                  .getAdditional()
+                  .put("timelinessReal", value.getQualityProperties().getTimeliness());
+
+              final double completeness =
+                  this.calculateCompleteness(value.getEvents().values().stream().toList());
+              final double timeliness =
+                  this.calculateTimeliness(
+                      key.window().startTime().toEpochMilli(),
+                      key.window().endTime().toEpochMilli(),
+                      value.getEvents().values().stream().toList());
+
+              value.getQualityProperties().setCompleteness(completeness);
+              value.getQualityProperties().setTimeliness(timeliness);
+
+              return value;
+            })
+        .mapValues(
+            (key, value) -> {
+              if (value.getQualityProperties().getCompleteness() >= 1) {
+                return value;
+              }
+
+              value.getAdditional().put("softSensingActivated", true);
+
+              final List<String> missingSensorIds = new ArrayList<>();
+
+              // TODO If all sensor IDs are missing?
+
+              for (final String sensorId : Constants.SENSOR_IDS) {
+                if (!value.getEvents().containsKey(sensorId)) {
+                  missingSensorIds.add(sensorId);
+                }
+              }
+
+              // TODO Εναλλακτικά: πάρε την τελευταία τιμή από το αντίστοιχο χρονικό παράθυρο της
+              // προηγούμενης ημέρας. Σχετικά καλό αρκεί να μην υπάρχει αλλαγή καιρού...
+              // TODO βάλε και indexes και θα γίνεται εξαιρετικά γρήγορα!
+              // sensorId, physicalQuantity, topic, defaultTimestamp
+
+              int forecastedEventsCount = 0;
+              for (final String sensorId : missingSensorIds) {
+                final Optional<SensorTelemetryMeasurementEventIBO> result =
+                    this.sensorTelemetryMeasurementEventForecastingService.forecast(
+                        sensorId, physicalQuantity);
+                if (result.isEmpty()) {
+                  LOGGER.trace(
+                      "Could not forecast {} SensorTelemetryMeasurementEventIBO for sensor with ID"
+                          + " : {}",
+                      physicalQuantity.name(),
+                      sensorId);
+                  continue;
+                }
+                value.getEvents().put(sensorId, result.get());
+                forecastedEventsCount++;
+              }
+
+              value.getAdditional().put("forecastedEventsCount", forecastedEventsCount);
               value
                   .getAdditional()
                   .put("completenessReal", value.getQualityProperties().getCompleteness());

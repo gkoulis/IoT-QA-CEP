@@ -1,0 +1,27 @@
+[{$match: {
+  "real.sensorId": "sensor-1",
+  topicName: "ga.sensor_telemetry_measurement_event.0001.temperature"
+}}, {$project: {
+  _id: 1,
+  "real.sensorId": 1,
+  "real.measurement.name": 1,
+  "real.measurement.value.double": 1,
+  "real.timestamps.defaultTimestamp.long": 1
+}}, {$addFields: {
+  sensorId: "$real.sensorId",
+  name: "$real.measurement.name",
+  value: "$real.measurement.value.double",
+  dateTime: { $toDate: "$real.timestamps.defaultTimestamp.long" },
+}}, {$addFields: {
+  dateTimeWindow: { $dateTrunc: { date: "$dateTime", unit: "second", binSize: 30 } }
+}}, {$project: {
+  real: 0
+}}, {$sort: {
+  dateTime: 1
+}}, {$group: {
+  _id: "$dateTimeWindow",
+  value: { $last: "$value" },
+  dateTime: { $last: "$dateTime" },
+}}, {$sort: {
+  _id: 1
+}}]

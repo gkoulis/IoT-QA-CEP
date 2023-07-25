@@ -54,6 +54,7 @@
                 <import>../iotvm-schema-registry/avro/common/identifiers-ibo.avsc</import>
                 <import>../iotvm-schema-registry/avro/common/measurement-ibo.avsc</import>
                 <import>../iotvm-schema-registry/avro/common/quality-properties-ibo.avsc</import>
+                <import>../iotvm-schema-registry/avro/sensor-telemetry-measurement-event-ibo.avsc</import>
               </imports>
             </configuration>
           </execution>

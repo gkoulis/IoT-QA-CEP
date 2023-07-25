@@ -84,6 +84,7 @@ public final class Constants {
   public static final String MERGED_L1 = "mergedL1";
   public static final String MERGED_L2 = "mergedL2";
   public static final String PERSISTED = "persisted";
+  public static final String FABRICATED = "fabricated";
 
   /* ------------ IDs and Correlation IDs Keys ------------ */
 

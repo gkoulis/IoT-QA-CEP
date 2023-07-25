@@ -21,6 +21,7 @@ import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformati
 import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
+import org.softwareforce.iotvm.eventengine.experimental.SensorTelemetryMeasurementEventForecastingService;
 import org.softwareforce.iotvm.eventengine.kafka.KafkaAdminService;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 
@@ -80,13 +81,19 @@ public class EventEngineApplication {
                 "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
                 "iotvmdb"));
 
+    final SensorTelemetryMeasurementEventForecastingService
+        sensorTelemetryMeasurementEventForecastingService =
+            new SensorTelemetryMeasurementEventForecastingService();
+
     final CompositeTransformationFactory ingestion =
         new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
     final CompositeTransformationFactory splitting =
         new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceServiceImpl);
     final CompositeTransformationFactory averageCalculation =
         new AverageCalculationCompositeTransformationFactory(
-            averageCalculationParameters, iboPersistenceServiceImpl);
+            averageCalculationParameters,
+            iboPersistenceServiceImpl,
+            sensorTelemetryMeasurementEventForecastingService);
     final CompositeTransformationFactory averageCalculationMerging =
         new AverageCalculationMergingCompositeTransformationFactory(
             averageCalculationMergingParameters, iboPersistenceServiceImpl);
