@@ -265,6 +265,34 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Ensure Forecasting Context",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"sensor_id\": \"sensor-4\",\r\n    \"physical_quantity\": \"temperature\",\r\n    \"topic_name\": \"ga.sensor_telemetry_measurement_event.0001.temperature\",\r\n    \"frequency\": \"30S\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/ensure-sensor-telemetry-measurement-value-forecasting-context",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"ensure-sensor-telemetry-measurement-value-forecasting-context"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

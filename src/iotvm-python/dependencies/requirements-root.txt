@@ -5,3 +5,10 @@ xlsxwriter
 statsmodels
 apscheduler
 requests
+pymongo
+matplotlib
+statsforecast
+pmdarima
+fire
+prophet
+Flask

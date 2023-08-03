@@ -65,9 +65,9 @@ public class AggregatorImpl
       aggregationApplicationsInsertionsCount++;
     }
 
+    // TODO Move to utils (CalculationUtils)
     if (aggregate.getEvents().isEmpty()) {
-      // TODO BUG: temperature can be 0! Set null. But change the IBO as well.
-      aggregate.getAverage().setValue(0.0D);
+      aggregate.getAverage().setValue((double) Short.MIN_VALUE);
     } else {
       final int size = aggregate.getEvents().size();
       final double sum =

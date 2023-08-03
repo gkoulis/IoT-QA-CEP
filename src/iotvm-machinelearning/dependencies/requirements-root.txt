@@ -1,7 +1,0 @@
-black
-scikit-learn
-pandas
-xlsxwriter
-statsmodels
-apscheduler
-requests

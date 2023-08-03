@@ -68,48 +68,50 @@ const formatDateTime = (timestamp) => {
     </header>
 
     <div class="my-4 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-4xl">
+      <div class="mx-auto max-w-5xl">
         <div class="space-y-4">
           <div class="bg-white">
             <table class="CommonSimpleTable CommonSimpleTable--SmallFont">
               <thead>
-              <tr>
-                <th colspan="2">parameters</th>
-              </tr>
-              <tr>
-                <th>name</th>
-                <th>value</th>
-              </tr>
+                <tr>
+                  <th colspan="2">parameters</th>
+                </tr>
+                <tr>
+                  <th>name</th>
+                  <th>value</th>
+                </tr>
               </thead>
               <tbody>
-              <tr>
-                <td class="font-semibold">physicalQuantity</td>
-                <td>PhysicalQuantity.TEMPERATURE</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">timeWindowSize</td>
-                <td>Duration.ofSeconds(30)</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">timeWindowGrace</td>
-                <td>null</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">timeWindowAdvance</td>
-                <td>null</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">minimumNumberOfContributingSensors</td>
-                <td>4</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">ignoreCompletenessFiltering</td>
-                <td>true</td>
-              </tr>
-              <tr>
-                <td class="font-semibold">pastWindowsLookup</td>
-                <td>1</td>
-              </tr>
+                <tr>
+                  <td class="font-semibold">physicalQuantity</td>
+                  <td>PhysicalQuantity.TEMPERATURE</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">timeWindowSize</td>
+                  <td>Duration.ofSeconds(30)</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">timeWindowGrace</td>
+                  <td>null</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">timeWindowAdvance</td>
+                  <td>null</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">
+                    minimumNumberOfContributingSensors
+                  </td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">ignoreCompletenessFiltering</td>
+                  <td>true</td>
+                </tr>
+                <tr>
+                  <td class="font-semibold">pastWindowsLookup</td>
+                  <td>1</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -117,39 +119,88 @@ const formatDateTime = (timestamp) => {
           <div class="bg-white">
             <table class="CommonSimpleTable">
               <thead>
-              <tr>
-                <th>start</th>
-                <th>end</th>
-                <th>name</th>
-                <th>value</th>
-                <th>completeness</th>
-                <th>timeliness</th>
-                <th>past events count</th>
-                <th>forecasted events count</th>
-              </tr>
+                <tr>
+                  <th colspan="2">time window</th>
+                  <th colspan="2">average</th>
+                  <th colspan="3">quality properties</th>
+                  <th colspan="2">past events</th>
+                  <th colspan="2">forecasted events</th>
+                </tr>
+                <tr>
+                  <th>start</th>
+                  <th>end</th>
+                  <th>name</th>
+                  <th>value</th>
+                  <th>completeness</th>
+                  <th>timeliness</th>
+                  <th>timeliness (alt)</th>
+                  <th>count</th>
+                  <th>duration</th>
+                  <th>count</th>
+                  <th>duration</th>
+                </tr>
               </thead>
               <tbody>
-              <tr
+                <tr
                   v-for="measurementAvg in measurementsAvg"
                   :key="measurementAvg.real.identifiers.clientSideId.string"
-              >
-                <td>{{ formatDateTime(measurementAvg.real.startTimestamp) }}</td>
-                <td>{{ formatDateTime(measurementAvg.real.endTimestamp) }}</td>
-                <td>{{ measurementAvg.real.average.name }}</td>
-                <td>{{ measurementAvg.real.average.value.double.toFixed(2) }}</td>
-                <td>
-                  {{ measurementAvg.real.qualityProperties.completeness.double }}
-                </td>
-                <td>
-                  {{ measurementAvg.real.qualityProperties.timeliness.double }}
-                </td>
-                <td>
-                  {{ measurementAvg.real.additional?.pastEventsCount?.int }}
-                </td>
-                <td>
-                  {{ measurementAvg.real.additional?.forecastedEventsCount?.int }}
-                </td>
-              </tr>
+                >
+                  <td>
+                    {{ formatDateTime(measurementAvg.real.startTimestamp) }}
+                  </td>
+                  <td>
+                    {{ formatDateTime(measurementAvg.real.endTimestamp) }}
+                  </td>
+                  <td>{{ measurementAvg.real.average.name }}</td>
+                  <td>
+                    {{ measurementAvg.real.average.value.double.toFixed(2) }}
+                  </td>
+                  <td>
+                    {{
+                      measurementAvg.real.qualityProperties.completeness
+                        .double * 100
+                    }}
+                    %
+                  </td>
+                  <td>
+                    {{
+                      measurementAvg.real.qualityProperties.timeliness.double *
+                      100
+                    }}
+                    %
+                  </td>
+                  <td>
+                    {{
+                      measurementAvg.real.additional?.timelinessAlt?.double *
+                      100
+                    }}
+                    %
+                  </td>
+                  <td>
+                    {{ measurementAvg.real.additional?.pastEventsCount?.int }}
+                  </td>
+                  <td>
+                    {{
+                      (
+                        measurementAvg.real.additional?.pastEventsDuration
+                          ?.long / 1000000000
+                      ).toFixed(4)
+                    }}
+                  </td>
+                  <td>
+                    {{
+                      measurementAvg.real.additional?.forecastedEventsCount?.int
+                    }}
+                  </td>
+                  <td>
+                    {{
+                      (
+                        measurementAvg.real.additional?.forecastedEventsDuration
+                          ?.long / 1000000000
+                      ).toFixed(4)
+                    }}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

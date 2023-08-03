@@ -22,6 +22,9 @@ mvn clean package
 java -jar path-to-jar.jar server configuration.yml
 
 
+python -m iotvm.main basic_generator
+flask --app iotvm.server run
+
 Για test:
 ```mvn test```
 
@@ -65,6 +68,7 @@ http://localhost:9000
 - ΠΡΟΣΟΧΗ: το suppress σε πραγματικά περιβάλλοντα μπορεί να μαζέψει χιλιάδες μηνύματα μέχρι να διάλεξει το τελευταίο. Με αποτέλεσμα να σκάσει το πρόγραμμα. Εκεί υπάρχουν στρατηγικές διαχείρισης. π.χ. emit early αν φτάσει κάποιο όριο.
 - Χρειάζεται προτυποποίηση στο πώς αποθηκεύω και διαχειρίζομαι πληροφορίες για sensors. Schema, πεδία, specs, κλειδιά, etc.
 - Χρειάζεται προτυποποίηση για distributed identifiers and names αναφορικά με class names, keys, schemas, event types, topics. Δεν υποστηρίζουν όλες οι τεχνολογίες τα ίδια conventions σχετικά με την ονοματολογία. Π.χ. τα durations `PT20.345S` και `-PT-6H+3M` δε μπορούν να χρησμοποιηθούν εύκολα ως ονόματα σε ένα MongoDB collection ή σε topic.
+- Τα composite transformation μπορούν να τρέξουν σε ένα σύστημα ή κατανεμημένα. Επίσης, μπορούν να δημιουργηθούν πολλά kafka streams applications που είτε μπορούν να τρέχουν σε ένα σύστημα είτε κατανεμημένα. Το μοντέλο μας είναι εξαιρετικά ευέλικτο!  
 
 - https://jira.mongodb.org/browse/JAVA-3372?attachmentOrder=desc
 
