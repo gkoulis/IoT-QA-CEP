@@ -15,8 +15,5 @@
     <modules>
 		    <module>src/iotvm-eventengine</module>
         <module>src/iotvm-gateway</module>
-
-        <module>src/iotvm-legacy-v1</module>
-        <module>src/iotvm-legacy-v2</module>
     </modules>
 </project>

@@ -41,9 +41,24 @@ public class AverageCalculationCompositeTransformationParameters
 
   /**
    * The number of past windows to lookup for instances to fill the missing events. If it's zero,
-   * past windows lookup functionality is disabled.
+   * past windows lookup functionality is disabled. That is, backcasting fabrication is disabled.
    */
   private final int pastWindowsLookup;
+
+  /**
+   * The duration of the forecasting time series time window.
+   *
+   * <p>More specifically, this is the resolution of time series used to train the forecasting
+   * model. It tells the time step (hourly, 15-minute, daily, etc.) Usually, it referred as
+   * frequency (1m, 1h, 10s, etc.) The minimum logic value allowed is one second, i.e. {@code "1S"}.
+   */
+  private final Duration forecastingWindowSize;
+
+  /**
+   * The number of future windows to lookup for instances to fill the missing events. If it's zero,
+   * future windows lookup functionality is disabled. That is, forecasting fabrication is disabled.
+   */
+  private final int futureWindowsLookup;
 
   /* ------------ Constructors ------------ */
 
@@ -54,7 +69,9 @@ public class AverageCalculationCompositeTransformationParameters
       @Nullable Duration timeWindowAdvance,
       int minimumNumberOfContributingSensors,
       boolean ignoreCompletenessFiltering,
-      int pastWindowsLookup) {
+      int pastWindowsLookup,
+      Duration forecastingWindowSize,
+      int futureWindowsLookup) {
     this.physicalQuantity = physicalQuantity;
     this.timeWindowSize = timeWindowSize;
     this.timeWindowGrace = timeWindowGrace;
@@ -62,35 +79,47 @@ public class AverageCalculationCompositeTransformationParameters
     this.minimumNumberOfContributingSensors = minimumNumberOfContributingSensors;
     this.ignoreCompletenessFiltering = ignoreCompletenessFiltering;
     this.pastWindowsLookup = pastWindowsLookup;
+    if (forecastingWindowSize == null) {
+      this.forecastingWindowSize = this.timeWindowSize;
+    } else {
+      this.forecastingWindowSize = forecastingWindowSize;
+    }
+    this.futureWindowsLookup = futureWindowsLookup;
 
-    if (this.timeWindowSize.equals(Duration.ZERO)) {
-      throw new IllegalArgumentException("timeWindowSize cannot be ZERO. Use null instead!");
-    }
-    if (this.timeWindowSize.isNegative()) {
-      throw new IllegalArgumentException("timeWindowSize cannot be negative. Use null instead!");
-    }
-
-    if (this.timeWindowGrace != null) {
-      if (this.timeWindowGrace.equals(Duration.ZERO)) {
-        throw new IllegalArgumentException("timeWindowGrace cannot be ZERO. Use null instead!");
-      }
-      if (this.timeWindowGrace.isNegative()) {
-        throw new IllegalArgumentException("timeWindowGrace cannot be negative. Use null instead!");
-      }
-    }
-
-    if (this.timeWindowAdvance != null) {
-      if (this.timeWindowAdvance.equals(Duration.ZERO)) {
-        throw new IllegalArgumentException("timeWindowAdvance cannot be ZERO. Use null instead!");
-      }
-      if (this.timeWindowAdvance.isNegative()) {
-        throw new IllegalArgumentException(
-            "timeWindowAdvance cannot be negative. Use null instead!");
-      }
-    }
+    requireValidDuration("timeWindowSize", this.timeWindowSize, false);
+    requireValidDuration("timeWindowGrace", this.timeWindowGrace, true);
+    requireValidDuration("timeWindowAdvance", this.timeWindowAdvance, true);
 
     if (this.pastWindowsLookup < 0) {
       throw new IllegalArgumentException("pastWindowsLookup must be zero or positive integer!");
+    }
+
+    requireValidDuration("forecastingWindowSize", this.forecastingWindowSize, false);
+
+    if (this.futureWindowsLookup < 0) {
+      throw new IllegalArgumentException("futureWindowsLookup must be zero or positive integer!");
+    }
+  }
+
+  /* ------------ Validation Utils ------------ */
+
+  private static void requireValidDuration(
+      final String name, final Duration duration, final boolean nullable) {
+    if (nullable && duration == null) {
+      return;
+    }
+    if (duration.equals(Duration.ZERO)) {
+      throw new IllegalArgumentException("Duration `" + name + "` cannot be ZERO!");
+    }
+    if (duration.isNegative()) {
+      throw new IllegalArgumentException("Duration `" + name + "` cannot be negative!");
+    }
+    if (duration.getSeconds() < 1) {
+      throw new IllegalArgumentException(
+          "Duration `" + name + "` seconds must be greater than or equal to 1!");
+    }
+    if (duration.getNano() != 0) {
+      throw new IllegalArgumentException("Duration `" + name + "` nano must be zero!");
     }
   }
 
@@ -126,6 +155,14 @@ public class AverageCalculationCompositeTransformationParameters
     return pastWindowsLookup;
   }
 
+  public Duration getForecastingWindowSize() {
+    return forecastingWindowSize;
+  }
+
+  public int getFutureWindowsLookup() {
+    return futureWindowsLookup;
+  }
+
   /* ------------ Implementation ------------ */
 
   @Override
@@ -152,6 +189,12 @@ public class AverageCalculationCompositeTransformationParameters
     sb.append("_");
 
     sb.append(this.pastWindowsLookup);
+    sb.append("_");
+
+    sb.append(this.forecastingWindowSize.toString());
+    sb.append("_");
+
+    sb.append(this.futureWindowsLookup);
 
     return sb.toString();
   }
@@ -175,6 +218,10 @@ public class AverageCalculationCompositeTransformationParameters
         + ignoreCompletenessFiltering
         + ", pastWindowsLookup="
         + pastWindowsLookup
+        + ", forecastingWindowSize="
+        + forecastingWindowSize
+        + ", futureWindowsLookup="
+        + futureWindowsLookup
         + '}';
   }
 }

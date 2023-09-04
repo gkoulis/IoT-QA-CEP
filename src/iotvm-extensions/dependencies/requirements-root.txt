@@ -1,0 +1,11 @@
+black
+scikit-learn
+pandas
+xlsxwriter
+openpyxl
+requests
+pymongo
+matplotlib
+pmdarima
+fire
+thrift

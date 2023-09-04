@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.kafka.streams.kstream.Aggregator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementEventIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementsAverageAggregateIBO;
 
@@ -65,18 +66,11 @@ public class AggregatorImpl
       aggregationApplicationsInsertionsCount++;
     }
 
-    // TODO Move to utils (CalculationUtils)
-    if (aggregate.getEvents().isEmpty()) {
-      aggregate.getAverage().setValue((double) Short.MIN_VALUE);
-    } else {
-      final int size = aggregate.getEvents().size();
-      final double sum =
-          aggregate.getEvents().values().stream()
-              .mapToDouble(i -> i.getMeasurement().getValue())
-              .sum();
-      final double average = sum / size;
-      aggregate.getAverage().setValue(average);
-    }
+    aggregate
+        .getAverage()
+        .setValue(
+            CalculationUtils.calculateAverage(aggregate.getEvents().values().stream().toList())
+                .orElse((double) Short.MIN_VALUE));
 
     if (aggregate.getTimestamps().getTimestamps().containsKey("firstAggregationApplication")) {
       if (aggregate.getTimestamps().getTimestamps().get("firstAggregationApplication") == null) {

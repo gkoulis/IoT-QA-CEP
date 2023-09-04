@@ -1,12 +1,14 @@
 package org.softwareforce.iotvm.eventengine.cep.ct.specifics;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import org.apache.kafka.common.header.Headers;
+import java.util.stream.Collectors;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
@@ -152,9 +154,13 @@ public class IngestionProcessor
             sensorTelemetryEventIBO,
             sensorTelemetryEventIBO.getTimestamps().getDefaultTimestamp());
 
-    // TODO add headers if necessary (and remove System.out.println).
-    final Headers headers = record.headers();
-    headers.forEach(h -> System.out.println(h.key()));
+    Header[] headersArray = record.headers().toArray();
+    if (headersArray.length > 0) {
+      LOGGER.warn(
+          "Record<String, SensorTelemetryRawEventIBO> has {} unregistered headers : {}",
+          headersArray.length,
+          Arrays.stream(headersArray).map(Header::key).collect(Collectors.joining(", ")));
+    }
 
     this.context.forward(newRecord);
   }

@@ -173,4 +173,6 @@ public class FixedSizeTimeWindowSpecTests {
 
     this.testPredictableNumberOfMatchingWindows(spec, 1);
   }
+
+  // todo given a window, get start - end and get its size by subtracting end - start!
 }

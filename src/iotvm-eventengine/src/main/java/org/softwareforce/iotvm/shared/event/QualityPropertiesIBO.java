@@ -13,11 +13,11 @@ import org.apache.avro.specific.SpecificData;
 @org.apache.avro.specific.AvroGenerated
 public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecordBase
     implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 7106607812715165316L;
+  private static final long serialVersionUID = -5836716999325785414L;
   public static final org.apache.avro.Schema SCHEMA$ =
       new org.apache.avro.Schema.Parser()
           .parse(
-              "{\"type\":\"record\",\"name\":\"QualityPropertiesIBO\",\"namespace\":\"org.softwareforce.iotvm.shared.event\",\"fields\":[{\"name\":\"completeness\",\"type\":[\"double\",\"null\"]},{\"name\":\"timeliness\",\"type\":[\"double\",\"null\"]}]}");
+              "{\"type\":\"record\",\"name\":\"QualityPropertiesIBO\",\"namespace\":\"org.softwareforce.iotvm.shared.event\",\"fields\":[{\"name\":\"metrics\",\"type\":{\"type\":\"map\",\"values\":[\"null\",\"double\"],\"avro.java.string\":\"String\"}}]}");
 
   public static org.apache.avro.Schema getClassSchema() {
     return SCHEMA$;
@@ -83,8 +83,7 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
     return DECODER.decode(b);
   }
 
-  private java.lang.Double completeness;
-  private java.lang.Double timeliness;
+  private java.util.Map<java.lang.String, java.lang.Double> metrics;
 
   /**
    * Default constructor. Note that this does not initialize fields to their default values from the
@@ -95,12 +94,10 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
   /**
    * All-args constructor.
    *
-   * @param completeness The new value for completeness
-   * @param timeliness The new value for timeliness
+   * @param metrics The new value for metrics
    */
-  public QualityPropertiesIBO(java.lang.Double completeness, java.lang.Double timeliness) {
-    this.completeness = completeness;
-    this.timeliness = timeliness;
+  public QualityPropertiesIBO(java.util.Map<java.lang.String, java.lang.Double> metrics) {
+    this.metrics = metrics;
   }
 
   public org.apache.avro.specific.SpecificData getSpecificData() {
@@ -115,9 +112,7 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
   public java.lang.Object get(int field$) {
     switch (field$) {
       case 0:
-        return completeness;
-      case 1:
-        return timeliness;
+        return metrics;
       default:
         throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
@@ -128,10 +123,7 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
       case 0:
-        completeness = (java.lang.Double) value$;
-        break;
-      case 1:
-        timeliness = (java.lang.Double) value$;
+        metrics = (java.util.Map<java.lang.String, java.lang.Double>) value$;
         break;
       default:
         throw new IndexOutOfBoundsException("Invalid index: " + field$);
@@ -139,39 +131,21 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
   }
 
   /**
-   * Gets the value of the 'completeness' field.
+   * Gets the value of the 'metrics' field.
    *
-   * @return The value of the 'completeness' field.
+   * @return The value of the 'metrics' field.
    */
-  public java.lang.Double getCompleteness() {
-    return completeness;
+  public java.util.Map<java.lang.String, java.lang.Double> getMetrics() {
+    return metrics;
   }
 
   /**
-   * Sets the value of the 'completeness' field.
+   * Sets the value of the 'metrics' field.
    *
    * @param value the value to set.
    */
-  public void setCompleteness(java.lang.Double value) {
-    this.completeness = value;
-  }
-
-  /**
-   * Gets the value of the 'timeliness' field.
-   *
-   * @return The value of the 'timeliness' field.
-   */
-  public java.lang.Double getTimeliness() {
-    return timeliness;
-  }
-
-  /**
-   * Sets the value of the 'timeliness' field.
-   *
-   * @param value the value to set.
-   */
-  public void setTimeliness(java.lang.Double value) {
-    this.timeliness = value;
+  public void setMetrics(java.util.Map<java.lang.String, java.lang.Double> value) {
+    this.metrics = value;
   }
 
   /**
@@ -220,8 +194,7 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
       extends org.apache.avro.specific.SpecificRecordBuilderBase<QualityPropertiesIBO>
       implements org.apache.avro.data.RecordBuilder<QualityPropertiesIBO> {
 
-    private java.lang.Double completeness;
-    private java.lang.Double timeliness;
+    private java.util.Map<java.lang.String, java.lang.Double> metrics;
 
     /** Creates a new Builder */
     private Builder() {
@@ -235,13 +208,9 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
      */
     private Builder(org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.completeness)) {
-        this.completeness = data().deepCopy(fields()[0].schema(), other.completeness);
+      if (isValidValue(fields()[0], other.metrics)) {
+        this.metrics = data().deepCopy(fields()[0].schema(), other.metrics);
         fieldSetFlags()[0] = other.fieldSetFlags()[0];
-      }
-      if (isValidValue(fields()[1], other.timeliness)) {
-        this.timeliness = data().deepCopy(fields()[1].schema(), other.timeliness);
-        fieldSetFlags()[1] = other.fieldSetFlags()[1];
       }
     }
 
@@ -252,99 +221,52 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
      */
     private Builder(org.softwareforce.iotvm.shared.event.QualityPropertiesIBO other) {
       super(SCHEMA$);
-      if (isValidValue(fields()[0], other.completeness)) {
-        this.completeness = data().deepCopy(fields()[0].schema(), other.completeness);
+      if (isValidValue(fields()[0], other.metrics)) {
+        this.metrics = data().deepCopy(fields()[0].schema(), other.metrics);
         fieldSetFlags()[0] = true;
-      }
-      if (isValidValue(fields()[1], other.timeliness)) {
-        this.timeliness = data().deepCopy(fields()[1].schema(), other.timeliness);
-        fieldSetFlags()[1] = true;
       }
     }
 
     /**
-     * Gets the value of the 'completeness' field.
+     * Gets the value of the 'metrics' field.
      *
      * @return The value.
      */
-    public java.lang.Double getCompleteness() {
-      return completeness;
+    public java.util.Map<java.lang.String, java.lang.Double> getMetrics() {
+      return metrics;
     }
 
     /**
-     * Sets the value of the 'completeness' field.
+     * Sets the value of the 'metrics' field.
      *
-     * @param value The value of 'completeness'.
+     * @param value The value of 'metrics'.
      * @return This builder.
      */
-    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder setCompleteness(
-        java.lang.Double value) {
+    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder setMetrics(
+        java.util.Map<java.lang.String, java.lang.Double> value) {
       validate(fields()[0], value);
-      this.completeness = value;
+      this.metrics = value;
       fieldSetFlags()[0] = true;
       return this;
     }
 
     /**
-     * Checks whether the 'completeness' field has been set.
+     * Checks whether the 'metrics' field has been set.
      *
-     * @return True if the 'completeness' field has been set, false otherwise.
+     * @return True if the 'metrics' field has been set, false otherwise.
      */
-    public boolean hasCompleteness() {
+    public boolean hasMetrics() {
       return fieldSetFlags()[0];
     }
 
     /**
-     * Clears the value of the 'completeness' field.
+     * Clears the value of the 'metrics' field.
      *
      * @return This builder.
      */
-    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder clearCompleteness() {
-      completeness = null;
+    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder clearMetrics() {
+      metrics = null;
       fieldSetFlags()[0] = false;
-      return this;
-    }
-
-    /**
-     * Gets the value of the 'timeliness' field.
-     *
-     * @return The value.
-     */
-    public java.lang.Double getTimeliness() {
-      return timeliness;
-    }
-
-    /**
-     * Sets the value of the 'timeliness' field.
-     *
-     * @param value The value of 'timeliness'.
-     * @return This builder.
-     */
-    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder setTimeliness(
-        java.lang.Double value) {
-      validate(fields()[1], value);
-      this.timeliness = value;
-      fieldSetFlags()[1] = true;
-      return this;
-    }
-
-    /**
-     * Checks whether the 'timeliness' field has been set.
-     *
-     * @return True if the 'timeliness' field has been set, false otherwise.
-     */
-    public boolean hasTimeliness() {
-      return fieldSetFlags()[1];
-    }
-
-    /**
-     * Clears the value of the 'timeliness' field.
-     *
-     * @return This builder.
-     */
-    public org.softwareforce.iotvm.shared.event.QualityPropertiesIBO.Builder clearTimeliness() {
-      timeliness = null;
-      fieldSetFlags()[1] = false;
       return this;
     }
 
@@ -353,10 +275,10 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
     public QualityPropertiesIBO build() {
       try {
         QualityPropertiesIBO record = new QualityPropertiesIBO();
-        record.completeness =
-            fieldSetFlags()[0] ? this.completeness : (java.lang.Double) defaultValue(fields()[0]);
-        record.timeliness =
-            fieldSetFlags()[1] ? this.timeliness : (java.lang.Double) defaultValue(fields()[1]);
+        record.metrics =
+            fieldSetFlags()[0]
+                ? this.metrics
+                : (java.util.Map<java.lang.String, java.lang.Double>) defaultValue(fields()[0]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -391,59 +313,79 @@ public class QualityPropertiesIBO extends org.apache.avro.specific.SpecificRecor
 
   @Override
   public void customEncode(org.apache.avro.io.Encoder out) throws java.io.IOException {
-    if (this.completeness == null) {
-      out.writeIndex(1);
-      out.writeNull();
-    } else {
-      out.writeIndex(0);
-      out.writeDouble(this.completeness);
+    long size0 = this.metrics.size();
+    out.writeMapStart();
+    out.setItemCount(size0);
+    long actualSize0 = 0;
+    for (java.util.Map.Entry<java.lang.String, java.lang.Double> e0 : this.metrics.entrySet()) {
+      actualSize0++;
+      out.startItem();
+      out.writeString(e0.getKey());
+      java.lang.Double v0 = e0.getValue();
+      if (v0 == null) {
+        out.writeIndex(0);
+        out.writeNull();
+      } else {
+        out.writeIndex(1);
+        out.writeDouble(v0);
+      }
     }
-
-    if (this.timeliness == null) {
-      out.writeIndex(1);
-      out.writeNull();
-    } else {
-      out.writeIndex(0);
-      out.writeDouble(this.timeliness);
-    }
+    out.writeMapEnd();
+    if (actualSize0 != size0)
+      throw new java.util.ConcurrentModificationException(
+          "Map-size written was " + size0 + ", but element count was " + actualSize0 + ".");
   }
 
   @Override
   public void customDecode(org.apache.avro.io.ResolvingDecoder in) throws java.io.IOException {
     org.apache.avro.Schema.Field[] fieldOrder = in.readFieldOrderIfDiff();
     if (fieldOrder == null) {
-      if (in.readIndex() != 0) {
-        in.readNull();
-        this.completeness = null;
-      } else {
-        this.completeness = in.readDouble();
-      }
-
-      if (in.readIndex() != 0) {
-        in.readNull();
-        this.timeliness = null;
-      } else {
-        this.timeliness = in.readDouble();
+      long size0 = in.readMapStart();
+      java.util.Map<java.lang.String, java.lang.Double> m0 =
+          this.metrics; // Need fresh name due to limitation of macro system
+      if (m0 == null) {
+        m0 = new java.util.HashMap<java.lang.String, java.lang.Double>((int) size0);
+        this.metrics = m0;
+      } else m0.clear();
+      for (; 0 < size0; size0 = in.mapNext()) {
+        for (; size0 != 0; size0--) {
+          java.lang.String k0 = null;
+          k0 = in.readString();
+          java.lang.Double v0 = null;
+          if (in.readIndex() != 1) {
+            in.readNull();
+            v0 = null;
+          } else {
+            v0 = in.readDouble();
+          }
+          m0.put(k0, v0);
+        }
       }
 
     } else {
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 1; i++) {
         switch (fieldOrder[i].pos()) {
           case 0:
-            if (in.readIndex() != 0) {
-              in.readNull();
-              this.completeness = null;
-            } else {
-              this.completeness = in.readDouble();
-            }
-            break;
-
-          case 1:
-            if (in.readIndex() != 0) {
-              in.readNull();
-              this.timeliness = null;
-            } else {
-              this.timeliness = in.readDouble();
+            long size0 = in.readMapStart();
+            java.util.Map<java.lang.String, java.lang.Double> m0 =
+                this.metrics; // Need fresh name due to limitation of macro system
+            if (m0 == null) {
+              m0 = new java.util.HashMap<java.lang.String, java.lang.Double>((int) size0);
+              this.metrics = m0;
+            } else m0.clear();
+            for (; 0 < size0; size0 = in.mapNext()) {
+              for (; size0 != 0; size0--) {
+                java.lang.String k0 = null;
+                k0 = in.readString();
+                java.lang.Double v0 = null;
+                if (in.readIndex() != 1) {
+                  in.readNull();
+                  v0 = null;
+                } else {
+                  v0 = in.readDouble();
+                }
+                m0.put(k0, v0);
+              }
             }
             break;
 

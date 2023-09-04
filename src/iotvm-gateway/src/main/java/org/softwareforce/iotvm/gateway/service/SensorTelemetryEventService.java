@@ -78,7 +78,7 @@ public class SensorTelemetryEventService {
             .setClientSideId(UUID.randomUUID().toString())
             .setCorrelationIds(correlationIds)
             .build();
-    final Map<String, Object> additional = new HashMap<>();
+    final Map<String, Object> additional = new HashMap<>(sensorTelemetryEvent.getAdditional());
 
     final SensorTelemetryRawEventIBO event =
         SensorTelemetryRawEventIBO.newBuilder()

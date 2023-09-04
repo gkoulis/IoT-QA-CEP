@@ -3,6 +3,8 @@ package org.softwareforce.iotvm.eventengine.cep;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.ct.CompositeTransformationFactory;
 
 /**
@@ -11,6 +13,9 @@ import org.softwareforce.iotvm.eventengine.cep.ct.CompositeTransformationFactory
  * @author Dimitris Gkoulis
  */
 public final class SimpleCompositeTransformationFactoriesManager {
+
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(SimpleCompositeTransformationFactoriesManager.class);
 
   private boolean built;
   private final List<CompositeTransformationFactory> compositeTransformationFactories;
@@ -30,6 +35,8 @@ public final class SimpleCompositeTransformationFactoriesManager {
 
   public SimpleCompositeTransformationFactoriesManager withCompositeTransformationFactory(
       CompositeTransformationFactory compositeTransformationFactory) {
+    LOGGER.info("Registering {}", compositeTransformationFactory);
+
     if (this.built) {
       throw new IllegalStateException(
           "CEP manager has already built the composite transformations!");

@@ -1,10 +1,28 @@
 <script setup>
 import moment from "moment";
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 
 const measurements = ref([]);
 const measurementsAvg = ref([]);
 const lastMeasurementsAvg = ref(null);
+const registeredSensorIds = ref([
+  "sensor-1",
+  "sensor-2",
+  "sensor-3",
+  "sensor-4",
+  "sensor-5",
+  "sensor-6",
+]);
+const ctpOptions = ref([]);
+const ctpOptionRef = ref(null);
+const debugRef = ref(false);
+
+const measurementsAvgToDisplay = computed(() => {
+  if (!ctpOptionRef.value) {
+    return [];
+  }
+  return measurementsAvg.value.filter((i) => i.real.compositeTransformationParametersIdentifier === ctpOptionRef.value);
+})
 
 let eventSource = null;
 
@@ -27,6 +45,9 @@ onMounted(() => {
       ) {
         measurementsAvg.value.push(eventData);
         lastMeasurementsAvg.value = eventData;
+        if (!ctpOptions.value.includes(eventData.real.compositeTransformationParametersIdentifier)) {
+          ctpOptions.value.push(eventData.real.compositeTransformationParametersIdentifier)
+        }
       } else if (
         eventData.topicName === "ga.sensor_telemetry_measurement_event.0001"
       ) {
@@ -67,8 +88,10 @@ const formatDateTime = (timestamp) => {
       </div>
     </header>
 
-    <div class="my-4 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-5xl">
+    <!-- mx-auto max-w-7xl -->
+    <div class="my-4 mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- mx-auto max-w-5xl -->
+      <div class="mx-auto">
         <div class="space-y-4">
           <div class="bg-white">
             <table class="CommonSimpleTable CommonSimpleTable--SmallFont">
@@ -117,16 +140,29 @@ const formatDateTime = (timestamp) => {
           </div>
 
           <div class="bg-white">
+            <div class="flex space-x-2 p-2">
+              <select class="border p-0.5 text-xs" v-model="ctpOptionRef">
+                <option v-for="ctpOption in ctpOptions" :key="ctpOption" :value="ctpOption" :label="ctpOption">{{ ctpOption }}</option>
+              </select>
+              <button class="border p-0.5 text-xs" @click="debugRef = !debugRef">toggle debug ({{ debugRef }})</button>
+            </div>
+          </div>
+
+          <div class="bg-white">
             <table class="CommonSimpleTable">
               <thead>
                 <tr>
+                  <th colspan="2" v-if="debugRef">debug</th>
                   <th colspan="2">time window</th>
                   <th colspan="2">average</th>
-                  <th colspan="3">quality properties</th>
+                  <th colspan="4">quality properties</th>
                   <th colspan="2">past events</th>
                   <th colspan="2">forecasted events</th>
+                  <th colspan="6" v-if="debugRef">sensors</th>
                 </tr>
                 <tr>
+                  <th v-if="debugRef">cycle</th>
+                  <th v-if="debugRef">recurring window</th>
                   <th>start</th>
                   <th>end</th>
                   <th>name</th>
@@ -134,17 +170,39 @@ const formatDateTime = (timestamp) => {
                   <th>completeness</th>
                   <th>timeliness</th>
                   <th>timeliness (alt)</th>
+                  <th>accuracy</th>
                   <th>count</th>
                   <th>duration</th>
                   <th>count</th>
                   <th>duration</th>
+
+                  <!-- sensors -->
+                  <!-- todo dynamically -->
+                  <th v-if="debugRef">1</th>
+                  <th v-if="debugRef">2</th>
+                  <th v-if="debugRef">3</th>
+                  <th v-if="debugRef">4</th>
+                  <th v-if="debugRef">5</th>
+                  <th v-if="debugRef">6</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-for="measurementAvg in measurementsAvg"
+                  v-for="measurementAvg in measurementsAvgToDisplay"
                   :key="measurementAvg.real.identifiers.clientSideId.string"
                 >
+                  <td v-if="debugRef">
+                    {{
+                      measurementAvg.real.additional
+                        ?.debugStringUniqueCycleValues?.string
+                    }}
+                  </td>
+                  <td v-if="debugRef">
+                    {{
+                      measurementAvg.real.additional
+                        ?.debugStringUniqueRecurringWindowValues?.string
+                    }}
+                  </td>
                   <td>
                     {{ formatDateTime(measurementAvg.real.startTimestamp) }}
                   </td>
@@ -157,22 +215,37 @@ const formatDateTime = (timestamp) => {
                   </td>
                   <td>
                     {{
-                      measurementAvg.real.qualityProperties.completeness
-                        .double * 100
+                      (
+                        measurementAvg.real.qualityProperties.metrics
+                          ?.completeness1?.double * 100
+                      ).toFixed(2)
                     }}
                     %
                   </td>
                   <td>
                     {{
-                      measurementAvg.real.qualityProperties.timeliness.double *
-                      100
+                      (
+                        measurementAvg.real.qualityProperties.metrics
+                          ?.timeliness1?.double * 100
+                      ).toFixed(2)
                     }}
                     %
                   </td>
                   <td>
                     {{
-                      measurementAvg.real.additional?.timelinessAlt?.double *
-                      100
+                      (
+                        measurementAvg.real.qualityProperties.metrics
+                          ?.timeliness2?.double * 100
+                      ).toFixed(2)
+                    }}
+                    %
+                  </td>
+                  <td>
+                    {{
+                      (
+                        measurementAvg.real.qualityProperties.metrics?.accuracy1
+                          ?.double * 100
+                      ).toFixed(2)
                     }}
                     %
                   </td>
@@ -200,6 +273,26 @@ const formatDateTime = (timestamp) => {
                       ).toFixed(4)
                     }}
                   </td>
+
+                  <template v-if="debugRef">
+                    <td
+                        v-for="sensorId in registeredSensorIds"
+                        :key="sensorId"
+                        :class="{
+                      'bg-yellow-50':
+                        measurementAvg.real.events?.[sensorId]?.additional
+                          ?.pastEventsOriginated?.boolean === true,
+                      'bg-orange-50':
+                        measurementAvg.real.events?.[sensorId]?.additional
+                          ?.forecastedEventsOriginated?.boolean === true,
+                    }"
+                    >
+                      {{
+                        measurementAvg.real.events?.[sensorId]?.measurement?.value
+                            ?.double
+                      }}
+                    </td>
+                  </template>
                 </tr>
               </tbody>
             </table>

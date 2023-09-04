@@ -1,12 +1,15 @@
 package org.softwareforce.iotvm.eventengine;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.SimpleCompositeTransformationFactoriesManager;
@@ -19,9 +22,11 @@ import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformati
 import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformationParameters;
 import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationFactory;
 import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
+import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
-import org.softwareforce.iotvm.eventengine.experimental.SensorTelemetryMeasurementEventForecastingService;
+import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
+import org.softwareforce.iotvm.eventengine.extensions.SensingRecordingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.kafka.KafkaAdminService;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 
@@ -32,11 +37,15 @@ import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl
  */
 public class EventEngineApplication {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(EventEngineApplication.class);
+
   public static void main(String[] args) {
     new EventEngineApplication().run();
   }
 
   public void run() {
+    ApplicationConfiguration.getInstance().load();
+
     final KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
     final Admin kafkaAdmin = kafkaConfiguration.getKafkaAdmin();
     final Properties kafkaStreamsProperties = kafkaConfiguration.getKafkaStreamsProperties();
@@ -47,30 +56,80 @@ public class EventEngineApplication {
         new IngestionCompositeTransformationParameters();
     final SplittingCompositeTransformationParameters splittingParameters =
         new SplittingCompositeTransformationParameters();
-    final AverageCalculationCompositeTransformationParameters averageCalculationParameters =
+
+    // TODO Get from JSON file.
+    final List<AverageCalculationCompositeTransformationParameters>
+        averageCalculationParametersList = new ArrayList<>();
+    averageCalculationParametersList.add(
         new AverageCalculationCompositeTransformationParameters(
-            PhysicalQuantity.TEMPERATURE, Duration.ofSeconds(30), null, null, 4, true, 1);
+            PhysicalQuantity.TEMPERATURE,
+            Duration.ofSeconds(10),
+            null,
+            null,
+            4,
+            true,
+            2,
+            Duration.ofSeconds(20),
+            4));
+    averageCalculationParametersList.add(
+        new AverageCalculationCompositeTransformationParameters(
+            PhysicalQuantity.TEMPERATURE,
+            Duration.ofSeconds(10),
+            null,
+            null,
+            4,
+            true,
+            2,
+            Duration.ofSeconds(10),
+            8));
+    averageCalculationParametersList.add(
+        new AverageCalculationCompositeTransformationParameters(
+            PhysicalQuantity.TEMPERATURE,
+            Duration.ofMinutes(1),
+            null,
+            null,
+            4,
+            true,
+            1,
+            Duration.ofMinutes(1),
+            1));
+
+    for (final AverageCalculationCompositeTransformationParameters parametersSet :
+        averageCalculationParametersList) {
+      LOGGER.info(
+          "Registering AverageCalculationCompositeTransformationParameters : {}",
+          parametersSet.getUniqueIdentifier());
+    }
+
     final AverageCalculationMergingCompositeTransformationParameters
         averageCalculationMergingParameters =
             new AverageCalculationMergingCompositeTransformationParameters(
-                List.of(averageCalculationParameters));
+                averageCalculationParametersList);
 
     final List<String> topicNameList =
-        List.of(
-            Constants.SENSOR_TELEMETRY_RAW_EVENT_TOPIC,
-            Constants.SENSOR_TELEMETRY_EVENT_TOPIC,
-            Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC,
-            Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_TOPIC,
-            // Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC
-            Constants.getSensorTelemetryMeasurementEventTopic(PhysicalQuantity.TEMPERATURE),
-            Constants.getSensorTelemetryMeasurementEventTopic(PhysicalQuantity.HUMIDITY),
-            // Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_TOPIC
-            Constants.getSensorTelemetryMeasurementsAverageEventTopic(PhysicalQuantity.TEMPERATURE),
-            Constants.getSensorTelemetryMeasurementsAverageEventTopic(PhysicalQuantity.HUMIDITY),
-            Constants.getSensorTelemetryMeasurementsAverageEventTopic(
-                PhysicalQuantity.TEMPERATURE, averageCalculationParameters.getUniqueIdentifier()),
-            Constants.getSensorTelemetryMeasurementsAverageEventTopic(
-                PhysicalQuantity.HUMIDITY, averageCalculationParameters.getUniqueIdentifier()));
+        new ArrayList<>(
+            List.of(
+                Constants.SENSOR_TELEMETRY_RAW_EVENT_TOPIC,
+                Constants.SENSOR_TELEMETRY_EVENT_TOPIC,
+                Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC,
+                Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_TOPIC,
+                // Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC
+                Constants.getSensorTelemetryMeasurementEventTopic(PhysicalQuantity.TEMPERATURE),
+                Constants.getSensorTelemetryMeasurementEventTopic(PhysicalQuantity.HUMIDITY),
+                // Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_TOPIC
+                Constants.getSensorTelemetryMeasurementsAverageEventTopic(
+                    PhysicalQuantity.TEMPERATURE),
+                Constants.getSensorTelemetryMeasurementsAverageEventTopic(
+                    PhysicalQuantity.HUMIDITY)));
+
+    for (final AverageCalculationCompositeTransformationParameters parametersSet :
+        averageCalculationParametersList) {
+      final String topicName =
+          Constants.getSensorTelemetryMeasurementsAverageEventTopic(
+              parametersSet.getPhysicalQuantity(), parametersSet.getUniqueIdentifier());
+      topicNameList.add(topicName);
+    }
+
     final List<NewTopic> newTopicList =
         kafkaAdminService.convertTopicNamesToNewTopics(topicNameList, 1, 1);
     kafkaAdminService.createTopics(newTopicList);
@@ -81,29 +140,42 @@ public class EventEngineApplication {
                 "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
                 "iotvmdb"));
 
-    final SensorTelemetryMeasurementEventForecastingService
-        sensorTelemetryMeasurementEventForecastingService =
-            new SensorTelemetryMeasurementEventForecastingService();
+    final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
+        new FabricationForecastingServiceAdapter();
+    final SensingRecordingServiceAdapter sensingRecordingServiceAdapter =
+        new SensingRecordingServiceAdapter();
 
     final CompositeTransformationFactory ingestion =
         new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
     final CompositeTransformationFactory splitting =
         new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceServiceImpl);
-    final CompositeTransformationFactory averageCalculation =
-        new AverageCalculationCompositeTransformationFactory(
-            averageCalculationParameters,
-            iboPersistenceServiceImpl,
-            sensorTelemetryMeasurementEventForecastingService);
     final CompositeTransformationFactory averageCalculationMerging =
         new AverageCalculationMergingCompositeTransformationFactory(
             averageCalculationMergingParameters, iboPersistenceServiceImpl);
+
+    final List<CompositeTransformationFactory> averageCalculationCTFs = new ArrayList<>();
+
+    for (final AverageCalculationCompositeTransformationParameters parametersSet :
+        averageCalculationParametersList) {
+      final CompositeTransformationFactory averageCalculation =
+          new AverageCalculationCompositeTransformationFactory(
+              parametersSet,
+              iboPersistenceServiceImpl,
+              fabricationForecastingServiceAdapter,
+              sensingRecordingServiceAdapter);
+
+      averageCalculationCTFs.add(averageCalculation);
+    }
 
     final SimpleCompositeTransformationFactoriesManager manager =
         SimpleCompositeTransformationFactoriesManager.newInstance()
             .withCompositeTransformationFactory(ingestion)
             .withCompositeTransformationFactory(splitting)
-            .withCompositeTransformationFactory(averageCalculation)
             .withCompositeTransformationFactory(averageCalculationMerging);
+
+    for (final CompositeTransformationFactory ctf : averageCalculationCTFs) {
+      manager.withCompositeTransformationFactory(ctf);
+    }
 
     final StreamsBuilder streamsBuilder = manager.build();
     final KafkaStreams kafkaStreams =

@@ -201,7 +201,7 @@ public final class SplittingCompositeTransformationFactory extends CompositeTran
   @Override
   public StreamsBuilder build(StreamsBuilder streamsBuilder) {
     LOGGER.debug(
-        "Request to provision {} {} composite transformation",
+        "Request to build {} {} composite transformation",
         this.getUniqueIdentifier(),
         this.getName());
 

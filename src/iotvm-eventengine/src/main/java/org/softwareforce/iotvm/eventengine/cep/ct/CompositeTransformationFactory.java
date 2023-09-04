@@ -32,4 +32,14 @@ public abstract class CompositeTransformationFactory {
   public final String getUniqueIdentifier() {
     return getName() + "." + getParameters().getUniqueIdentifier();
   }
+
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("CompositeTransformationFactory{");
+    sb.append(this.getName());
+    sb.append(" : ");
+    sb.append(this.getParameters().getUniqueIdentifier());
+    sb.append('}');
+    return sb.toString();
+  }
 }

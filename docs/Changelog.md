@@ -1,6 +1,19 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.1
+
+Features:
+
+- extensions (python, thrift, event engine, gateway)
+- fabrication forecasting
+- fabrication backcasting
+- sensing recordind
+- event engine improvements
+- gateway improvements
+- web app
+- bug fixes
+
 # Sunday 30 July 2023
 
 ## iotvm-eventengine

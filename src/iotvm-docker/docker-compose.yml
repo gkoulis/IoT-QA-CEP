@@ -12,6 +12,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 10100
       ZOOKEEPER_TICK_TIME: 2000
     volumes:
+      - iotvm-zookeeper-secrets:/etc/zookeeper/secrets
       - iotvm-zookeeper-data:/var/lib/zookeeper/data
       - iotvm-zookeeper-logs:/var/lib/zookeeper/log
 
@@ -34,6 +35,7 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: iotvm-kafka
     volumes:
       - iotvm-kafka-data:/var/lib/kafka/data
+      - iotvm-kafka-secrets:/etc/kafka/secrets
 
   iotvm-schemaregistry:
     container_name: 'iotvm_schemaregistry'
@@ -49,6 +51,8 @@ services:
       # TODO Σωστά, αλλά λίγο καλύτερα. Να δεσμεύσω δύο ports?
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "iotvm-kafka:29092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:10102"
+    volumes:
+      - iotvm-schemaregistry-secrets:/etc/schema-registry/secrets
 
   iotvm-mongodb:
     container_name: 'iotvm_mongodb'
@@ -58,7 +62,9 @@ services:
       - "27017:27017"
     restart: "no"
     volumes:
-      - iotvm-mongodb-data:/data/db
+      - iotvm-mongodb-data-db:/data/db
+      - iotvm-mongodb-data-configdb:/data/configdb
+
 
   # Applications
 
@@ -77,6 +83,10 @@ services:
 
 volumes:
   iotvm-kafka-data:
+  iotvm-kafka-secrets:
+  iotvm-zookeeper-secrets:
   iotvm-zookeeper-data:
   iotvm-zookeeper-logs:
-  iotvm-mongodb-data:
+  iotvm-schemaregistry-secrets:
+  iotvm-mongodb-data-db:
+  iotvm-mongodb-data-configdb:

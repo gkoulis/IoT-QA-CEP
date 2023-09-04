@@ -25,6 +25,9 @@ java -jar path-to-jar.jar server configuration.yml
 python -m iotvm.main basic_generator
 flask --app iotvm.server run
 
+.\thrift-0.18.1.exe -r --gen py --out ..\..\iotvm-eventengine-extensions .\fabrication_forecasting.thrift
+.\thrift-0.18.1.exe -r --gen java --out ..\..\iotvm-eventengine\src\main\java .\fabrication_forecasting.thrift
+
 Για test:
 ```mvn test```
 
@@ -44,8 +47,22 @@ http://localhost:9000
 | kafdrop         | 9000           | 9000           |
 | gateway         | 9001           | 9001           |
 | event engine    | 9002           | 9002           |
+| extensions      | 9003           | 9003           |
 
 ---
+
+# Demonstration Instructions
+
+```
+npm run dev
+docker-compose -f iotvm-docker/docker-compose.yml up -d
+python -m iotvm_extensions.main start_server
+java -jar target/gateway.jar server configuration.yml
+java -jar target/eventengine.jar
+python -m iotvm.main start_generator
+# Του δίνουμε λίγο χρόνο ώστε να παραχθούν δεδομένα. Για τους πρώτους κύκλους το forecasting δεν είναι διαθέσιμο.
+python -m iotvm_extensions.main ensure_forecasters
+```
 
 # Practical Implications
 
@@ -71,6 +88,8 @@ http://localhost:9000
 - Τα composite transformation μπορούν να τρέξουν σε ένα σύστημα ή κατανεμημένα. Επίσης, μπορούν να δημιουργηθούν πολλά kafka streams applications που είτε μπορούν να τρέχουν σε ένα σύστημα είτε κατανεμημένα. Το μοντέλο μας είναι εξαιρετικά ευέλικτο!  
 
 - https://jira.mongodb.org/browse/JAVA-3372?attachmentOrder=desc
+
+-  2023-08-29T14:31:00Z vs 2023-08-29T14:31:10Z.  Window is agnostic if start/end boundaries are inclusive or exclusive; this is defined by concrete window implementations. Convention: start - end minus 1 millisecond (EVERYWHERE!)
 
 # Tasks:
 

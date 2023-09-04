@@ -4,12 +4,11 @@
   "name": "QualityPropertiesIBO",
   "fields": [
     {
-      "name": "completeness",
-      "type": ["double", "null"]
-    },
-    {
-      "name": "timeliness",
-      "type": ["double", "null"]
+      "name": "metrics",
+      "type": {
+        "type": "map",
+        "values": ["null", "double"]
+      }
     }
   ]
 }

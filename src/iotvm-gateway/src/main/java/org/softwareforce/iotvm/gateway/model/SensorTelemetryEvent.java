@@ -3,7 +3,9 @@ package org.softwareforce.iotvm.gateway.model;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.softwareforce.iotvm.gateway.configuration.Constants;
 
 /**
@@ -18,6 +20,7 @@ public final class SensorTelemetryEvent implements Serializable {
   private final List<SensorTelemetryEventMeasurement> measurements;
   private final String sensorId;
   private final Long timestamp;
+  private final Map<String, Object> additional;
 
   /* ------------ Constructors ------------ */
 
@@ -26,13 +29,18 @@ public final class SensorTelemetryEvent implements Serializable {
     this.measurements = new ArrayList<>();
     this.sensorId = Constants.UNDEFINED;
     this.timestamp = 0L;
+    this.additional = new HashMap<>();
   }
 
   public SensorTelemetryEvent(
-      List<SensorTelemetryEventMeasurement> measurements, String sensorId, Long timestamp) {
+      List<SensorTelemetryEventMeasurement> measurements,
+      String sensorId,
+      Long timestamp,
+      Map<String, Object> additional) {
     this.measurements = measurements;
     this.sensorId = sensorId;
     this.timestamp = timestamp;
+    this.additional = additional;
   }
 
   /* ------------ Getters ------------ */
@@ -49,6 +57,10 @@ public final class SensorTelemetryEvent implements Serializable {
     return timestamp;
   }
 
+  public Map<String, Object> getAdditional() {
+    return additional;
+  }
+
   /* ------------ Overrides ------------ */
 
   @Override
@@ -57,6 +69,7 @@ public final class SensorTelemetryEvent implements Serializable {
     sb.append("measurements=").append(measurements);
     sb.append(", sensorId='").append(sensorId).append('\'');
     sb.append(", timestamp=").append(timestamp);
+    sb.append(", additional=").append(additional);
     sb.append('}');
     return sb.toString();
   }

@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.WindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.FabricationValueMapperWithKey;
@@ -33,7 +35,8 @@ import org.softwareforce.iotvm.eventengine.cep.ct.specifics.FixedSizeTimeWindowS
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestampExtractor;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.AggregatorImpl;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.InitializerImpl;
-import org.softwareforce.iotvm.eventengine.experimental.SensorTelemetryMeasurementEventForecastingService;
+import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
+import org.softwareforce.iotvm.eventengine.extensions.SensingRecordingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.QualityPropertiesIBO;
@@ -57,16 +60,16 @@ public class AverageCalculationCompositeTransformationFactory
   private final AverageCalculationCompositeTransformationParameters parameters;
   private final FixedSizeTimeWindowSpec fixedSizeTimeWindowSpec;
   private final IBOPersistenceServiceImpl iboPersistenceService;
-  private final SensorTelemetryMeasurementEventForecastingService
-      sensorTelemetryMeasurementEventForecastingService;
+  private final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter;
+  private final SensingRecordingServiceAdapter sensingRecordingServiceAdapter;
 
   /* ------------ Constructors ------------ */
 
   public AverageCalculationCompositeTransformationFactory(
       AverageCalculationCompositeTransformationParameters parameters,
       IBOPersistenceServiceImpl iboPersistenceService,
-      SensorTelemetryMeasurementEventForecastingService
-          sensorTelemetryMeasurementEventForecastingService) {
+      FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter,
+      SensingRecordingServiceAdapter sensingRecordingServiceAdapter) {
     this.parameters = parameters;
     this.fixedSizeTimeWindowSpec =
         new FixedSizeTimeWindowSpec(
@@ -74,93 +77,8 @@ public class AverageCalculationCompositeTransformationFactory
             this.parameters.getTimeWindowGrace(),
             this.parameters.getTimeWindowAdvance());
     this.iboPersistenceService = iboPersistenceService;
-    this.sensorTelemetryMeasurementEventForecastingService =
-        sensorTelemetryMeasurementEventForecastingService;
-  }
-
-  /* ------------ Quality Properties Calculators ------------ */
-
-  // TODO Move to utils (CalculationUtils)
-  private Optional<Double> calculateAverage(List<SensorTelemetryMeasurementEventIBO> eventList) {
-    final int size = eventList.size();
-    if (size == 0) {
-      return Optional.empty();
-    }
-    final double sum = eventList.stream().mapToDouble(i -> i.getMeasurement().getValue()).sum();
-    final double average = sum / size;
-    return Optional.of(average);
-  }
-
-  @SuppressWarnings("RedundantCast")
-  private double calculateCompleteness(List<SensorTelemetryMeasurementEventIBO> eventList) {
-    double real = (double) this.parameters.getMinimumNumberOfContributingSensors();
-    double expected = (double) eventList.size();
-    return 1d - ((real - expected) / real);
-  }
-
-  @SuppressWarnings("RedundantCast")
-  private double calculateTimeliness(
-      Long startTimestamp, Long endTimestamp, List<SensorTelemetryMeasurementEventIBO> eventList) {
-    if (eventList.isEmpty()) {
-      return 0.0d;
-    }
-    double real = (double) eventList.size();
-    double timely = 0.0D;
-    for (final SensorTelemetryMeasurementEventIBO event : eventList) {
-      if (event.getTimestamps().getDefaultTimestamp() >= startTimestamp
-          && event.getTimestamps().getDefaultTimestamp() <= endTimestamp) {
-        timely = timely + 1D;
-      }
-    }
-    return 1d - ((real - timely) / real);
-  }
-
-  @SuppressWarnings("RedundantCast")
-  private double calculateTimelinessAlt(
-      Long startTimestamp, Long endTimestamp, List<SensorTelemetryMeasurementEventIBO> eventList) {
-
-    // TODO -1 or +1?
-    final long diff = (endTimestamp - startTimestamp) + 1;
-    final List<Long> changePoints = new ArrayList<>();
-    for (int i = 1; i <= parameters.getPastWindowsLookup(); i++) {
-      changePoints.add(startTimestamp - (diff * i));
-    }
-
-    // TODO Remove.
-    System.out.println(diff);
-    System.out.println(changePoints);
-
-    if (eventList.isEmpty()) {
-      return 0.0d;
-    }
-    double real = (double) eventList.size();
-    double timely = 0.0D;
-    for (final SensorTelemetryMeasurementEventIBO event : eventList) {
-      // TODO γίνεται και πιο απλό -> βάλε το τωρινό time window στα changepoints (με index 0).
-      if (event.getTimestamps().getDefaultTimestamp() >= startTimestamp
-          && event.getTimestamps().getDefaultTimestamp() <= endTimestamp) {
-        timely = timely + 1D;
-      } else {
-        double temp = 0D;
-        int index = 1;
-        for (final long changePoint : changePoints) {
-          // TODO Remove.
-          System.out.println("CHECKING CHANGEPOINT : " + changePoint + " (for " + event.getTimestamps().getDefaultTimestamp() + ")");
-          if (event.getTimestamps().getDefaultTimestamp() < changePoint) {
-            index++;
-            continue;
-          }
-          // TODO Remove.
-          System.out.println("CHANGEPOINT DETECTED: " + changePoint);
-          temp = 1D - ((1D / parameters.getPastWindowsLookup()) * index);
-          // TODO Remove.
-          System.out.println("RESULT: " + temp);
-          break;
-        }
-        timely = timely + temp;
-      }
-    }
-    return 1d - ((real - timely) / real);
+    this.fabricationForecastingServiceAdapter = fabricationForecastingServiceAdapter;
+    this.sensingRecordingServiceAdapter = sensingRecordingServiceAdapter;
   }
 
   /* ------------ Internals ------------ */
@@ -184,8 +102,10 @@ public class AverageCalculationCompositeTransformationFactory
                     {} {}
                     {} sensors : {}
                     lag : {}
-                    completeness : {}
-                    timeliness   : {}
+                    completeness1 : {}
+                    timeliness1   : {}
+                    timeliness2   : {}
+                    accuracy1     : {}
                   """,
                   Instant.ofEpochMilli(value.getStartTimestamp()),
                   Instant.ofEpochMilli(value.getEndTimestamp()),
@@ -198,11 +118,42 @@ public class AverageCalculationCompositeTransformationFactory
                       .map(SensorTelemetryMeasurementEventIBO::getSensorId)
                       .collect(Collectors.joining(", ")),
                   lagInSeconds,
-                  value.getQualityProperties().getCompleteness(),
-                  value.getQualityProperties().getTimeliness());
+                  value.getQualityProperties().getMetrics().get("completeness1"),
+                  value.getQualityProperties().getMetrics().get("timeliness1"),
+                  value.getQualityProperties().getMetrics().get("timeliness2"),
+                  value.getQualityProperties().getMetrics().get("accuracy1"));
             });
 
     return streamsBuilder;
+  }
+
+  private static QualityPropertiesIBO calculateAndGetQualityPropertiesIBO(
+      final long windowStartTimestamp,
+      final long windowEndTimestamp,
+      final int minimumNumberOfContributingSensors,
+      final int pastWindowsLookup,
+      final List<SensorTelemetryMeasurementEventIBO> eventIBOList) {
+    final double completeness1 =
+        CalculationUtils.calculateCompleteness1(minimumNumberOfContributingSensors, eventIBOList);
+    final double timeliness1 =
+        CalculationUtils.calculateTimeliness1(
+            windowStartTimestamp, windowEndTimestamp, eventIBOList);
+    final double timeliness2 =
+        CalculationUtils.calculateTimeliness2(
+            windowStartTimestamp, windowEndTimestamp, pastWindowsLookup, eventIBOList);
+    final double accuracy1 = 0.0D;
+
+    final Map<String, Double> metrics = new HashMap<>();
+
+    metrics.put("completeness1", completeness1);
+    metrics.put("timeliness1", timeliness1);
+    metrics.put("timeliness2", timeliness2);
+    metrics.put("accuracy1", accuracy1);
+
+    final QualityPropertiesIBO qualityPropertiesIBO =
+        QualityPropertiesIBO.newBuilder().setMetrics(metrics).build();
+
+    return qualityPropertiesIBO;
   }
 
   /* ------------ Implementation ------------ */
@@ -220,7 +171,7 @@ public class AverageCalculationCompositeTransformationFactory
   @Override
   public StreamsBuilder build(StreamsBuilder streamsBuilder) {
     LOGGER.debug(
-        "Request to provision {} {} composite transformation",
+        "Request to build {} {} composite transformation",
         this.getUniqueIdentifier(),
         this.getName());
 
@@ -268,6 +219,10 @@ public class AverageCalculationCompositeTransformationFactory
         .aggregate(new InitializerImpl(physicalQuantity), new AggregatorImpl(), materialized)
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
+        // TODO time-related feature και debug/inspection -> ένα stage που να ελέγχει αν τα
+        // timestamps που βρίσκονται στο TimestampExtractorUtil ανήκουν ΌΛΑ στο ίδιο παράθυρο. Αν
+        // όχι, τότε υπάρχει ασυμφωνία που πρέπει να αποτυπωθεί στο composite event
+        // TODO context stage: π.χ. ποιοι sensors είναι registered? Βάλε τους μέσα στο additional.
         .mapValues(
             (key, value) -> {
               double lagInSeconds =
@@ -313,28 +268,38 @@ public class AverageCalculationCompositeTransformationFactory
                       .setTimestamps(timestamps)
                       .build();
 
-              final double completeness =
-                  this.calculateCompleteness(value.getEvents().values().stream().toList());
-              final double timeliness =
-                  this.calculateTimeliness(
-                      key.window().startTime().toEpochMilli(),
-                      key.window().endTime().toEpochMilli(),
-                      value.getEvents().values().stream().toList());
-              final double timelinessAtl =
-                  this.calculateTimelinessAlt(
-                      key.window().startTime().toEpochMilli(),
-                      key.window().endTime().toEpochMilli(),
-                      value.getEvents().values().stream().toList());
               final QualityPropertiesIBO qualityPropertiesIBO =
-                  QualityPropertiesIBO.newBuilder()
-                      .setCompleteness(completeness)
-                      .setTimeliness(timeliness)
-                      .build();
+                  calculateAndGetQualityPropertiesIBO(
+                      key.window().start(),
+                      key.window().end(),
+                      this.parameters.getMinimumNumberOfContributingSensors(),
+                      this.parameters.getPastWindowsLookup(),
+                      value.getEvents().values().stream().toList());
+
+              // Sensor Simulation inspection and debugging.
+              final List<SensorTelemetryMeasurementEventIBO> eventIBOList =
+                  value.getEvents().values().stream().toList();
+              // TODO Εδώ αποδεικνύεται πώς ο client μπορεί να διαλύσει όλο το σύστημα. MapUtils για
+              // να παίρνω σωστά τις τιμές...
+              final String debugStringUniqueCycleValues =
+                  eventIBOList.stream()
+                      .map(e -> (String) e.getAdditional().get("cycle"))
+                      .filter(Objects::nonNull)
+                      .distinct()
+                      .sorted()
+                      .collect(Collectors.joining(", "));
+              final String debugStringUniqueRecurringWindowValues =
+                  eventIBOList.stream()
+                      .map(e -> (String) e.getAdditional().get("recurring_window"))
+                      .filter(Objects::nonNull)
+                      .distinct()
+                      .sorted()
+                      .collect(Collectors.joining(", "));
 
               final Map<String, Object> additional = value.getAdditional();
-              // TODO Add to quality properties!
-              // TODO (and refactor e.g. store previous value before fabrication etc.)
-              additional.put("timelinessAlt", timelinessAtl);
+              additional.put("debugStringUniqueCycleValues", debugStringUniqueCycleValues);
+              additional.put(
+                  "debugStringUniqueRecurringWindowValues", debugStringUniqueRecurringWindowValues);
 
               return SensorTelemetryMeasurementsAverageEventIBO.newBuilder()
                   .setCompositeTransformationName(this.getName())
@@ -366,7 +331,10 @@ public class AverageCalculationCompositeTransformationFactory
               @Override
               public boolean shouldApply(
                   Windowed<String> readOnlyKey, SensorTelemetryMeasurementsAverageEventIBO value) {
-                if (value.getQualityProperties().getCompleteness() >= 1) {
+                final Double completeness1 =
+                    value.getQualityProperties().getMetrics().get("completeness1");
+                Preconditions.checkState(completeness1 != null, "completeness1 cannot be null!");
+                if (completeness1 >= 1) {
                   return false;
                 }
                 if (parameters.getPastWindowsLookup() <= 0) {
@@ -404,7 +372,9 @@ public class AverageCalculationCompositeTransformationFactory
                 int notFound = 0;
                 int count = 0;
 
-                // TODO Make sure that 10 millis is safe to subtract.
+                // @PHD_DOCS -10 millis is safe to subtract because the window size cannot be less
+                // than 1 second.
+
                 // Get range start and end points to search for past events.
                 final long timestamp =
                     key.window().endTime().minus(10, ChronoUnit.MILLIS).toEpochMilli();
@@ -467,7 +437,6 @@ public class AverageCalculationCompositeTransformationFactory
                   value.getEvents().put(pastEvent.getSensorId(), pastEvent);
                   count++;
 
-                  // TODO Parameter to override this.
                   if (count >= required) {
                     break;
                   }
@@ -490,30 +459,22 @@ public class AverageCalculationCompositeTransformationFactory
                 value.getAdditional().put(this.name() + "Count", count);
 
                 // Calculate average.
+                // TODO Prefer null, not Short.MIN_VALUE
                 value
                     .getAverage()
                     .setValue(
-                        calculateAverage(value.getEvents().values().stream().toList())
+                        CalculationUtils.calculateAverage(
+                                value.getEvents().values().stream().toList())
                             .orElse((double) Short.MIN_VALUE));
 
-                // Update quality properties.
-                final double completeness =
-                    calculateCompleteness(value.getEvents().values().stream().toList());
-                final double timeliness =
-                    calculateTimeliness(
-                        key.window().startTime().toEpochMilli(),
-                        key.window().endTime().toEpochMilli(),
+                final QualityPropertiesIBO qualityPropertiesIBO =
+                    calculateAndGetQualityPropertiesIBO(
+                        key.window().start(),
+                        key.window().end(),
+                        parameters.getMinimumNumberOfContributingSensors(),
+                        parameters.getPastWindowsLookup(),
                         value.getEvents().values().stream().toList());
-                final double timelinessAlt =
-                    calculateTimelinessAlt(
-                        key.window().startTime().toEpochMilli(),
-                        key.window().endTime().toEpochMilli(),
-                        value.getEvents().values().stream().toList());
-
-                value.getQualityProperties().setCompleteness(completeness);
-                value.getQualityProperties().setTimeliness(timeliness);
-                // TODO add to quality properties.
-                value.getAdditional().put("timelinessAlt", timelinessAlt);
+                value.setQualityProperties(qualityPropertiesIBO);
 
                 return value;
               }
@@ -529,7 +490,10 @@ public class AverageCalculationCompositeTransformationFactory
               @Override
               public boolean shouldApply(
                   Windowed<String> readOnlyKey, SensorTelemetryMeasurementsAverageEventIBO value) {
-                if (value.getQualityProperties().getCompleteness() >= 1) {
+                final Double completeness1 =
+                    value.getQualityProperties().getMetrics().get("completeness1");
+                Preconditions.checkState(completeness1 != null, "completeness1 cannot be null!");
+                if (completeness1 >= 1) {
                   return false;
                 }
                 //noinspection RedundantIfStatement
@@ -575,17 +539,17 @@ public class AverageCalculationCompositeTransformationFactory
                 final List<SensorTelemetryMeasurementEventIBO> forecastedEventsList =
                     new ArrayList<>();
                 for (final String sensorId : missingSensorIds) {
-                  final Optional<SensorTelemetryMeasurementEventIBO> pastEventOptional =
-                      sensorTelemetryMeasurementEventForecastingService.forecast(
+                  final Optional<SensorTelemetryMeasurementEventIBO> forecastedEventOptional =
+                      fabricationForecastingServiceAdapter.forecast(
                           physicalQuantity,
                           sensorId,
                           inputTopicName,
-                          parameters.getTimeWindowSize().toString(),
+                          parameters.getForecastingWindowSize().toSeconds(),
                           startTimestamp,
                           endTimestamp,
-                          timeWindowSize);
+                          parameters.getFutureWindowsLookup());
 
-                  if (pastEventOptional.isEmpty()) {
+                  if (forecastedEventOptional.isEmpty()) {
                     LOGGER.trace(
                         "Could not find forecasted version of {} SensorTelemetryMeasurementEventIBO"
                             + " for sensor with ID : {} between {} and {} with time window size {}",
@@ -599,7 +563,7 @@ public class AverageCalculationCompositeTransformationFactory
                   }
 
                   found++;
-                  forecastedEventsList.add(pastEventOptional.get());
+                  forecastedEventsList.add(forecastedEventOptional.get());
                 }
 
                 // Validate pasts events list.
@@ -613,29 +577,52 @@ public class AverageCalculationCompositeTransformationFactory
                     totalPastEventListCount == uniquePastEventListCount,
                     "totalPastEventListCount must be equal to uniquePastEventListCount");
 
-                // Sort past events list (metric, direction).
-                // TODO Check if metric exists?
-                // TODO add a valid metric!
-                final String metric = "accuracy";
-                final boolean descending = false;
-                forecastedEventsList.sort(
-                    Comparator.comparing(o -> (Double) o.getAdditional().get(metric)));
-                if (descending) {
-                  Collections.reverse(forecastedEventsList);
-                }
+                // Sort fabricated events. I want to select the most recent.
+                // If they have the same time diff, sort by (dataset) completeness.
+                final Comparator<SensorTelemetryMeasurementEventIBO> c1 =
+                    Comparator.comparingDouble(
+                        o ->
+                            (Double)
+                                o.getAdditional().get("forecastResponseMetricsTimeDifference"));
+                final Comparator<SensorTelemetryMeasurementEventIBO> c2 =
+                    Comparator.comparingDouble(
+                        o -> (Double) o.getAdditional().get("forecastResponseMetricsCompleteness"));
+
+                forecastedEventsList.sort(c2);
+                Collections.reverse(forecastedEventsList);
+                forecastedEventsList.sort(c1);
+
+                // Debug.
+                // Uncomment to debug.
+                /*
+                final String debugString1 =
+                    forecastedEventsList.stream()
+                        .map(
+                            o ->
+                                o.getSensorId()
+                                    + ": "
+                                    + o.getAdditional().get("forecastResponseMetricsTimeDifference")
+                                    + ", "
+                                    + o.getAdditional().get("forecastResponseMetricsCompleteness"))
+                        .collect(Collectors.joining("\n"));
+                LOGGER.debug("DEBUG : \n{}", debugString1);
+                */
+
+                // @bug (August 2023) Κάπου μου είχε δείξει completeness 1.
+                // Μετά από μερικά δευτερόλεπτα, είναι αδύνατον να έχω completeness 1.
 
                 // Set missing values.
-                for (final SensorTelemetryMeasurementEventIBO pastEvent : forecastedEventsList) {
-                  if (value.getEvents().containsKey(pastEvent.getSensorId())) {
+                for (final SensorTelemetryMeasurementEventIBO forecastedEvent :
+                    forecastedEventsList) {
+                  if (value.getEvents().containsKey(forecastedEvent.getSensorId())) {
                     throw new IllegalStateException(
                         "events Map contains v sensorId "
-                            + pastEvent.getSensorId()
+                            + forecastedEvent.getSensorId()
                             + " key which is unexpected!");
                   }
-                  value.getEvents().put(pastEvent.getSensorId(), pastEvent);
+                  value.getEvents().put(forecastedEvent.getSensorId(), forecastedEvent);
                   count++;
 
-                  // TODO Parameter to override this.
                   if (count >= required) {
                     break;
                   }
@@ -655,7 +642,8 @@ public class AverageCalculationCompositeTransformationFactory
                 value
                     .getAverage()
                     .setValue(
-                        calculateAverage(value.getEvents().values().stream().toList())
+                        CalculationUtils.calculateAverage(
+                                value.getEvents().values().stream().toList())
                             .orElse((double) Short.MIN_VALUE));
 
                 // Update additional data.
@@ -665,36 +653,55 @@ public class AverageCalculationCompositeTransformationFactory
                 value.getAdditional().put(this.name() + "NotFound", notFound);
                 value.getAdditional().put(this.name() + "Count", count);
 
-                // Update quality properties.
-                final double completeness =
-                    calculateCompleteness(value.getEvents().values().stream().toList());
-                final double timeliness =
-                    calculateTimeliness(
-                        key.window().startTime().toEpochMilli(),
-                        key.window().endTime().toEpochMilli(),
+                final QualityPropertiesIBO qualityPropertiesIBO =
+                    calculateAndGetQualityPropertiesIBO(
+                        key.window().start(),
+                        key.window().end(),
+                        parameters.getMinimumNumberOfContributingSensors(),
+                        parameters.getPastWindowsLookup(),
                         value.getEvents().values().stream().toList());
-                final double timelinessAlt =
-                    calculateTimelinessAlt(
-                        key.window().startTime().toEpochMilli(),
-                        key.window().endTime().toEpochMilli(),
-                        value.getEvents().values().stream().toList());
-
-                value.getQualityProperties().setCompleteness(completeness);
-                value.getQualityProperties().setTimeliness(timeliness);
-                // TODO Add to quality properties.
-                value.getAdditional().put("timelinessAlt", timelinessAlt);
+                value.setQualityProperties(qualityPropertiesIBO);
 
                 return value;
               }
             })
-        // TODO accuracy based on ground-truth.
+        // Accuracy based on ground-truth.
+        .mapValues(
+            (key, value) -> {
+              if (value.getEvents().isEmpty()) {
+                value.getQualityProperties().getMetrics().put("accuracy1", null);
+                return value;
+              }
+
+              final long fromTimestamp = key.window().start();
+              final long toTimestamp = key.window().end() - 1;
+
+              final Optional<Double> realAverageOptional =
+                  this.sensingRecordingServiceAdapter.getRealAverage(
+                      Constants.SENSOR_IDS, physicalQuantity, fromTimestamp, toTimestamp);
+
+              if (realAverageOptional.isEmpty()) {
+                value.getQualityProperties().getMetrics().put("accuracy1", 0.0D);
+                return value;
+              }
+
+              double real = realAverageOptional.get();
+              double expected = value.getAverage().getValue();
+              double accuracy = 1d - ((Math.abs(real - expected)) / real);
+              value.getQualityProperties().getMetrics().put("accuracy1", accuracy);
+
+              return value;
+            })
         .mapValues((key, value) -> value)
         .filter(
             (key, value) -> {
               if (this.parameters.isIgnoreCompletenessFiltering()) {
                 return true;
               }
-              return value.getQualityProperties().getCompleteness() >= 1;
+              final Double completeness1 =
+                  value.getQualityProperties().getMetrics().get("completeness1");
+              Preconditions.checkState(completeness1 != null, "completeness1 cannot be null!");
+              return completeness1 >= 1;
             })
         // Persistence.
         .mapValues((value) -> this.iboPersistenceService.saveAlt(outputTopicName, value))
