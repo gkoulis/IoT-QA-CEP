@@ -25,6 +25,15 @@ class CLI:
 
         run_client_example()
 
+    # TODO Temporary.
+    def run_prototype_example(self) -> None:
+        from iotvm_extensions.examples.prototype import (
+            run_example_20231009,
+            run_example_20231010,
+        )
+
+        run_example_20231010()
+
 
 if __name__ == "__main__":
     set_up_logging()

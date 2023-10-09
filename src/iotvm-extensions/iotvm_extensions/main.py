@@ -62,10 +62,7 @@ class CLI:
         from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
 
         client: MongoClient = get_default_mongodb_client()
-        collections_names: List[str] = [
-            "recorded_sensor_data",
-            "universal"
-        ]
+        collections_names: List[str] = ["recorded_sensor_data", "universal"]
         for collection_name in collections_names:
             collection = client["iotvmdb"][collection_name]
             collection.delete_many({})

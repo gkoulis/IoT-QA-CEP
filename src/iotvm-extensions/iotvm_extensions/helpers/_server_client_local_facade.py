@@ -31,7 +31,9 @@ class ServerClientLocalFacade:
             service_name="FabricationForecastingService"
         )
         if service is None:
-            _logger.error("FabricationForecastingService is not available! Aborting `ensure`!")
+            _logger.error(
+                "FabricationForecastingService is not available! Aborting `ensure`!"
+            )
             return
         service.ensure(scope=scope)
 
@@ -42,7 +44,9 @@ class ServerClientLocalFacade:
             service_name="FabricationForecastingService"
         )
         if service is None:
-            _logger.error("FabricationForecastingService is not available! Aborting `forecast`!")
+            _logger.error(
+                "FabricationForecastingService is not available! Aborting `forecast`!"
+            )
             return None
         return service.forecast(scope=scope, request=request)
 
@@ -55,7 +59,9 @@ class ServerClientLocalFacade:
             service_name="SensingRecordingService"
         )
         if service is None:
-            _logger.error("SensingRecordingService is not available! Aborting `recordSensorData`!")
+            _logger.error(
+                "SensingRecordingService is not available! Aborting `recordSensorData`!"
+            )
             return
         service.recordSensorData(recordedSensorData=recordedSensorData)
 

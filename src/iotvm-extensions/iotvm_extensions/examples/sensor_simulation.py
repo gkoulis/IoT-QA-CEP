@@ -22,7 +22,9 @@ def run_sensor_simulation_example() -> None:
         microsecond=0,
         tzinfo=zoneinfo.ZoneInfo("Europe/Athens"),
     )
-    start_dt: datetime.datetime = datetime.datetime.now(tz=zoneinfo.ZoneInfo("Europe/Athens"))
+    start_dt: datetime.datetime = datetime.datetime.now(
+        tz=zoneinfo.ZoneInfo("Europe/Athens")
+    )
     start_dt = start_dt.replace(minute=start_dt.minute + 1, second=0, microsecond=0)
     start_dt = start_dt.astimezone(tz=datetime.timezone.utc)
 
@@ -61,7 +63,9 @@ def run_sensor_simulation_example() -> None:
     # Scheduled ops execution.
     # --------------------------------------------------
 
-    execute_schedule(schedule_df=schedule_df, dry_run=dry_run, fail_silently=fail_silently)
+    execute_schedule(
+        schedule_df=schedule_df, dry_run=dry_run, fail_silently=fail_silently
+    )
 
     # DataFrame to excel (BE CAREFUL, this operation makes DTs naive).
     # --------------------------------------------------

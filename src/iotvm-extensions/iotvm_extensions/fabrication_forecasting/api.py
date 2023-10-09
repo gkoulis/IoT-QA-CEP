@@ -3,10 +3,11 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from iotvm_extensions.fabrication_forecasting.base import \
-    build_key, SensorMeasurementForecaster
-from iotvm_extensions.fabrication_forecasting.spec import \
-    FabricationForecastingService
+from iotvm_extensions.fabrication_forecasting.base import (
+    build_key,
+    SensorMeasurementForecaster,
+)
+from iotvm_extensions.fabrication_forecasting.spec import FabricationForecastingService
 from iotvm_extensions.fabrication_forecasting.spec.ttypes import (
     ForecastScope,
     ForecastRequest,
@@ -20,7 +21,7 @@ def _key(scope: ForecastScope) -> str:
         sensor_id=scope.sensorId,
         physical_quantity=scope.physicalQuantity,
         topic_name=scope.topicName,
-        frequency_in_seconds=scope.frequencyInSeconds
+        frequency_in_seconds=scope.frequencyInSeconds,
     )
 
 
@@ -78,8 +79,12 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
         self._forecasters[key].refresh_data()
 
         future_periods: int = request.stepsAhead
-        start_timestamp = pd.Timestamp(request.startTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms")
-        end_timestamp = pd.Timestamp(request.endTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms")
+        start_timestamp = pd.Timestamp(
+            request.startTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
+        )
+        end_timestamp = pd.Timestamp(
+            request.endTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
+        )
         result: Optional[Dict] = self._forecasters[key].forecast(
             future_periods=future_periods,
             start_timestamp=start_timestamp,
@@ -89,11 +94,12 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
         if result is None:
             raise ForecastException(
                 f"SensorMeasurementForecaster {key} "
-                f"could not provide forecast for period {start_timestamp} - {end_timestamp}!")
+                f"could not provide forecast for period {start_timestamp} - {end_timestamp}!"
+            )
 
         return ForecastResponse(
             value=float(result["prediction"]),
             startTimestamp=int(result["window"].timestamp() * 1_000),
             endTimestamp=int(result["window_end"].timestamp() * 1_000),
-            metrics=result["metrics"]
+            metrics=result["metrics"],
         )

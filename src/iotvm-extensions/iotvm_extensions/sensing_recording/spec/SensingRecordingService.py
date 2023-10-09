@@ -6,7 +6,13 @@
 #  options string: py
 #
 
-from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
+from thrift.Thrift import (
+    TType,
+    TMessageType,
+    TFrozenDict,
+    TException,
+    TApplicationException,
+)
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 
@@ -16,6 +22,7 @@ import logging
 from .ttypes import *
 from thrift.Thrift import TProcessor
 from thrift.transport import TTransport
+
 all_structs = []
 
 
@@ -24,6 +31,7 @@ class Iface(iotvm_extensions.shared.base.BaseService.Iface):
     Defines the sensing recording service contract.
 
     """
+
     def recordSensorData(self, recordedSensorData):
         """
         Parameters:
@@ -32,7 +40,9 @@ class Iface(iotvm_extensions.shared.base.BaseService.Iface):
         """
         pass
 
-    def getBasicAggregationsCTFReals(self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp):
+    def getBasicAggregationsCTFReals(
+        self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp
+    ):
         """
         Parameters:
          - sensorIds
@@ -49,6 +59,7 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
     Defines the sensing recording service contract.
 
     """
+
     def __init__(self, iprot, oprot=None):
         iotvm_extensions.shared.base.BaseService.Client.__init__(self, iprot, oprot)
 
@@ -61,14 +72,18 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
         self.send_recordSensorData(recordedSensorData)
 
     def send_recordSensorData(self, recordedSensorData):
-        self._oprot.writeMessageBegin('recordSensorData', TMessageType.ONEWAY, self._seqid)
+        self._oprot.writeMessageBegin(
+            "recordSensorData", TMessageType.ONEWAY, self._seqid
+        )
         args = recordSensorData_args()
         args.recordedSensorData = recordedSensorData
         args.write(self._oprot)
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def getBasicAggregationsCTFReals(self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp):
+    def getBasicAggregationsCTFReals(
+        self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp
+    ):
         """
         Parameters:
          - sensorIds
@@ -77,11 +92,17 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
          - toTimestamp
 
         """
-        self.send_getBasicAggregationsCTFReals(sensorIds, physicalQuantity, fromTimestamp, toTimestamp)
+        self.send_getBasicAggregationsCTFReals(
+            sensorIds, physicalQuantity, fromTimestamp, toTimestamp
+        )
         return self.recv_getBasicAggregationsCTFReals()
 
-    def send_getBasicAggregationsCTFReals(self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp):
-        self._oprot.writeMessageBegin('getBasicAggregationsCTFReals', TMessageType.CALL, self._seqid)
+    def send_getBasicAggregationsCTFReals(
+        self, sensorIds, physicalQuantity, fromTimestamp, toTimestamp
+    ):
+        self._oprot.writeMessageBegin(
+            "getBasicAggregationsCTFReals", TMessageType.CALL, self._seqid
+        )
         args = getBasicAggregationsCTFReals_args()
         args.sensorIds = sensorIds
         args.physicalQuantity = physicalQuantity
@@ -104,14 +125,19 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
         iprot.readMessageEnd()
         if result.success is not None:
             return result.success
-        raise TApplicationException(TApplicationException.MISSING_RESULT, "getBasicAggregationsCTFReals failed: unknown result")
+        raise TApplicationException(
+            TApplicationException.MISSING_RESULT,
+            "getBasicAggregationsCTFReals failed: unknown result",
+        )
 
 
 class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProcessor):
     def __init__(self, handler):
         iotvm_extensions.shared.base.BaseService.Processor.__init__(self, handler)
         self._processMap["recordSensorData"] = Processor.process_recordSensorData
-        self._processMap["getBasicAggregationsCTFReals"] = Processor.process_getBasicAggregationsCTFReals
+        self._processMap[
+            "getBasicAggregationsCTFReals"
+        ] = Processor.process_getBasicAggregationsCTFReals
         self._on_message_begin = None
 
     def on_message_begin(self, func):
@@ -124,7 +150,9 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         if name not in self._processMap:
             iprot.skip(TType.STRUCT)
             iprot.readMessageEnd()
-            x = TApplicationException(TApplicationException.UNKNOWN_METHOD, 'Unknown function %s' % (name))
+            x = TApplicationException(
+                TApplicationException.UNKNOWN_METHOD, "Unknown function %s" % (name)
+            )
             oprot.writeMessageBegin(name, TMessageType.EXCEPTION, seqid)
             x.write(oprot)
             oprot.writeMessageEnd()
@@ -143,7 +171,7 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         except TTransport.TTransportException:
             raise
         except Exception:
-            logging.exception('Exception in oneway handler')
+            logging.exception("Exception in oneway handler")
 
     def process_getBasicAggregationsCTFReals(self, seqid, iprot, oprot):
         args = getBasicAggregationsCTFReals_args()
@@ -151,22 +179,30 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         iprot.readMessageEnd()
         result = getBasicAggregationsCTFReals_result()
         try:
-            result.success = self._handler.getBasicAggregationsCTFReals(args.sensorIds, args.physicalQuantity, args.fromTimestamp, args.toTimestamp)
+            result.success = self._handler.getBasicAggregationsCTFReals(
+                args.sensorIds,
+                args.physicalQuantity,
+                args.fromTimestamp,
+                args.toTimestamp,
+            )
             msg_type = TMessageType.REPLY
         except TTransport.TTransportException:
             raise
         except TApplicationException as ex:
-            logging.exception('TApplication exception in handler')
+            logging.exception("TApplication exception in handler")
             msg_type = TMessageType.EXCEPTION
             result = ex
         except Exception:
-            logging.exception('Unexpected exception in handler')
+            logging.exception("Unexpected exception in handler")
             msg_type = TMessageType.EXCEPTION
-            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+            result = TApplicationException(
+                TApplicationException.INTERNAL_ERROR, "Internal error"
+            )
         oprot.writeMessageBegin("getBasicAggregationsCTFReals", msg_type, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
+
 
 # HELPER FUNCTIONS AND STRUCTURES
 
@@ -178,12 +214,18 @@ class recordSensorData_args(object):
 
     """
 
-
-    def __init__(self, recordedSensorData=None,):
+    def __init__(
+        self,
+        recordedSensorData=None,
+    ):
         self.recordedSensorData = recordedSensorData
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -204,11 +246,13 @@ class recordSensorData_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('recordSensorData_args')
+        oprot.writeStructBegin("recordSensorData_args")
         if self.recordedSensorData is not None:
-            oprot.writeFieldBegin('recordedSensorData', TType.STRUCT, 1)
+            oprot.writeFieldBegin("recordedSensorData", TType.STRUCT, 1)
             self.recordedSensorData.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -218,19 +262,26 @@ class recordSensorData_args(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(recordSensorData_args)
 recordSensorData_args.thrift_spec = (
     None,  # 0
-    (1, TType.STRUCT, 'recordedSensorData', [RecordedSensorData, None], None, ),  # 1
+    (
+        1,
+        TType.STRUCT,
+        "recordedSensorData",
+        [RecordedSensorData, None],
+        None,
+    ),  # 1
 )
 
 
@@ -244,15 +295,24 @@ class getBasicAggregationsCTFReals_args(object):
 
     """
 
-
-    def __init__(self, sensorIds=None, physicalQuantity=None, fromTimestamp=None, toTimestamp=None,):
+    def __init__(
+        self,
+        sensorIds=None,
+        physicalQuantity=None,
+        fromTimestamp=None,
+        toTimestamp=None,
+    ):
         self.sensorIds = sensorIds
         self.physicalQuantity = physicalQuantity
         self.fromTimestamp = fromTimestamp
         self.toTimestamp = toTimestamp
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -265,14 +325,22 @@ class getBasicAggregationsCTFReals_args(object):
                     self.sensorIds = []
                     (_etype19, _size16) = iprot.readListBegin()
                     for _i20 in range(_size16):
-                        _elem21 = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                        _elem21 = (
+                            iprot.readString().decode("utf-8", errors="replace")
+                            if sys.version_info[0] == 2
+                            else iprot.readString()
+                        )
                         self.sensorIds.append(_elem21)
                     iprot.readListEnd()
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRING:
-                    self.physicalQuantity = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.physicalQuantity = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 3:
@@ -292,26 +360,34 @@ class getBasicAggregationsCTFReals_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('getBasicAggregationsCTFReals_args')
+        oprot.writeStructBegin("getBasicAggregationsCTFReals_args")
         if self.sensorIds is not None:
-            oprot.writeFieldBegin('sensorIds', TType.LIST, 1)
+            oprot.writeFieldBegin("sensorIds", TType.LIST, 1)
             oprot.writeListBegin(TType.STRING, len(self.sensorIds))
             for iter22 in self.sensorIds:
-                oprot.writeString(iter22.encode('utf-8') if sys.version_info[0] == 2 else iter22)
+                oprot.writeString(
+                    iter22.encode("utf-8") if sys.version_info[0] == 2 else iter22
+                )
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         if self.physicalQuantity is not None:
-            oprot.writeFieldBegin('physicalQuantity', TType.STRING, 2)
-            oprot.writeString(self.physicalQuantity.encode('utf-8') if sys.version_info[0] == 2 else self.physicalQuantity)
+            oprot.writeFieldBegin("physicalQuantity", TType.STRING, 2)
+            oprot.writeString(
+                self.physicalQuantity.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.physicalQuantity
+            )
             oprot.writeFieldEnd()
         if self.fromTimestamp is not None:
-            oprot.writeFieldBegin('fromTimestamp', TType.I64, 3)
+            oprot.writeFieldBegin("fromTimestamp", TType.I64, 3)
             oprot.writeI64(self.fromTimestamp)
             oprot.writeFieldEnd()
         if self.toTimestamp is not None:
-            oprot.writeFieldBegin('toTimestamp', TType.I64, 4)
+            oprot.writeFieldBegin("toTimestamp", TType.I64, 4)
             oprot.writeI64(self.toTimestamp)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -321,22 +397,47 @@ class getBasicAggregationsCTFReals_args(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(getBasicAggregationsCTFReals_args)
 getBasicAggregationsCTFReals_args.thrift_spec = (
     None,  # 0
-    (1, TType.LIST, 'sensorIds', (TType.STRING, 'UTF8', False), None, ),  # 1
-    (2, TType.STRING, 'physicalQuantity', 'UTF8', None, ),  # 2
-    (3, TType.I64, 'fromTimestamp', None, None, ),  # 3
-    (4, TType.I64, 'toTimestamp', None, None, ),  # 4
+    (
+        1,
+        TType.LIST,
+        "sensorIds",
+        (TType.STRING, "UTF8", False),
+        None,
+    ),  # 1
+    (
+        2,
+        TType.STRING,
+        "physicalQuantity",
+        "UTF8",
+        None,
+    ),  # 2
+    (
+        3,
+        TType.I64,
+        "fromTimestamp",
+        None,
+        None,
+    ),  # 3
+    (
+        4,
+        TType.I64,
+        "toTimestamp",
+        None,
+        None,
+    ),  # 4
 )
 
 
@@ -347,12 +448,18 @@ class getBasicAggregationsCTFReals_result(object):
 
     """
 
-
-    def __init__(self, success=None,):
+    def __init__(
+        self,
+        success=None,
+    ):
         self.success = success
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -378,11 +485,13 @@ class getBasicAggregationsCTFReals_result(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('getBasicAggregationsCTFReals_result')
+        oprot.writeStructBegin("getBasicAggregationsCTFReals_result")
         if self.success is not None:
-            oprot.writeFieldBegin('success', TType.LIST, 0)
+            oprot.writeFieldBegin("success", TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
             for iter29 in self.success:
                 iter29.write(oprot)
@@ -395,18 +504,25 @@ class getBasicAggregationsCTFReals_result(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(getBasicAggregationsCTFReals_result)
 getBasicAggregationsCTFReals_result.thrift_spec = (
-    (0, TType.LIST, 'success', (TType.STRUCT, [PhysicalQuantityDataPoint, None], False), None, ),  # 0
+    (
+        0,
+        TType.LIST,
+        "success",
+        (TType.STRUCT, [PhysicalQuantityDataPoint, None], False),
+        None,
+    ),  # 0
 )
 fix_spec(all_structs)
 del all_structs

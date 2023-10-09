@@ -254,23 +254,21 @@ def _measurements_by_timestamp_to_dataframe(
     # return pd.DataFrame(data=df_data)
 
 
-def _merge_dataframes(df1: pd.DataFrame, df2: pd.DataFrame, sort_by: Optional[str] = None) -> pd.DataFrame:
+def _merge_dataframes(
+    df1: pd.DataFrame, df2: pd.DataFrame, sort_by: Optional[str] = None
+) -> pd.DataFrame:
     df1_cols = df1.columns.tolist()
     df1_cols.sort()
     df2_cols = df2.columns.tolist()
     df2_cols.sort()
     assert df1_cols == df2_cols
 
-    data = {
-        **{column: [] for column in df1.columns.tolist()}
-    }
+    data = {**{column: [] for column in df1.columns.tolist()}}
     for column in data.keys():
         # data[column] = df1[column].values.tolist() + df2[column].values.tolist()
         data[column] = np.concatenate((df1[column].values, df2[column].values), axis=0)
 
-    new_df: pd.DataFrame = pd.DataFrame(
-        data=data
-    )
+    new_df: pd.DataFrame = pd.DataFrame(data=data)
 
     dt_columns = new_df.select_dtypes(include=["datetime64[ns]"]).columns
     for dt_column in dt_columns:
@@ -314,10 +312,10 @@ def _arima_model(params: Dict[str, Any], y_train: np.ndarray):
     return model
 
 
-def build_key(sensor_id: str, physical_quantity: str, topic_name: str, frequency_in_seconds: int) -> str:
-    return (
-        f"{sensor_id}:{physical_quantity}:{topic_name}:{frequency_in_seconds}"
-    )
+def build_key(
+    sensor_id: str, physical_quantity: str, topic_name: str, frequency_in_seconds: int
+) -> str:
+    return f"{sensor_id}:{physical_quantity}:{topic_name}:{frequency_in_seconds}"
 
 
 class SensorMeasurementForecaster:
@@ -343,7 +341,7 @@ class SensorMeasurementForecaster:
         topic_name: str,
         frequency_in_seconds: int,
         debug: bool,
-        auto: bool
+        auto: bool,
     ) -> None:
         """
         Constructor.
@@ -373,7 +371,10 @@ class SensorMeasurementForecaster:
         self._topic_name: str = topic_name
         self._frequency_in_seconds: int = frequency_in_seconds
         self._key: str = build_key(
-            sensor_id=sensor_id, physical_quantity=physical_quantity, topic_name=topic_name, frequency_in_seconds=frequency_in_seconds
+            sensor_id=sensor_id,
+            physical_quantity=physical_quantity,
+            topic_name=topic_name,
+            frequency_in_seconds=frequency_in_seconds,
         )
 
         self._debug: bool = debug
@@ -421,7 +422,9 @@ class SensorMeasurementForecaster:
         self._completeness = 1 - ((real - expected) / real)
 
     def _handle_nan_values(self) -> None:
-        assert bool(self._dataframe.tail(n=1).isnull().values.any()) is False, "Unreachable!"
+        assert (
+            bool(self._dataframe.tail(n=1).isnull().values.any()) is False
+        ), "Unreachable!"
         if self._dataframe.isnull().values.any():
             self._dataframe.interpolate(inplace=True)
         assert bool(self._dataframe.isnull().values.any()) is False, "Unreachable!"
@@ -464,7 +467,9 @@ class SensorMeasurementForecaster:
 
         For the rest of the windows which contain NaN, interpolation is performed.
         """
-        _logger.debug(f"Executing `refresh_train` for SensorMeasurementForecaster : {self._key}")
+        _logger.debug(
+            f"Executing `refresh_train` for SensorMeasurementForecaster : {self._key}"
+        )
 
         self._reset()
 
@@ -537,14 +542,18 @@ class SensorMeasurementForecaster:
 
         if self._auto is True:
             random_state = random.randint(1, 1_000_000_000)
-            auto_arima_model_params = _get_default_auto_arima_params(y_train=None, random_state=random_state)
+            auto_arima_model_params = _get_default_auto_arima_params(
+                y_train=None, random_state=random_state
+            )
 
             auto_arima_model_params["trace"] = 2 if self._debug is True else False
             auto_arima_model_params["return_valid_fits"] = False
             # TODO Check -> http://alkaline-ml.com/pmdarima/tips_and_tricks.html
 
             _logger.debug(f"Training ARIMA with random_state={random_state}")
-            self._model = _auto_arima_model(params=auto_arima_model_params, y_train=y_train)
+            self._model = _auto_arima_model(
+                params=auto_arima_model_params, y_train=y_train
+            )
         else:
             self._model = _arima_model(params={"order": (1, 0, 0)}, y_train=y_train)
 
@@ -619,7 +628,9 @@ class SensorMeasurementForecaster:
 
         existing_count: int = len(dataframe.query(f"window <= '{last_window}'"))
         if existing_count > 0:
-            _logger.debug(f"dataframe has {existing_count} existing values. These values will be removed.")
+            _logger.debug(
+                f"dataframe has {existing_count} existing values. These values will be removed."
+            )
 
         # @future : Log changed values! IMPORTANT!
 
@@ -653,7 +664,9 @@ class SensorMeasurementForecaster:
         # Merge new values with existing.
         # --------------------------------------------------
 
-        self._dataframe = _merge_dataframes(df1=self._dataframe, df2=dataframe, sort_by="window")
+        self._dataframe = _merge_dataframes(
+            df1=self._dataframe, df2=dataframe, sort_by="window"
+        )
         del dataframe
 
         # Measure quality of dataframe.
@@ -677,7 +690,8 @@ class SensorMeasurementForecaster:
         _logger.debug(
             f"Updating {self._key} model with {new_values_count} new values "
             f"and new _end_dt {str(self._end_dt)}. "
-            f"The last window is : {self._dataframe['window'].iloc[-1]}")
+            f"The last window is : {self._dataframe['window'].iloc[-1]}"
+        )
         self._model.update(new_values)
         self._should_refresh_forecast = True
 
@@ -714,7 +728,9 @@ class SensorMeasurementForecaster:
 
         future_timestamps_alt = []
         for i in range(1, future_periods + 1):
-            future_timestamps_alt.append(start_ + pd.Timedelta(seconds=(i * self._frequency_in_seconds)))
+            future_timestamps_alt.append(
+                start_ + pd.Timedelta(seconds=(i * self._frequency_in_seconds))
+            )
 
         assert future_timestamps_alt == future_timestamps
 
@@ -732,12 +748,19 @@ class SensorMeasurementForecaster:
 
         nanoseconds: int = (self._frequency_in_seconds * 1_000_000_000) - 1
         t_delta: pd.Timedelta = pd.Timedelta(nanoseconds=nanoseconds)
-        self._last_forecast_df["window_end"] = self._last_forecast_df["window"] + t_delta
+        self._last_forecast_df["window_end"] = (
+            self._last_forecast_df["window"] + t_delta
+        )
 
     def refresh_forecast(self, future_periods: int) -> None:
         self._refresh_forecast(future_periods=future_periods)
 
-    def forecast(self, future_periods: int, start_timestamp: pd.Timestamp, end_timestamp: pd.Timestamp) -> Optional[Dict]:
+    def forecast(
+        self,
+        future_periods: int,
+        start_timestamp: pd.Timestamp,
+        end_timestamp: pd.Timestamp,
+    ) -> Optional[Dict]:
         assert end_timestamp > start_timestamp
         inferred_window_delta: pd.Timedelta = end_timestamp - start_timestamp
         inferred_seconds: float = inferred_window_delta.total_seconds()
@@ -778,11 +801,10 @@ class SensorMeasurementForecaster:
         #  χρησιμοποίησε βασικά για όλα το start timestamp!
         metrics = {
             "timeSteps": 0.0,
-            "timeDifference": (result["window"] - self._dataframe["window"].iloc[-1]).total_seconds(),
-            "completeness": self._completeness
+            "timeDifference": (
+                result["window"] - self._dataframe["window"].iloc[-1]
+            ).total_seconds(),
+            "completeness": self._completeness,
         }
 
-        return {
-            **result_df.to_dict(orient="records")[0],
-            "metrics": metrics
-        }
+        return {**result_df.to_dict(orient="records")[0], "metrics": metrics}

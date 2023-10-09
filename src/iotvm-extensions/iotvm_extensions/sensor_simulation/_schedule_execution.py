@@ -46,7 +46,9 @@ class _ScheduleExecutionContext:
                 f": {item.operation.to_print_string()}"
             )
             if self._dry_run is False:
-                simulate_sensor_operation(op=item.operation, fail_silently=self._fail_silently)
+                simulate_sensor_operation(
+                    op=item.operation, fail_silently=self._fail_silently
+                )
             self.queue.task_done()
 
     def initialize(self, dry_run: bool, fail_silently: bool) -> None:
@@ -64,7 +66,9 @@ class _ScheduleExecutionContext:
 _C: _ScheduleExecutionContext = _ScheduleExecutionContext()
 
 
-def execute_schedule(schedule_df: pd.DataFrame, dry_run: bool, fail_silently: bool) -> None:
+def execute_schedule(
+    schedule_df: pd.DataFrame, dry_run: bool, fail_silently: bool
+) -> None:
     """
     Limitations:
     - One call per process.

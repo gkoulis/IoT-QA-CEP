@@ -116,14 +116,14 @@ def build_schedule_df(
                     string=intended_simulated_sensor_operation.macro,
                     sensor_id=intended_simulated_sensor_operation.sensor_id,
                     timestamp=0,
-                    additional={}
+                    additional={},
                 )
                 evaluated_simulated_sensor_operation_list.append(
                     evaluated_simulated_sensor_operation
                 )
 
         recurring_window: RecurringWindow = RecurringWindow(
-            number=number,
+            number=number,  # TODO Convert to number.
             intended_ops=intended_simulated_sensor_operation_list,
             evaluated_ops=evaluated_simulated_sensor_operation_list,
         )
@@ -196,11 +196,14 @@ def build_schedule_df(
 
         for i, intended_op in enumerate(intended_ops):
             evaluated_op: EvaluatedSimulatedSensorOperation = evaluate_macro(
-                string=intended_op.macro, sensor_id=intended_op.sensor_id, timestamp=int(pdt_list[i].timestamp() * 1_000), additional={
+                string=intended_op.macro,
+                sensor_id=intended_op.sensor_id,
+                timestamp=int(pdt_list[i].timestamp() * 1_000),
+                additional={
                     "simulation": True,
                     "cycle": str(cycle),
                     "recurring_window": str(recurring_window_number),
-                }
+                },
             )
             data.append(
                 {

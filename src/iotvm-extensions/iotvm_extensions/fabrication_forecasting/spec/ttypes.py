@@ -6,7 +6,13 @@
 #  options string: py
 #
 
-from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
+from thrift.Thrift import (
+    TType,
+    TMessageType,
+    TFrozenDict,
+    TException,
+    TApplicationException,
+)
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 
@@ -14,6 +20,7 @@ import sys
 import iotvm_extensions.shared.base.ttypes
 
 from thrift.transport import TTransport
+
 all_structs = []
 
 
@@ -24,9 +31,11 @@ class ForecastException(TException):
 
     """
 
-
-    def __init__(self, reason=None,):
-        super(ForecastException, self).__setattr__('reason', reason)
+    def __init__(
+        self,
+        reason=None,
+    ):
+        super(ForecastException, self).__setattr__("reason", reason)
 
     def __setattr__(self, *args):
         raise TypeError("can't modify immutable instance")
@@ -35,11 +44,15 @@ class ForecastException(TException):
         raise TypeError("can't modify immutable instance")
 
     def __hash__(self):
-        return hash(self.__class__) ^ hash((self.reason, ))
+        return hash(self.__class__) ^ hash((self.reason,))
 
     @classmethod
     def read(cls, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and cls.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and cls.thrift_spec is not None
+        ):
             return iprot._fast_decode(None, iprot, [cls, cls.thrift_spec])
         iprot.readStructBegin()
         reason = None
@@ -49,7 +62,11 @@ class ForecastException(TException):
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    reason = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    reason = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             else:
@@ -62,12 +79,16 @@ class ForecastException(TException):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('ForecastException')
+        oprot.writeStructBegin("ForecastException")
         if self.reason is not None:
-            oprot.writeFieldBegin('reason', TType.STRING, 1)
-            oprot.writeString(self.reason.encode('utf-8') if sys.version_info[0] == 2 else self.reason)
+            oprot.writeFieldBegin("reason", TType.STRING, 1)
+            oprot.writeString(
+                self.reason.encode("utf-8") if sys.version_info[0] == 2 else self.reason
+            )
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -79,9 +100,8 @@ class ForecastException(TException):
         return repr(self)
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -100,15 +120,24 @@ class ForecastScope(object):
 
     """
 
-
-    def __init__(self, physicalQuantity=None, sensorId=None, topicName=None, frequencyInSeconds=None,):
+    def __init__(
+        self,
+        physicalQuantity=None,
+        sensorId=None,
+        topicName=None,
+        frequencyInSeconds=None,
+    ):
         self.physicalQuantity = physicalQuantity
         self.sensorId = sensorId
         self.topicName = topicName
         self.frequencyInSeconds = frequencyInSeconds
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -118,17 +147,29 @@ class ForecastScope(object):
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.physicalQuantity = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.physicalQuantity = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRING:
-                    self.sensorId = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.sensorId = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.STRING:
-                    self.topicName = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.topicName = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -143,23 +184,37 @@ class ForecastScope(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('ForecastScope')
+        oprot.writeStructBegin("ForecastScope")
         if self.physicalQuantity is not None:
-            oprot.writeFieldBegin('physicalQuantity', TType.STRING, 1)
-            oprot.writeString(self.physicalQuantity.encode('utf-8') if sys.version_info[0] == 2 else self.physicalQuantity)
+            oprot.writeFieldBegin("physicalQuantity", TType.STRING, 1)
+            oprot.writeString(
+                self.physicalQuantity.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.physicalQuantity
+            )
             oprot.writeFieldEnd()
         if self.sensorId is not None:
-            oprot.writeFieldBegin('sensorId', TType.STRING, 2)
-            oprot.writeString(self.sensorId.encode('utf-8') if sys.version_info[0] == 2 else self.sensorId)
+            oprot.writeFieldBegin("sensorId", TType.STRING, 2)
+            oprot.writeString(
+                self.sensorId.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.sensorId
+            )
             oprot.writeFieldEnd()
         if self.topicName is not None:
-            oprot.writeFieldBegin('topicName', TType.STRING, 3)
-            oprot.writeString(self.topicName.encode('utf-8') if sys.version_info[0] == 2 else self.topicName)
+            oprot.writeFieldBegin("topicName", TType.STRING, 3)
+            oprot.writeString(
+                self.topicName.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.topicName
+            )
             oprot.writeFieldEnd()
         if self.frequencyInSeconds is not None:
-            oprot.writeFieldBegin('frequencyInSeconds', TType.I64, 4)
+            oprot.writeFieldBegin("frequencyInSeconds", TType.I64, 4)
             oprot.writeI64(self.frequencyInSeconds)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -169,9 +224,8 @@ class ForecastScope(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -190,15 +244,24 @@ class ForecastRequest(object):
 
     """
 
-
-    def __init__(self, startTimestamp=None, endTimestamp=None, stepsAhead=None, comment=None,):
+    def __init__(
+        self,
+        startTimestamp=None,
+        endTimestamp=None,
+        stepsAhead=None,
+        comment=None,
+    ):
         self.startTimestamp = startTimestamp
         self.endTimestamp = endTimestamp
         self.stepsAhead = stepsAhead
         self.comment = comment
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -223,7 +286,11 @@ class ForecastRequest(object):
                     iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.STRING:
-                    self.comment = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.comment = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             else:
@@ -233,24 +300,30 @@ class ForecastRequest(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('ForecastRequest')
+        oprot.writeStructBegin("ForecastRequest")
         if self.startTimestamp is not None:
-            oprot.writeFieldBegin('startTimestamp', TType.I64, 1)
+            oprot.writeFieldBegin("startTimestamp", TType.I64, 1)
             oprot.writeI64(self.startTimestamp)
             oprot.writeFieldEnd()
         if self.endTimestamp is not None:
-            oprot.writeFieldBegin('endTimestamp', TType.I64, 2)
+            oprot.writeFieldBegin("endTimestamp", TType.I64, 2)
             oprot.writeI64(self.endTimestamp)
             oprot.writeFieldEnd()
         if self.stepsAhead is not None:
-            oprot.writeFieldBegin('stepsAhead', TType.I64, 3)
+            oprot.writeFieldBegin("stepsAhead", TType.I64, 3)
             oprot.writeI64(self.stepsAhead)
             oprot.writeFieldEnd()
         if self.comment is not None:
-            oprot.writeFieldBegin('comment', TType.STRING, 4)
-            oprot.writeString(self.comment.encode('utf-8') if sys.version_info[0] == 2 else self.comment)
+            oprot.writeFieldBegin("comment", TType.STRING, 4)
+            oprot.writeString(
+                self.comment.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.comment
+            )
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -259,9 +332,8 @@ class ForecastRequest(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -286,15 +358,24 @@ class ForecastResponse(object):
 
     """
 
-
-    def __init__(self, value=None, startTimestamp=None, endTimestamp=None, metrics=None,):
+    def __init__(
+        self,
+        value=None,
+        startTimestamp=None,
+        endTimestamp=None,
+        metrics=None,
+    ):
         self.value = value
         self.startTimestamp = startTimestamp
         self.endTimestamp = endTimestamp
         self.metrics = metrics
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -322,7 +403,11 @@ class ForecastResponse(object):
                     self.metrics = {}
                     (_ktype1, _vtype2, _size0) = iprot.readMapBegin()
                     for _i4 in range(_size0):
-                        _key5 = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                        _key5 = (
+                            iprot.readString().decode("utf-8", errors="replace")
+                            if sys.version_info[0] == 2
+                            else iprot.readString()
+                        )
                         _val6 = iprot.readDouble()
                         self.metrics[_key5] = _val6
                     iprot.readMapEnd()
@@ -335,26 +420,30 @@ class ForecastResponse(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('ForecastResponse')
+        oprot.writeStructBegin("ForecastResponse")
         if self.value is not None:
-            oprot.writeFieldBegin('value', TType.DOUBLE, 1)
+            oprot.writeFieldBegin("value", TType.DOUBLE, 1)
             oprot.writeDouble(self.value)
             oprot.writeFieldEnd()
         if self.startTimestamp is not None:
-            oprot.writeFieldBegin('startTimestamp', TType.I64, 2)
+            oprot.writeFieldBegin("startTimestamp", TType.I64, 2)
             oprot.writeI64(self.startTimestamp)
             oprot.writeFieldEnd()
         if self.endTimestamp is not None:
-            oprot.writeFieldBegin('endTimestamp', TType.I64, 3)
+            oprot.writeFieldBegin("endTimestamp", TType.I64, 3)
             oprot.writeI64(self.endTimestamp)
             oprot.writeFieldEnd()
         if self.metrics is not None:
-            oprot.writeFieldBegin('metrics', TType.MAP, 4)
+            oprot.writeFieldBegin("metrics", TType.MAP, 4)
             oprot.writeMapBegin(TType.STRING, TType.DOUBLE, len(self.metrics))
             for kiter7, viter8 in self.metrics.items():
-                oprot.writeString(kiter7.encode('utf-8') if sys.version_info[0] == 2 else kiter7)
+                oprot.writeString(
+                    kiter7.encode("utf-8") if sys.version_info[0] == 2 else kiter7
+                )
                 oprot.writeDouble(viter8)
             oprot.writeMapEnd()
             oprot.writeFieldEnd()
@@ -365,43 +454,122 @@ class ForecastResponse(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(ForecastException)
 ForecastException.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'reason', 'UTF8', None, ),  # 1
+    (
+        1,
+        TType.STRING,
+        "reason",
+        "UTF8",
+        None,
+    ),  # 1
 )
 all_structs.append(ForecastScope)
 ForecastScope.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'physicalQuantity', 'UTF8', None, ),  # 1
-    (2, TType.STRING, 'sensorId', 'UTF8', None, ),  # 2
-    (3, TType.STRING, 'topicName', 'UTF8', None, ),  # 3
-    (4, TType.I64, 'frequencyInSeconds', None, None, ),  # 4
+    (
+        1,
+        TType.STRING,
+        "physicalQuantity",
+        "UTF8",
+        None,
+    ),  # 1
+    (
+        2,
+        TType.STRING,
+        "sensorId",
+        "UTF8",
+        None,
+    ),  # 2
+    (
+        3,
+        TType.STRING,
+        "topicName",
+        "UTF8",
+        None,
+    ),  # 3
+    (
+        4,
+        TType.I64,
+        "frequencyInSeconds",
+        None,
+        None,
+    ),  # 4
 )
 all_structs.append(ForecastRequest)
 ForecastRequest.thrift_spec = (
     None,  # 0
-    (1, TType.I64, 'startTimestamp', None, None, ),  # 1
-    (2, TType.I64, 'endTimestamp', None, None, ),  # 2
-    (3, TType.I64, 'stepsAhead', None, None, ),  # 3
-    (4, TType.STRING, 'comment', 'UTF8', None, ),  # 4
+    (
+        1,
+        TType.I64,
+        "startTimestamp",
+        None,
+        None,
+    ),  # 1
+    (
+        2,
+        TType.I64,
+        "endTimestamp",
+        None,
+        None,
+    ),  # 2
+    (
+        3,
+        TType.I64,
+        "stepsAhead",
+        None,
+        None,
+    ),  # 3
+    (
+        4,
+        TType.STRING,
+        "comment",
+        "UTF8",
+        None,
+    ),  # 4
 )
 all_structs.append(ForecastResponse)
 ForecastResponse.thrift_spec = (
     None,  # 0
-    (1, TType.DOUBLE, 'value', None, None, ),  # 1
-    (2, TType.I64, 'startTimestamp', None, None, ),  # 2
-    (3, TType.I64, 'endTimestamp', None, None, ),  # 3
-    (4, TType.MAP, 'metrics', (TType.STRING, 'UTF8', TType.DOUBLE, None, False), None, ),  # 4
+    (
+        1,
+        TType.DOUBLE,
+        "value",
+        None,
+        None,
+    ),  # 1
+    (
+        2,
+        TType.I64,
+        "startTimestamp",
+        None,
+        None,
+    ),  # 2
+    (
+        3,
+        TType.I64,
+        "endTimestamp",
+        None,
+        None,
+    ),  # 3
+    (
+        4,
+        TType.MAP,
+        "metrics",
+        (TType.STRING, "UTF8", TType.DOUBLE, None, False),
+        None,
+    ),  # 4
 )
 fix_spec(all_structs)
 del all_structs

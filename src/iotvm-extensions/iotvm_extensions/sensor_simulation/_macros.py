@@ -65,7 +65,7 @@ def _args_to_SimulatedSensorOperation(
         sensor_id="<undefined>",
         measurements=measurements,
         timestamp=0,
-        additional={}
+        additional={},
     )
 
 
@@ -97,7 +97,9 @@ _MACRO_LOCALS: Dict[str, callable] = {
 }
 
 
-def evaluate_macro(string: str, sensor_id: str, timestamp: int, additional: Dict[str, Any]) -> EvaluatedSimulatedSensorOperation:
+def evaluate_macro(
+    string: str, sensor_id: str, timestamp: int, additional: Dict[str, Any]
+) -> EvaluatedSimulatedSensorOperation:
     instance: EvaluatedSimulatedSensorOperation = eval(
         string, _MACRO_GLOBALS, _MACRO_LOCALS
     )

@@ -6,7 +6,13 @@
 #  options string: py
 #
 
-from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
+from thrift.Thrift import (
+    TType,
+    TMessageType,
+    TFrozenDict,
+    TException,
+    TApplicationException,
+)
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 
@@ -16,6 +22,7 @@ import logging
 from .ttypes import *
 from thrift.Thrift import TProcessor
 from thrift.transport import TTransport
+
 all_structs = []
 
 
@@ -24,6 +31,7 @@ class Iface(iotvm_extensions.shared.base.BaseService.Iface):
     Defines the (fabrication) backcasting service contract.
 
     """
+
     def ensure(self, scope):
         """
         NOTICE: When active, idempotence must be ensured.
@@ -49,6 +57,7 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
     Defines the (fabrication) backcasting service contract.
 
     """
+
     def __init__(self, iprot, oprot=None):
         iotvm_extensions.shared.base.BaseService.Client.__init__(self, iprot, oprot)
 
@@ -63,7 +72,7 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
         self.send_ensure(scope)
 
     def send_ensure(self, scope):
-        self._oprot.writeMessageBegin('ensure', TMessageType.ONEWAY, self._seqid)
+        self._oprot.writeMessageBegin("ensure", TMessageType.ONEWAY, self._seqid)
         args = ensure_args()
         args.scope = scope
         args.write(self._oprot)
@@ -81,7 +90,7 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
         return self.recv_backcast()
 
     def send_backcast(self, scope, request):
-        self._oprot.writeMessageBegin('backcast', TMessageType.CALL, self._seqid)
+        self._oprot.writeMessageBegin("backcast", TMessageType.CALL, self._seqid)
         args = backcast_args()
         args.scope = scope
         args.request = request
@@ -104,7 +113,9 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
             return result.success
         if result.exc is not None:
             raise result.exc
-        raise TApplicationException(TApplicationException.MISSING_RESULT, "backcast failed: unknown result")
+        raise TApplicationException(
+            TApplicationException.MISSING_RESULT, "backcast failed: unknown result"
+        )
 
 
 class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProcessor):
@@ -124,7 +135,9 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         if name not in self._processMap:
             iprot.skip(TType.STRUCT)
             iprot.readMessageEnd()
-            x = TApplicationException(TApplicationException.UNKNOWN_METHOD, 'Unknown function %s' % (name))
+            x = TApplicationException(
+                TApplicationException.UNKNOWN_METHOD, "Unknown function %s" % (name)
+            )
             oprot.writeMessageBegin(name, TMessageType.EXCEPTION, seqid)
             x.write(oprot)
             oprot.writeMessageEnd()
@@ -143,7 +156,7 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         except TTransport.TTransportException:
             raise
         except Exception:
-            logging.exception('Exception in oneway handler')
+            logging.exception("Exception in oneway handler")
 
     def process_backcast(self, seqid, iprot, oprot):
         args = backcast_args()
@@ -159,17 +172,20 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
             msg_type = TMessageType.REPLY
             result.exc = exc
         except TApplicationException as ex:
-            logging.exception('TApplication exception in handler')
+            logging.exception("TApplication exception in handler")
             msg_type = TMessageType.EXCEPTION
             result = ex
         except Exception:
-            logging.exception('Unexpected exception in handler')
+            logging.exception("Unexpected exception in handler")
             msg_type = TMessageType.EXCEPTION
-            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+            result = TApplicationException(
+                TApplicationException.INTERNAL_ERROR, "Internal error"
+            )
         oprot.writeMessageBegin("backcast", msg_type, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
+
 
 # HELPER FUNCTIONS AND STRUCTURES
 
@@ -181,12 +197,18 @@ class ensure_args(object):
 
     """
 
-
-    def __init__(self, scope=None,):
+    def __init__(
+        self,
+        scope=None,
+    ):
         self.scope = scope
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -207,11 +229,13 @@ class ensure_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('ensure_args')
+        oprot.writeStructBegin("ensure_args")
         if self.scope is not None:
-            oprot.writeFieldBegin('scope', TType.STRUCT, 1)
+            oprot.writeFieldBegin("scope", TType.STRUCT, 1)
             self.scope.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -221,19 +245,26 @@ class ensure_args(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(ensure_args)
 ensure_args.thrift_spec = (
     None,  # 0
-    (1, TType.STRUCT, 'scope', [BackcastScope, None], None, ),  # 1
+    (
+        1,
+        TType.STRUCT,
+        "scope",
+        [BackcastScope, None],
+        None,
+    ),  # 1
 )
 
 
@@ -245,13 +276,20 @@ class backcast_args(object):
 
     """
 
-
-    def __init__(self, scope=None, request=None,):
+    def __init__(
+        self,
+        scope=None,
+        request=None,
+    ):
         self.scope = scope
         self.request = request
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -278,15 +316,17 @@ class backcast_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('backcast_args')
+        oprot.writeStructBegin("backcast_args")
         if self.scope is not None:
-            oprot.writeFieldBegin('scope', TType.STRUCT, 1)
+            oprot.writeFieldBegin("scope", TType.STRUCT, 1)
             self.scope.write(oprot)
             oprot.writeFieldEnd()
         if self.request is not None:
-            oprot.writeFieldBegin('request', TType.STRUCT, 2)
+            oprot.writeFieldBegin("request", TType.STRUCT, 2)
             self.request.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -296,20 +336,33 @@ class backcast_args(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(backcast_args)
 backcast_args.thrift_spec = (
     None,  # 0
-    (1, TType.STRUCT, 'scope', [BackcastScope, None], None, ),  # 1
-    (2, TType.STRUCT, 'request', [BackcastRequest, None], None, ),  # 2
+    (
+        1,
+        TType.STRUCT,
+        "scope",
+        [BackcastScope, None],
+        None,
+    ),  # 1
+    (
+        2,
+        TType.STRUCT,
+        "request",
+        [BackcastRequest, None],
+        None,
+    ),  # 2
 )
 
 
@@ -321,13 +374,20 @@ class backcast_result(object):
 
     """
 
-
-    def __init__(self, success=None, exc=None,):
+    def __init__(
+        self,
+        success=None,
+        exc=None,
+    ):
         self.success = success
         self.exc = exc
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -353,15 +413,17 @@ class backcast_result(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('backcast_result')
+        oprot.writeStructBegin("backcast_result")
         if self.success is not None:
-            oprot.writeFieldBegin('success', TType.STRUCT, 0)
+            oprot.writeFieldBegin("success", TType.STRUCT, 0)
             self.success.write(oprot)
             oprot.writeFieldEnd()
         if self.exc is not None:
-            oprot.writeFieldBegin('exc', TType.STRUCT, 1)
+            oprot.writeFieldBegin("exc", TType.STRUCT, 1)
             self.exc.write(oprot)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -371,19 +433,32 @@ class backcast_result(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(backcast_result)
 backcast_result.thrift_spec = (
-    (0, TType.STRUCT, 'success', [BackcastResponse, None], None, ),  # 0
-    (1, TType.STRUCT, 'exc', [BackcastException, None], None, ),  # 1
+    (
+        0,
+        TType.STRUCT,
+        "success",
+        [BackcastResponse, None],
+        None,
+    ),  # 0
+    (
+        1,
+        TType.STRUCT,
+        "exc",
+        [BackcastException, None],
+        None,
+    ),  # 1
 )
 fix_spec(all_structs)
 del all_structs

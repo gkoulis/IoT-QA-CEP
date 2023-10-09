@@ -5,7 +5,10 @@ from thrift import Thrift
 
 from iotvm_extensions.fabrication_forecasting.spec import FabricationForecastingService
 from iotvm_extensions.sensing_recording.spec import SensingRecordingService
-from iotvm_extensions.sensing_recording.spec.ttypes import RecordedSensorMeasurement, RecordedSensorData
+from iotvm_extensions.sensing_recording.spec.ttypes import (
+    RecordedSensorMeasurement,
+    RecordedSensorData,
+)
 from iotvm_extensions.server_client.client import ClientsFactory
 
 _logger = logging.getLogger("iotvm_extensions.server_client.example")
@@ -31,13 +34,11 @@ def run_client_example() -> None:
                     sensorId=f"sensor-{i}",
                     measurements=[
                         RecordedSensorMeasurement(
-                            name="temperature",
-                            value=10.1,
-                            unit="C"
+                            name="temperature", value=10.1, unit="C"
                         )
                     ],
                     timestamp=time.time_ns(),
-                    additional={}
+                    additional={},
                 )
             )
         except Thrift.TException as ex:

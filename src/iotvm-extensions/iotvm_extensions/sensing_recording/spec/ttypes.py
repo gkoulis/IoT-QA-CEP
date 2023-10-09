@@ -6,7 +6,13 @@
 #  options string: py
 #
 
-from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
+from thrift.Thrift import (
+    TType,
+    TMessageType,
+    TFrozenDict,
+    TException,
+    TApplicationException,
+)
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 
@@ -14,6 +20,7 @@ import sys
 import iotvm_extensions.shared.base.ttypes
 
 from thrift.transport import TTransport
+
 all_structs = []
 
 
@@ -26,14 +33,22 @@ class RecordedSensorMeasurement(object):
 
     """
 
-
-    def __init__(self, name=None, value=None, unit=None,):
+    def __init__(
+        self,
+        name=None,
+        value=None,
+        unit=None,
+    ):
         self.name = name
         self.value = value
         self.unit = unit
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -43,7 +58,11 @@ class RecordedSensorMeasurement(object):
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.name = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
@@ -53,7 +72,11 @@ class RecordedSensorMeasurement(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.STRING:
-                    self.unit = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.unit = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             else:
@@ -63,20 +86,26 @@ class RecordedSensorMeasurement(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('RecordedSensorMeasurement')
+        oprot.writeStructBegin("RecordedSensorMeasurement")
         if self.name is not None:
-            oprot.writeFieldBegin('name', TType.STRING, 1)
-            oprot.writeString(self.name.encode('utf-8') if sys.version_info[0] == 2 else self.name)
+            oprot.writeFieldBegin("name", TType.STRING, 1)
+            oprot.writeString(
+                self.name.encode("utf-8") if sys.version_info[0] == 2 else self.name
+            )
             oprot.writeFieldEnd()
         if self.value is not None:
-            oprot.writeFieldBegin('value', TType.DOUBLE, 2)
+            oprot.writeFieldBegin("value", TType.DOUBLE, 2)
             oprot.writeDouble(self.value)
             oprot.writeFieldEnd()
         if self.unit is not None:
-            oprot.writeFieldBegin('unit', TType.STRING, 3)
-            oprot.writeString(self.unit.encode('utf-8') if sys.version_info[0] == 2 else self.unit)
+            oprot.writeFieldBegin("unit", TType.STRING, 3)
+            oprot.writeString(
+                self.unit.encode("utf-8") if sys.version_info[0] == 2 else self.unit
+            )
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -85,9 +114,8 @@ class RecordedSensorMeasurement(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -106,15 +134,24 @@ class RecordedSensorData(object):
 
     """
 
-
-    def __init__(self, sensorId=None, measurements=None, timestamp=None, additional=None,):
+    def __init__(
+        self,
+        sensorId=None,
+        measurements=None,
+        timestamp=None,
+        additional=None,
+    ):
         self.sensorId = sensorId
         self.measurements = measurements
         self.timestamp = timestamp
         self.additional = additional
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -124,7 +161,11 @@ class RecordedSensorData(object):
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.sensorId = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.sensorId = (
+                        iprot.readString().decode("utf-8", errors="replace")
+                        if sys.version_info[0] == 2
+                        else iprot.readString()
+                    )
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
@@ -148,8 +189,16 @@ class RecordedSensorData(object):
                     self.additional = {}
                     (_ktype7, _vtype8, _size6) = iprot.readMapBegin()
                     for _i10 in range(_size6):
-                        _key11 = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
-                        _val12 = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                        _key11 = (
+                            iprot.readString().decode("utf-8", errors="replace")
+                            if sys.version_info[0] == 2
+                            else iprot.readString()
+                        )
+                        _val12 = (
+                            iprot.readString().decode("utf-8", errors="replace")
+                            if sys.version_info[0] == 2
+                            else iprot.readString()
+                        )
                         self.additional[_key11] = _val12
                     iprot.readMapEnd()
                 else:
@@ -161,30 +210,40 @@ class RecordedSensorData(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('RecordedSensorData')
+        oprot.writeStructBegin("RecordedSensorData")
         if self.sensorId is not None:
-            oprot.writeFieldBegin('sensorId', TType.STRING, 1)
-            oprot.writeString(self.sensorId.encode('utf-8') if sys.version_info[0] == 2 else self.sensorId)
+            oprot.writeFieldBegin("sensorId", TType.STRING, 1)
+            oprot.writeString(
+                self.sensorId.encode("utf-8")
+                if sys.version_info[0] == 2
+                else self.sensorId
+            )
             oprot.writeFieldEnd()
         if self.measurements is not None:
-            oprot.writeFieldBegin('measurements', TType.LIST, 2)
+            oprot.writeFieldBegin("measurements", TType.LIST, 2)
             oprot.writeListBegin(TType.STRUCT, len(self.measurements))
             for iter13 in self.measurements:
                 iter13.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         if self.timestamp is not None:
-            oprot.writeFieldBegin('timestamp', TType.I64, 3)
+            oprot.writeFieldBegin("timestamp", TType.I64, 3)
             oprot.writeI64(self.timestamp)
             oprot.writeFieldEnd()
         if self.additional is not None:
-            oprot.writeFieldBegin('additional', TType.MAP, 4)
+            oprot.writeFieldBegin("additional", TType.MAP, 4)
             oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.additional))
             for kiter14, viter15 in self.additional.items():
-                oprot.writeString(kiter14.encode('utf-8') if sys.version_info[0] == 2 else kiter14)
-                oprot.writeString(viter15.encode('utf-8') if sys.version_info[0] == 2 else viter15)
+                oprot.writeString(
+                    kiter14.encode("utf-8") if sys.version_info[0] == 2 else kiter14
+                )
+                oprot.writeString(
+                    viter15.encode("utf-8") if sys.version_info[0] == 2 else viter15
+                )
             oprot.writeMapEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -194,9 +253,8 @@ class RecordedSensorData(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
@@ -213,13 +271,20 @@ class PhysicalQuantityDataPoint(object):
 
     """
 
-
-    def __init__(self, value=None, timestamp=None,):
+    def __init__(
+        self,
+        value=None,
+        timestamp=None,
+    ):
         self.value = value
         self.timestamp = timestamp
 
     def read(self, iprot):
-        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+        if (
+            iprot._fast_decode is not None
+            and isinstance(iprot.trans, TTransport.CReadableTransport)
+            and self.thrift_spec is not None
+        ):
             iprot._fast_decode(self, iprot, [self.__class__, self.thrift_spec])
             return
         iprot.readStructBegin()
@@ -244,15 +309,17 @@ class PhysicalQuantityDataPoint(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
+            oprot.trans.write(
+                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
+            )
             return
-        oprot.writeStructBegin('PhysicalQuantityDataPoint')
+        oprot.writeStructBegin("PhysicalQuantityDataPoint")
         if self.value is not None:
-            oprot.writeFieldBegin('value', TType.DOUBLE, 1)
+            oprot.writeFieldBegin("value", TType.DOUBLE, 1)
             oprot.writeDouble(self.value)
             oprot.writeFieldEnd()
         if self.timestamp is not None:
-            oprot.writeFieldBegin('timestamp', TType.I64, 2)
+            oprot.writeFieldBegin("timestamp", TType.I64, 2)
             oprot.writeI64(self.timestamp)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -262,35 +329,90 @@ class PhysicalQuantityDataPoint(object):
         return
 
     def __repr__(self):
-        L = ['%s=%r' % (key, value)
-             for key, value in self.__dict__.items()]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+        L = ["%s=%r" % (key, value) for key, value in self.__dict__.items()]
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(L))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
+
+
 all_structs.append(RecordedSensorMeasurement)
 RecordedSensorMeasurement.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'name', 'UTF8', None, ),  # 1
-    (2, TType.DOUBLE, 'value', None, None, ),  # 2
-    (3, TType.STRING, 'unit', 'UTF8', None, ),  # 3
+    (
+        1,
+        TType.STRING,
+        "name",
+        "UTF8",
+        None,
+    ),  # 1
+    (
+        2,
+        TType.DOUBLE,
+        "value",
+        None,
+        None,
+    ),  # 2
+    (
+        3,
+        TType.STRING,
+        "unit",
+        "UTF8",
+        None,
+    ),  # 3
 )
 all_structs.append(RecordedSensorData)
 RecordedSensorData.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'sensorId', 'UTF8', None, ),  # 1
-    (2, TType.LIST, 'measurements', (TType.STRUCT, [RecordedSensorMeasurement, None], False), None, ),  # 2
-    (3, TType.I64, 'timestamp', None, None, ),  # 3
-    (4, TType.MAP, 'additional', (TType.STRING, 'UTF8', TType.STRING, 'UTF8', False), None, ),  # 4
+    (
+        1,
+        TType.STRING,
+        "sensorId",
+        "UTF8",
+        None,
+    ),  # 1
+    (
+        2,
+        TType.LIST,
+        "measurements",
+        (TType.STRUCT, [RecordedSensorMeasurement, None], False),
+        None,
+    ),  # 2
+    (
+        3,
+        TType.I64,
+        "timestamp",
+        None,
+        None,
+    ),  # 3
+    (
+        4,
+        TType.MAP,
+        "additional",
+        (TType.STRING, "UTF8", TType.STRING, "UTF8", False),
+        None,
+    ),  # 4
 )
 all_structs.append(PhysicalQuantityDataPoint)
 PhysicalQuantityDataPoint.thrift_spec = (
     None,  # 0
-    (1, TType.DOUBLE, 'value', None, None, ),  # 1
-    (2, TType.I64, 'timestamp', None, None, ),  # 2
+    (
+        1,
+        TType.DOUBLE,
+        "value",
+        None,
+        None,
+    ),  # 1
+    (
+        2,
+        TType.I64,
+        "timestamp",
+        None,
+        None,
+    ),  # 2
 )
 fix_spec(all_structs)
 del all_structs

@@ -1,6 +1,10 @@
 Changelog
 ===
 
+## Tuesday 10 October 2023
+
+- Synthetic data generator (with errors, up-sampling, etc).
+
 ## v1.0.0-PROTOTYPE.1
 
 Features:

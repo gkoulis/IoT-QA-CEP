@@ -33,7 +33,9 @@ class ClientsFactory:
             self._transport.close()
         self._transport = None
         self._protocol = None
-        self._clients = {get_service_name(service_class=sc): None for sc in self._services_classes}
+        self._clients = {
+            get_service_name(service_class=sc): None for sc in self._services_classes
+        }
 
     def _reconnect(self) -> None:
         # raises TException.
@@ -60,7 +62,9 @@ class ClientsFactory:
             self._reconnect()
         except TException as ex:
             self._close()
-            _logger.error(f"Failed to reconnect to extensions server {self._host}:{self._port}. Reason : {ex}. Services will be unavailable.")
+            _logger.error(
+                f"Failed to reconnect to extensions server {self._host}:{self._port}. Reason : {ex}. Services will be unavailable."
+            )
 
     def _ping(self, client) -> bool:
         if client is None:

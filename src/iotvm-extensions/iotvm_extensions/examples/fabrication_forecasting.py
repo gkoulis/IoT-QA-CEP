@@ -3,7 +3,10 @@ import time
 import pandas as pd
 
 from iotvm_extensions.fabrication_forecasting.base import SensorMeasurementForecaster
-from iotvm_extensions.fabrication_forecasting.visualization import plot_f, plot_forecasts_df
+from iotvm_extensions.fabrication_forecasting.visualization import (
+    plot_f,
+    plot_forecasts_df,
+)
 
 
 # noinspection PyProtectedMember
