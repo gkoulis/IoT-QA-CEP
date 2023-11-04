@@ -1,4 +1,4 @@
-iotvm-local-data/*
+iotvm-local-data/
 !iotvm-local-data/.gitkeep
 
 target/
