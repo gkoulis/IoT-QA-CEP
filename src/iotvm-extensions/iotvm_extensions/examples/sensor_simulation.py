@@ -1,14 +1,29 @@
 import datetime
+import pprint
+import os
 import zoneinfo
-from typing import List
-
+from typing import Dict, List
+import logging
 import pandas as pd
 
 from iotvm_extensions.sensor_simulation import build_schedule_df, execute_schedule
 
+_logger = logging.getLogger("iotvm_extensions.examples.sensor_simulation")
+
+
+def _save_schedule_df(schedule_df: pd.DataFrame, path_to_file: str) -> None:
+    df: pd.DataFrame = schedule_df.copy(deep=True)
+
+    dt_columns = df.select_dtypes(include=["datetime64[ns, UTC]"]).columns
+    for dt_column in dt_columns:
+        df[dt_column] = df[dt_column].dt.tz_localize(None)
+        # schedule_df[dt_column] = schedule_df[dt_column].dt.date
+
+    df.to_excel(path_to_file)
+
 
 # noinspection PyProtectedMember
-def run_sensor_simulation_example() -> None:
+def run_sensor_simulation_example(experiment_name: str, path_to_dir: str) -> None:
     # Parameters
     # --------------------------------------------------
 
@@ -25,11 +40,19 @@ def run_sensor_simulation_example() -> None:
     start_dt: datetime.datetime = datetime.datetime.now(
         tz=zoneinfo.ZoneInfo("Europe/Athens")
     )
-    start_dt = start_dt.replace(minute=start_dt.minute + 1, second=0, microsecond=0)
+
+    hour = start_dt.hour
+    minute = start_dt.minute
+    minute = minute + 1
+    if minute == 60:
+        hour = hour + 1
+        minute = 0
+    start_dt = start_dt.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    start_dt_string: str = start_dt.strftime("%Y-%m-%d-%H-%M-%S")
     start_dt = start_dt.astimezone(tz=datetime.timezone.utc)
 
-    cycle_iterations: int = 10
-    frequency: str = "10S"
+    cycle_iterations: int = 3
+    frequency: str = "5S"
     assert cycle_iterations >= 1
 
     start_dt_pct: float = 0.01
@@ -38,13 +61,20 @@ def run_sensor_simulation_example() -> None:
     dry_run: bool = False
     fail_silently: bool = True
 
-    path_to_file: str = "macros.xlsx"
     sheet_name: str = "data"
+
+    simulation_name: str = f"simulation-{start_dt_string}"
+    additional_static: Dict = {
+        "experiment_name": experiment_name,
+        "simulation_name": simulation_name,
+    }
+    _logger.info(pprint.pformat(additional_static, sort_dicts=False, indent=2))
 
     # Read Excel.
     # --------------------------------------------------
 
-    macros_df: pd.DataFrame = pd.read_excel(path_to_file, sheet_name=sheet_name)
+    file_name: str = os.path.join(path_to_dir, "macros_generated.xlsx")
+    macros_df: pd.DataFrame = pd.read_excel(file_name, sheet_name=sheet_name)
 
     columns: List[str] = macros_df.columns.to_list()
     for column in columns:
@@ -58,7 +88,11 @@ def run_sensor_simulation_example() -> None:
         frequency=frequency,
         start_dt_pct=start_dt_pct,
         end_dt_pct=end_dt_pct,
+        additional_static=additional_static,
     )
+
+    path_to_file: str = os.path.join(path_to_dir, f"schedule_df-{simulation_name}.xlsx")
+    _save_schedule_df(schedule_df=schedule_df, path_to_file=path_to_file)
 
     # Scheduled ops execution.
     # --------------------------------------------------
@@ -67,13 +101,4 @@ def run_sensor_simulation_example() -> None:
         schedule_df=schedule_df, dry_run=dry_run, fail_silently=fail_silently
     )
 
-    # DataFrame to excel (BE CAREFUL, this operation makes DTs naive).
-    # --------------------------------------------------
-
-    dt_columns = schedule_df.select_dtypes(include=["datetime64[ns, UTC]"]).columns
-    for dt_column in dt_columns:
-        schedule_df[dt_column] = schedule_df[dt_column].dt.tz_localize(None)
-        # schedule_df[dt_column] = schedule_df[dt_column].dt.date
-
-    # Uncomment to export as xlsx.
-    # schedule_df.to_excel(f"schedule_df-{time.time_ns()}.xlsx")
+    _logger.info(pprint.pformat(additional_static, sort_dicts=False, indent=2))

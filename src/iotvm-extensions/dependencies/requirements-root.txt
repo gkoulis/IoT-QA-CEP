@@ -10,3 +10,5 @@ pmdarima
 fire
 thrift
 PyQt5
+seaborn
+optuna

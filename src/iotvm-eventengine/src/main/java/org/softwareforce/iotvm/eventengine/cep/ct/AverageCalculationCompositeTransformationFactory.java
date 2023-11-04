@@ -131,7 +131,8 @@ public class AverageCalculationCompositeTransformationFactory
       final long windowStartTimestamp,
       final long windowEndTimestamp,
       final int minimumNumberOfContributingSensors,
-      final int pastWindowsLookup,
+      final int fabricationPastEventsStepsBehind,
+      final int fabricationForecastingStepsAhead,
       final List<SensorTelemetryMeasurementEventIBO> eventIBOList) {
     final double completeness1 =
         CalculationUtils.calculateCompleteness1(minimumNumberOfContributingSensors, eventIBOList);
@@ -140,7 +141,11 @@ public class AverageCalculationCompositeTransformationFactory
             windowStartTimestamp, windowEndTimestamp, eventIBOList);
     final double timeliness2 =
         CalculationUtils.calculateTimeliness2(
-            windowStartTimestamp, windowEndTimestamp, pastWindowsLookup, eventIBOList);
+            windowStartTimestamp,
+            windowEndTimestamp,
+            fabricationPastEventsStepsBehind,
+            eventIBOList);
+
     final double accuracy1 = 0.0D;
 
     final Map<String, Double> metrics = new HashMap<>();
@@ -199,7 +204,7 @@ public class AverageCalculationCompositeTransformationFactory
                     WindowStore<Bytes, byte[]>>
                     as(String.format("aggregation-window-store-%s", parametersUniqueIdentifier))
                 .withCachingEnabled()
-                // .withCachingDisabled()
+                // .withCachingDisabled()  # TODO Check.
                 .withKeySerde(Constants.STRING_SERDE)
                 .withValueSerde(
                     Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_AGGREGATE_IBO_SERDE);
@@ -274,6 +279,7 @@ public class AverageCalculationCompositeTransformationFactory
                       key.window().end(),
                       this.parameters.getMinimumNumberOfContributingSensors(),
                       this.parameters.getPastWindowsLookup(),
+                      this.parameters.getFutureWindowsLookupAlternative(),
                       value.getEvents().values().stream().toList());
 
               // Sensor Simulation inspection and debugging.
@@ -281,6 +287,20 @@ public class AverageCalculationCompositeTransformationFactory
                   value.getEvents().values().stream().toList();
               // TODO Εδώ αποδεικνύεται πώς ο client μπορεί να διαλύσει όλο το σύστημα. MapUtils για
               // να παίρνω σωστά τις τιμές...
+              final String debugStringUniqueExperimentNameValues =
+                  eventIBOList.stream()
+                      .map(e -> (String) e.getAdditional().get("experiment_name"))
+                      .filter(Objects::nonNull)
+                      .distinct()
+                      .sorted()
+                      .collect(Collectors.joining(", "));
+              final String debugStringUniqueSimulationNameValues =
+                  eventIBOList.stream()
+                      .map(e -> (String) e.getAdditional().get("simulation_name"))
+                      .filter(Objects::nonNull)
+                      .distinct()
+                      .sorted()
+                      .collect(Collectors.joining(", "));
               final String debugStringUniqueCycleValues =
                   eventIBOList.stream()
                       .map(e -> (String) e.getAdditional().get("cycle"))
@@ -297,6 +317,10 @@ public class AverageCalculationCompositeTransformationFactory
                       .collect(Collectors.joining(", "));
 
               final Map<String, Object> additional = value.getAdditional();
+              additional.put(
+                  "debugStringUniqueExperimentNameValues", debugStringUniqueExperimentNameValues);
+              additional.put(
+                  "debugStringUniqueSimulationNameValues", debugStringUniqueSimulationNameValues);
               additional.put("debugStringUniqueCycleValues", debugStringUniqueCycleValues);
               additional.put(
                   "debugStringUniqueRecurringWindowValues", debugStringUniqueRecurringWindowValues);
@@ -473,6 +497,7 @@ public class AverageCalculationCompositeTransformationFactory
                         key.window().end(),
                         parameters.getMinimumNumberOfContributingSensors(),
                         parameters.getPastWindowsLookup(),
+                        parameters.getFutureWindowsLookupAlternative(),
                         value.getEvents().values().stream().toList());
                 value.setQualityProperties(qualityPropertiesIBO);
 
@@ -494,6 +519,9 @@ public class AverageCalculationCompositeTransformationFactory
                     value.getQualityProperties().getMetrics().get("completeness1");
                 Preconditions.checkState(completeness1 != null, "completeness1 cannot be null!");
                 if (completeness1 >= 1) {
+                  return false;
+                }
+                if (parameters.getFutureWindowsLookupAlternative() <= 0) {
                   return false;
                 }
                 //noinspection RedundantIfStatement
@@ -547,7 +575,7 @@ public class AverageCalculationCompositeTransformationFactory
                           parameters.getForecastingWindowSize().toSeconds(),
                           startTimestamp,
                           endTimestamp,
-                          parameters.getFutureWindowsLookup());
+                          parameters.getFutureWindowsLookupAlternative());
 
                   if (forecastedEventOptional.isEmpty()) {
                     LOGGER.trace(
@@ -659,6 +687,7 @@ public class AverageCalculationCompositeTransformationFactory
                         key.window().end(),
                         parameters.getMinimumNumberOfContributingSensors(),
                         parameters.getPastWindowsLookup(),
+                        parameters.getFutureWindowsLookupAlternative(),
                         value.getEvents().values().stream().toList());
                 value.setQualityProperties(qualityPropertiesIBO);
 
@@ -682,6 +711,7 @@ public class AverageCalculationCompositeTransformationFactory
 
               if (realAverageOptional.isEmpty()) {
                 value.getQualityProperties().getMetrics().put("accuracy1", 0.0D);
+                value.getAdditional().put("realAverage", 0.0D);
                 return value;
               }
 
@@ -689,6 +719,7 @@ public class AverageCalculationCompositeTransformationFactory
               double expected = value.getAverage().getValue();
               double accuracy = 1d - ((Math.abs(real - expected)) / real);
               value.getQualityProperties().getMetrics().put("accuracy1", accuracy);
+              value.getAdditional().put("realAverage", real);
 
               return value;
             })

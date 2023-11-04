@@ -1,0 +1,11 @@
+{
+  "physicalQuantity": "TEMPERATURE",
+  "timeWindowSize": 5,
+  "timeWindowGrace": null,
+  "timeWindowAdvance": null,
+  "minimumNumberOfContributingSensors": 1,
+  "ignoreCompletenessFiltering": true,
+  "pastWindowsLookup": 0,
+  "forecastingWindowSize": null,
+  "futureWindowsLookup": 0
+}

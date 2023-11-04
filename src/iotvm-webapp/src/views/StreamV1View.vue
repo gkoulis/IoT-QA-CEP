@@ -16,6 +16,22 @@ const registeredSensorIds = ref([
 const ctpOptions = ref([]);
 const ctpOptionRef = ref(null);
 const debugRef = ref(false);
+const REGISTERED = [
+  // "w_avg_temperature_PT5S_null_null_2_true_0_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_2_true_4_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_2_true_0_PT5S_4",
+  // "w_avg_temperature_PT5S_null_null_2_true_4_PT5S_4",
+  // // 4 Sensors
+  // "w_avg_temperature_PT5S_null_null_4_true_0_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_4_true_4_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_4_true_0_PT5S_4",
+  // "w_avg_temperature_PT5S_null_null_4_true_4_PT5S_4",
+  // // 6 Sensors
+  // "w_avg_temperature_PT5S_null_null_6_true_0_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_6_true_4_PT5S_0",
+  // "w_avg_temperature_PT5S_null_null_6_true_0_PT5S_4",
+  // "w_avg_temperature_PT5S_null_null_6_true_4_PT5S_4",
+];
 
 const measurementsAvgToDisplay = computed(() => {
   if (!ctpOptionRef.value) {
@@ -39,19 +55,19 @@ onMounted(() => {
     "monitoringEvent",
     function (event) {
       const eventData = JSON.parse(event.data);
-      if (
-        eventData.topicName ===
-        "ga.sensor_telemetry_measurements_average_event.0001"
-      ) {
+
+      if (eventData.topicName === "ga.sensor_telemetry_measurements_average_event.0001") {
+        if (REGISTERED.length > 0 && !REGISTERED.includes(eventData.real.compositeTransformationParametersIdentifier)) {
+          return;
+        }
         measurementsAvg.value.push(eventData);
         lastMeasurementsAvg.value = eventData;
         if (!ctpOptions.value.includes(eventData.real.compositeTransformationParametersIdentifier)) {
           ctpOptions.value.push(eventData.real.compositeTransformationParametersIdentifier)
         }
-      } else if (
-        eventData.topicName === "ga.sensor_telemetry_measurement_event.0001"
-      ) {
-        measurements.value.push(eventData);
+      } else if (eventData.topicName === "ga.sensor_telemetry_measurement_event.0001") {
+        // TODO Temporarily disabled.
+        // measurements.value.push(eventData);
       }
     },
     false
@@ -93,6 +109,7 @@ const formatDateTime = (timestamp) => {
       <!-- mx-auto max-w-5xl -->
       <div class="mx-auto">
         <div class="space-y-4">
+          <!--
           <div class="bg-white">
             <table class="CommonSimpleTable CommonSimpleTable--SmallFont">
               <thead>
@@ -138,6 +155,7 @@ const formatDateTime = (timestamp) => {
               </tbody>
             </table>
           </div>
+          -->
 
           <div class="bg-white">
             <div class="flex space-x-2 p-2">
@@ -154,7 +172,7 @@ const formatDateTime = (timestamp) => {
                 <tr>
                   <th colspan="2" v-if="debugRef">debug</th>
                   <th colspan="2">time window</th>
-                  <th colspan="2">average</th>
+                  <th colspan="3">average</th>
                   <th colspan="4">quality properties</th>
                   <th colspan="2">past events</th>
                   <th colspan="2">forecasted events</th>
@@ -167,9 +185,10 @@ const formatDateTime = (timestamp) => {
                   <th>end</th>
                   <th>name</th>
                   <th>value</th>
+                  <th>real</th>
                   <th>completeness</th>
-                  <th>timeliness</th>
-                  <th>timeliness (alt)</th>
+                  <th>timeliness1</th>
+                  <th>timeliness2 (alt)</th>
                   <th>accuracy</th>
                   <th>count</th>
                   <th>duration</th>
@@ -210,8 +229,11 @@ const formatDateTime = (timestamp) => {
                     {{ formatDateTime(measurementAvg.real.endTimestamp) }}
                   </td>
                   <td>{{ measurementAvg.real.average.name }}</td>
-                  <td>
+                  <td :title="measurementAvg.real.average.value.double">
                     {{ measurementAvg.real.average.value.double.toFixed(2) }}
+                  </td>
+                  <td :title="measurementAvg.real.additional.realAverage.double">
+                    {{ measurementAvg.real.additional.realAverage.double.toFixed(2) }}
                   </td>
                   <td>
                     {{

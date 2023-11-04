@@ -1,6 +1,28 @@
 Changelog
 ===
 
+## Saturday 04 November 2023
+
+Many changes and improvements.  
+
+## Friday 13 October 2023
+
+### iotvm-eventengine
+
+- Changed Java: from 20 to 19.
+- Average Calculation Composite Transformation Parameters are loaded from a JSON file (resource).
+- When `forecastingWindowSize` is null, it is initialized with the double duration of `timeWindowSize`. 
+- When `futureWindowsLookup` is less than or equal to zero, forecasting is disabled.
+- Added more debug strings: simulation name, experiment name.
+- Fixed bugs in debug strings construction (simulation and simulation name conflict).
+- Changed Kafka configuration path to kafka-streams directory (for Ubuntu).
+
+### iotvm-gateway
+- 
+- Changed Java: from 20 to 19.
+
+### iotvm-extensions
+
 ## Tuesday 10 October 2023
 
 - Synthetic data generator (with errors, up-sampling, etc).

@@ -1,6 +1,7 @@
 import datetime
 import logging
 import random
+import warnings
 import zoneinfo
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Tuple, Optional
@@ -9,10 +10,15 @@ import numpy as np
 import pandas as pd
 import pmdarima as pm
 from pmdarima.arima import ndiffs
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
 
-_logger = logging.getLogger("iotvm_extensions.fabrication_forecasting._base")
+_logger = logging.getLogger("iotvm_extensions.fabrication_forecasting.base")
+
+
+def disable_statsmodels_convergence_warnings() -> None:
+    warnings.simplefilter("ignore", ConvergenceWarning)
 
 
 @dataclass
@@ -281,6 +287,17 @@ def _merge_dataframes(
 
 
 def _validate_frequency(dataframe: pd.DataFrame, column: str) -> None:
+    if len(dataframe) == 0:
+        # TODO add names to dataframes (as convention for debugging)!
+        _logger.warning("Could not validate frequency because dataframe is empty!")
+        return
+    if len(dataframe) == 1:
+        # TODO add names to dataframes (as convention for debugging)!
+        single_value = dataframe[column].iloc[0]
+        _logger.warning(
+            f"Could not validate frequency because dataframe has only one row! (value : {single_value})"
+        )
+        return
     assert len(dataframe[column]) == len(dataframe[column].unique())
     series = dataframe[column] - dataframe[column].shift(1)
     series = series.values.tolist()
@@ -628,16 +645,19 @@ class SensorMeasurementForecaster:
 
         existing_count: int = len(dataframe.query(f"window <= '{last_window}'"))
         if existing_count > 0:
-            _logger.debug(
-                f"dataframe has {existing_count} existing values. These values will be removed."
-            )
+            # TO-DO @_logger disabled temporarily.
+            # _logger.debug(
+            #     f"dataframe has {existing_count} existing values. These values will be removed."
+            # )
+            pass
 
         # @future : Log changed values! IMPORTANT!
 
         dataframe = dataframe.query(f"window > '{last_window}'").copy(deep=True)
 
         if dataframe.empty:
-            _logger.warning("dataframe is empty!")
+            # TO-DO @_logger disabled temporarily.
+            # _logger.warning("dataframe is empty!")
             return
 
         # Ensure time-series.
@@ -687,15 +707,16 @@ class SensorMeasurementForecaster:
         # Update model.
         # --------------------------------------------------
 
-        _logger.debug(
-            f"Updating {self._key} model with {new_values_count} new values "
-            f"and new _end_dt {str(self._end_dt)}. "
-            f"The last window is : {self._dataframe['window'].iloc[-1]}"
-        )
+        # TO-DO @_logger disabled temporarily.
+        # _logger.debug(
+        #     f"Updating {self._key} model with {new_values_count} new values "
+        #     f"and new _end_dt {str(self._end_dt)}. "
+        #     f"The last window is : {self._dataframe['window'].iloc[-1]}"
+        # )
         self._model.update(new_values)
         self._should_refresh_forecast = True
 
-    def _refresh_forecast(self, future_periods: int) -> None:
+    def refresh_forecast(self, future_periods: int) -> None:
         assert self._ready is True
         assert self._model is not None
 
@@ -752,15 +773,13 @@ class SensorMeasurementForecaster:
             self._last_forecast_df["window"] + t_delta
         )
 
-    def refresh_forecast(self, future_periods: int) -> None:
-        self._refresh_forecast(future_periods=future_periods)
-
     def forecast(
         self,
-        future_periods: int,
+        steps_ahead: int,
         start_timestamp: pd.Timestamp,
         end_timestamp: pd.Timestamp,
     ) -> Optional[Dict]:
+        assert steps_ahead > 0
         assert end_timestamp > start_timestamp
         inferred_window_delta: pd.Timedelta = end_timestamp - start_timestamp
         inferred_seconds: float = inferred_window_delta.total_seconds()
@@ -772,22 +791,35 @@ class SensorMeasurementForecaster:
             )
             return None
 
-        self._refresh_forecast(future_periods=future_periods)
-
         # query_string = f"(window <= '{start_timestamp}' < '{end_timestamp}' <= window_end) and (future == 1)"
         # query_string = f"(window <= '{start_timestamp}' <= window_end) and (future == 1)"
         query_string = f"(window <= '{start_timestamp}' <= window_end)"
         result_df: pd.DataFrame = self._last_forecast_df.query(query_string)
 
-        if result_df.empty:
-            fitted_count: int = len(self._last_forecast_df)
-            # non_futured_count: int = int(self._last_forecast_df.query("future == 0").count())
-            future_count: int = len(self._last_forecast_df.query("future == 1"))
+        fitted_count: int = len(self._last_forecast_df)
+        # non_futured_count: int = int(self._last_forecast_df.query("future == 0").count())
+        future_count: int = len(self._last_forecast_df.query("future == 1"))
+
+        def _logger_debug(reason: str) -> None:
             _logger.debug(
-                f"Could not find forecast for time window : {start_timestamp} - {end_timestamp} ({inferred_seconds} seconds). "
-                f"The dataframe's first and last windows are {self._last_forecast_df['window'].iloc[0]}, {self._last_forecast_df['window'].iloc[-1]} respectively. "
-                f"The dataframe contains {fitted_count} fitted values ({future_count} future values)."
+                f"COULD NOT PROVIDE FORECAST: {reason}"
+                f"\n"
+                f"requested time window : {start_timestamp} - {end_timestamp} ({inferred_seconds} seconds)"
+                f"\n"
+                f"requested steps ahead : {steps_ahead}"
+                f"\n"
+                f"first window          : {self._last_forecast_df['window'].iloc[0]}"
+                f"\n"
+                f"last window           : {self._last_forecast_df['window'].iloc[-1]}"
+                f"\n"
+                f"fitted values         : {fitted_count}"
+                f"\n"
+                f"future values         : {future_count}"
+                f"\n"
             )
+
+        if result_df.empty:
+            _logger_debug(reason="result_df is empty")
             return None
 
         if inferred_seconds <= self._frequency_in_seconds:
@@ -795,16 +827,28 @@ class SensorMeasurementForecaster:
 
         result_df = result_df.tail(n=1).copy(deep=True)
         assert len(result_df) == 1
+
+        i1 = result_df.index[0]
+        i2 = self._last_forecast_df.query("future == 0").index[-1]
+        i_diff = i1 - i2
+        # negative diff means that a forecasting was requested for an existing value!
+        if i_diff > steps_ahead:
+            _logger_debug(reason=f"i_diff {i_diff} > steps_ahead {steps_ahead} (i1 = {i1}, i2 = {i2})")
+            return None
+
         result: Dict[str, Any] = result_df.to_dict(orient="records")[0]
+        result["final_value"] = result["prediction"]
+        if i_diff < 0:
+            result["final_value"] = result["measurement"]
 
         # TODO change `timeDifference` if `future` clause is not present.
         #  χρησιμοποίησε βασικά για όλα το start timestamp!
         metrics = {
-            "timeSteps": 0.0,
+            "timeSteps": i_diff,
             "timeDifference": (
                 result["window"] - self._dataframe["window"].iloc[-1]
             ).total_seconds(),
             "completeness": self._completeness,
         }
 
-        return {**result_df.to_dict(orient="records")[0], "metrics": metrics}
+        return {**result, "metrics": metrics}

@@ -1,9 +1,11 @@
 package org.softwareforce.iotvm.eventengine;
 
-import java.time.Duration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.streams.KafkaStreams;
@@ -13,15 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.SimpleCompositeTransformationFactoriesManager;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationParameters;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationMergingCompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationMergingCompositeTransformationParameters;
-import org.softwareforce.iotvm.eventengine.cep.ct.CompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformationParameters;
-import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
+import org.softwareforce.iotvm.eventengine.cep.ct.*;
 import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
@@ -38,6 +32,29 @@ import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl
 public class EventEngineApplication {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(EventEngineApplication.class);
+
+  private static List<AverageCalculationCompositeTransformationParameters>
+      loadAverageCalculationParametersSets() {
+    try (InputStream in =
+        Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream("average-calculation-parameters-sets.json")) {
+      final ObjectMapper mapper = new ObjectMapper();
+      final List<AverageCalculationCompositeTransformationParametersJsonNode> items =
+          mapper.readValue(
+              in,
+              mapper
+                  .getTypeFactory()
+                  .constructCollectionType(
+                      List.class,
+                      AverageCalculationCompositeTransformationParametersJsonNode.class));
+      return items.stream()
+          .map(AverageCalculationCompositeTransformationParametersJsonNode::toParameters)
+          .collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public static void main(String[] args) {
     new EventEngineApplication().run();
@@ -57,42 +74,8 @@ public class EventEngineApplication {
     final SplittingCompositeTransformationParameters splittingParameters =
         new SplittingCompositeTransformationParameters();
 
-    // TODO Get from JSON file.
     final List<AverageCalculationCompositeTransformationParameters>
-        averageCalculationParametersList = new ArrayList<>();
-    averageCalculationParametersList.add(
-        new AverageCalculationCompositeTransformationParameters(
-            PhysicalQuantity.TEMPERATURE,
-            Duration.ofSeconds(10),
-            null,
-            null,
-            4,
-            true,
-            2,
-            Duration.ofSeconds(20),
-            4));
-    averageCalculationParametersList.add(
-        new AverageCalculationCompositeTransformationParameters(
-            PhysicalQuantity.TEMPERATURE,
-            Duration.ofSeconds(10),
-            null,
-            null,
-            4,
-            true,
-            2,
-            Duration.ofSeconds(10),
-            8));
-    averageCalculationParametersList.add(
-        new AverageCalculationCompositeTransformationParameters(
-            PhysicalQuantity.TEMPERATURE,
-            Duration.ofMinutes(1),
-            null,
-            null,
-            4,
-            true,
-            1,
-            Duration.ofMinutes(1),
-            1));
+        averageCalculationParametersList = loadAverageCalculationParametersSets();
 
     for (final AverageCalculationCompositeTransformationParameters parametersSet :
         averageCalculationParametersList) {

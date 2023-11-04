@@ -1,3 +1,5 @@
 # TODO add.
 openpyxl==3.1.2
 PyQt5==5.15.9
+seaborn==0.13.0
+optuna==3.4.0

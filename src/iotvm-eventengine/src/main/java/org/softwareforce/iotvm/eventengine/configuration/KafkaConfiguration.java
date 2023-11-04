@@ -30,10 +30,9 @@ public final class KafkaConfiguration {
 
   private static final String CLIENT_ID = "greenhouse-application-kafka-client";
   private static final String BOOTSTRAP_SERVERS = "localhost:10101";
-  // private static final String STATE_DIRECTORY =
-  // "F:\\projects\\PhD\\DGk-PhD-Monorepo\\src\\iotvm-local-data\\iotvm-eventengine\\kafka-streams";
-  // Γιατί στα windows έχω όριο στο path.
-  private static final String STATE_DIRECTORY = "F:\\tmp";
+  private static final String STATE_DIRECTORY =
+      "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-local-data/iotvm-eventengine/kafka-streams";
+  // private static final String STATE_DIRECTORY = "F:\\tmp"; // For windows path limit.
   public static final String SCHEMA_REGISTRY_URL = "http://localhost:10102";
 
   /* ------------ Constructors ------------ */

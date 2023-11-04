@@ -90,6 +90,11 @@ public class AverageCalculationCompositeTransformationParameters
     requireValidDuration("timeWindowGrace", this.timeWindowGrace, true);
     requireValidDuration("timeWindowAdvance", this.timeWindowAdvance, true);
 
+    if (this.forecastingWindowSize.compareTo(this.timeWindowSize) < 0) {
+      throw new IllegalArgumentException(
+          "forecastingWindowSize must be greater than or equal to timeWindowSize!");
+    }
+
     if (this.pastWindowsLookup < 0) {
       throw new IllegalArgumentException("pastWindowsLookup must be zero or positive integer!");
     }
@@ -159,8 +164,18 @@ public class AverageCalculationCompositeTransformationParameters
     return forecastingWindowSize;
   }
 
+  /*
   public int getFutureWindowsLookup() {
     return futureWindowsLookup;
+  }
+  */
+
+  /** EXPERIMENTAL. */
+  public int getFutureWindowsLookupAlternative() {
+    if (this.futureWindowsLookup > 0 && this.pastWindowsLookup > 0) {
+      return this.futureWindowsLookup + this.pastWindowsLookup;
+    }
+    return this.futureWindowsLookup;
   }
 
   /* ------------ Implementation ------------ */

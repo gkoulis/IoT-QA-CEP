@@ -1,0 +1,241 @@
+{
+    "CONFIGURATION_SCRIPT_FILE": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/iotvm_extensions/examples/configuration/_configuration_20231102.py",
+    "CONFIGURATION_SCRIPT_NAME": "iotvm_extensions.examples.configuration._configuration_20231102",
+    "EXPERIMENT_NAME": "paper-experiment-1-v1",
+    "EXPERIMENTS_DIRECTORY": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/experiments",
+    "EXPERIMENT_DIRECTORY": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/experiments/paper-experiment-1-v1",
+    "EXPERIMENT_INPUT_DIRECTORY": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/experiments/paper-experiment-1-v1/input",
+    "EXPERIMENT_OUTPUT_DIRECTORY": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/experiments/paper-experiment-1-v1/output",
+    "PHYSICAL_QUANTITY": "TEMPERATURE",
+    "TIME_WINDOW_SIZE_LIST": [
+        5
+    ],
+    "NUMBER_OF_CONTRIBUTING_SENSORS_LIST": [
+        2,
+        4,
+        6
+    ],
+    "IGNORE_COMPLETENESS_FILTERING_LIST": [
+        false
+    ],
+    "FABRICATION_PAST_EVENTS_STEPS_BEHIND_LIST": [
+        0,
+        2,
+        4,
+        6
+    ],
+    "FABRICATION_FORECASTING_STEPS_AHEAD_LIST": [
+        0,
+        2,
+        4,
+        6
+    ],
+    "SENSOR_ID_LIST": [
+        "sensor-1",
+        "sensor-2",
+        "sensor-3",
+        "sensor-4",
+        "sensor-5",
+        "sensor-6"
+    ],
+    "PHYSICAL_QUANTITY_LOWER": "temperature",
+    "TOPIC_NAME": "ga.sensor_telemetry_measurement_event.0001.temperature",
+    "FREQUENCY_IN_SECONDS_LIST": [
+        5
+    ],
+    "MG__DATASET_PATH_TO_FILE": "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/datasets/dataset-1-slice-9-13.csv",
+    "MG__PARAMETERS_BY_SENSOR_ID": {
+        "sensor-1": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "constant",
+                    "loc": 1.0
+                },
+                {
+                    "type": "normal",
+                    "loc": 0.5,
+                    "scale": 0.2
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 17.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 33.5
+            },
+            "frequency_distribution_seed": 1,
+            "up_sampling_distribution_seed": 1,
+            "noise_distributions_seed": 1,
+            "errors_distributions_seed": 862551904
+        },
+        "sensor-2": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "constant",
+                    "loc": -1.0
+                },
+                {
+                    "type": "normal",
+                    "loc": 0.5,
+                    "scale": 0.1
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 47.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 47.0
+            },
+            "frequency_distribution_seed": 2,
+            "up_sampling_distribution_seed": 2,
+            "noise_distributions_seed": 2,
+            "errors_distributions_seed": 672927785
+        },
+        "sensor-3": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "normal",
+                    "loc": 0.0,
+                    "scale": 2.0
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 19.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 29.0
+            },
+            "frequency_distribution_seed": 3,
+            "up_sampling_distribution_seed": 3,
+            "noise_distributions_seed": 3,
+            "errors_distributions_seed": 173395504
+        },
+        "sensor-4": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "constant",
+                    "loc": 4.0
+                },
+                {
+                    "type": "normal",
+                    "loc": 0.0,
+                    "scale": 2.0
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 118.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 15.0
+            },
+            "frequency_distribution_seed": 4,
+            "up_sampling_distribution_seed": 4,
+            "noise_distributions_seed": 4,
+            "errors_distributions_seed": 440574014
+        },
+        "sensor-5": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "constant",
+                    "loc": -0.5
+                },
+                {
+                    "type": "normal",
+                    "loc": 0.2,
+                    "scale": 0.2
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 168.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 38.0
+            },
+            "frequency_distribution_seed": 5,
+            "up_sampling_distribution_seed": 5,
+            "noise_distributions_seed": 5,
+            "errors_distributions_seed": 888738903
+        },
+        "sensor-6": {
+            "sample_name": "sample1",
+            "frequency_distribution": {
+                "type": "constant",
+                "loc": 5.0
+            },
+            "up_sampling_distribution": null,
+            "noise_distributions": [
+                {
+                    "type": "constant",
+                    "loc": 0.5
+                },
+                {
+                    "type": "normal",
+                    "loc": 0.2,
+                    "scale": 0.2
+                }
+            ],
+            "ttp_between_errors_distribution": {
+                "type": "exponential",
+                "scale": 157.0
+            },
+            "error_ttp_distribution": {
+                "type": "exponential",
+                "scale": 10.0
+            },
+            "frequency_distribution_seed": 6,
+            "up_sampling_distribution_seed": 6,
+            "noise_distributions_seed": 6,
+            "errors_distributions_seed": 919622034
+        }
+    },
+    "MG__EXPECTED_RECURRING_TIME_WINDOWS": 50,
+    "REPORT__EXPERIMENT_NAME_LIST": [
+        "paper-experiment-1-v1"
+    ],
+    "REPORT__SIMULATION_NAME_LIST": [
+        "simulation-2023-10-27-19-35-00"
+    ],
+    "REPORT__CYCLE_LIST": [
+        2
+    ]
+}

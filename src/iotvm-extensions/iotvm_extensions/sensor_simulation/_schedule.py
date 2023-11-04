@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -63,6 +63,8 @@ def build_schedule_df(
     frequency: str,
     start_dt_pct: float,
     end_dt_pct: float,
+    # Meta.
+    additional_static: Dict[str, Union[str, int, bool]],
 ) -> pd.DataFrame:
     # Extract information from dataframe.
     # --------------------------------------------------
@@ -112,6 +114,7 @@ def build_schedule_df(
                     intended_simulated_sensor_operation
                 )
 
+                # TODO ΠΡΟΣΟΧΗ: πιο κάτω το ξανακάνω. Συνεπώς αυτό είναι ενδεικτικό. ΧΡΕΙΑΖΕΤΑΙ;;;!
                 evaluated_simulated_sensor_operation: EvaluatedSimulatedSensorOperation = evaluate_macro(
                     string=intended_simulated_sensor_operation.macro,
                     sensor_id=intended_simulated_sensor_operation.sensor_id,
@@ -123,7 +126,7 @@ def build_schedule_df(
                 )
 
         recurring_window: RecurringWindow = RecurringWindow(
-            number=number,  # TODO Convert to number.
+            number=int(number),
             intended_ops=intended_simulated_sensor_operation_list,
             evaluated_ops=evaluated_simulated_sensor_operation_list,
         )
@@ -203,6 +206,7 @@ def build_schedule_df(
                     "simulation": True,
                     "cycle": str(cycle),
                     "recurring_window": str(recurring_window_number),
+                    **additional_static,
                 },
             )
             data.append(

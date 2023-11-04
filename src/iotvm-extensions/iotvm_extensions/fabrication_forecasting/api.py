@@ -1,5 +1,7 @@
+import time
 import zoneinfo
 from typing import Dict, List, Optional
+import threading
 
 import pandas as pd
 
@@ -29,6 +31,26 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
     def __init__(self):
         self._forecasters: Dict[str, SensorMeasurementForecaster] = {}
         self._ensuring: Dict[str, bool] = {}
+        self._thread: threading.Thread | None = None
+
+    def _synchronize(self) -> None:
+        while True:
+            keys = list(self._forecasters.keys())
+            for key in keys:
+                if self._forecasters[key].is_ready() is False:
+                    continue
+                self._forecasters[key].refresh_data()
+                # TODO Parameter.
+                self._forecasters[key].refresh_forecast(future_periods=100)
+            # TODO Automatically the half of the smallest frequency_in_seconds.
+            time.sleep(2.5)
+
+    def _ensure_synchronization_thread(self) -> None:
+        if self._thread is not None:
+            return
+
+        self._thread = threading.Thread(target=self._synchronize, daemon=False)
+        self._thread.start()
 
     def ensure(self, scope: ForecastScope) -> None:
         key: str = _key(scope=scope)
@@ -56,6 +78,8 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
 
         self._forecasters[key].refresh_train()
 
+        self._ensure_synchronization_thread()
+
         self._ensuring[key] = False
 
     def forecast(
@@ -76,9 +100,7 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
         if self._forecasters[key].is_ready() is False:
             raise ForecastException(f"SensorMeasurementForecaster {key} is not ready!")
 
-        self._forecasters[key].refresh_data()
-
-        future_periods: int = request.stepsAhead
+        steps_ahead: int = request.stepsAhead
         start_timestamp = pd.Timestamp(
             request.startTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
         )
@@ -86,7 +108,7 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
             request.endTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
         )
         result: Optional[Dict] = self._forecasters[key].forecast(
-            future_periods=future_periods,
+            steps_ahead=steps_ahead,
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
         )
@@ -98,7 +120,7 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
             )
 
         return ForecastResponse(
-            value=float(result["prediction"]),
+            value=float(result["final_value"]),
             startTimestamp=int(result["window"].timestamp() * 1_000),
             endTimestamp=int(result["window_end"].timestamp() * 1_000),
             metrics=result["metrics"],

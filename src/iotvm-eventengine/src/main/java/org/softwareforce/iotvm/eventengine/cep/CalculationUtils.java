@@ -46,8 +46,9 @@ public final class CalculationUtils {
     double real = (double) eventList.size();
     double timely = 0.0D;
     for (final SensorTelemetryMeasurementEventIBO event : eventList) {
-      if (event.getTimestamps().getDefaultTimestamp() >= startTimestamp
-          && event.getTimestamps().getDefaultTimestamp() <= endTimestamp) {
+      if ((event.getTimestamps().getDefaultTimestamp() >= startTimestamp
+              && event.getTimestamps().getDefaultTimestamp() <= endTimestamp)
+          && !event.getTimestamps().getTimestamps().containsKey(Constants.FABRICATED)) {
         // TODO endTimestamp - 1 (EVERYWHERE - γράψε docs, ποιος το αποφασίζει, κτλ.)
         timely = timely + 1D;
       }
@@ -74,8 +75,10 @@ public final class CalculationUtils {
     double real = (double) eventList.size();
     double timely = 0.0D;
     for (final SensorTelemetryMeasurementEventIBO event : eventList) {
-      // TODO γίνεται και πιο απλό -> βάλε το τωρινό time window στα changepoints (με index 0).
-      if (event.getTimestamps().getDefaultTimestamp() >= startTimestamp
+      // TODO γίνεται και πιο απλό -> βάλε το τωρινό time window στα change points (με index 0).
+      if (event.getTimestamps().getTimestamps().containsKey(Constants.FABRICATED)) {
+        timely = timely + 0D;
+      } else if (event.getTimestamps().getDefaultTimestamp() >= startTimestamp
           && event.getTimestamps().getDefaultTimestamp() <= endTimestamp) {
         timely = timely + 1D;
       } else {
