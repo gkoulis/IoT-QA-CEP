@@ -3,7 +3,7 @@ Generates the JSON for the iotvm-eventengine resource file (average-calculation-
 
 Author: Dimitris Gkoulis
 Created at: Thursday 12 October 2023
-Modified at: Wednesday 25 October 2023
+Modified at: Wednesday 08 November 2023
 """
 
 from typing import Dict, List
@@ -49,7 +49,7 @@ class CompositeTransformationParameterID:
     fabrication_forecasting_steps_ahead: int
 
     def __str__(self) -> str:
-        string: str = f"time window size of {self.time_window_size} secs with {self.number_of_contributing_sensors} min sensors"
+        string: str = f"time window size of {self.time_window_size} secs with at least {self.number_of_contributing_sensors} sensors"
 
         if self.fabrication_past_events_steps_behind == 0 and self.fabrication_forecasting_steps_ahead == 0:
             return string

@@ -13,7 +13,7 @@
     <maven.compiler.target>19</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kafka.version>3.5.0</kafka.version>
+    <kafka.version>3.7.0</kafka.version>
   </properties>
 
   <repositories>
@@ -33,6 +33,13 @@
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-streams</artifactId>
       <version>${kafka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-streams-test-utils</artifactId>
+      <version>${kafka.version}</version>
+      <!-- We use in production for simulations -->
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.confluent</groupId>
@@ -142,7 +149,8 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>org.softwareforce.iotvm.eventengine.EventEngineApplication</mainClass>
+<!--                  <mainClass>org.softwareforce.iotvm.eventengine.EventEngineApplication</mainClass>-->
+                  <mainClass>org.softwareforce.iotvm.eventengine.EventEngineApplicationSimulation</mainClass>
                 </transformer>
               </transformers>
             </configuration>

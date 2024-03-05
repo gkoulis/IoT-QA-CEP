@@ -1,4 +1,5 @@
 import json
+import dataclasses
 import os
 import re
 from typing import Dict, List
@@ -50,6 +51,7 @@ from iotvm_extensions.fabrication_forecasting.spec.ttypes import (
     ForecastScope,
     ForecastRequest,
 )
+from iotvm_extensions.examples.report_mara import generate_report as generate_report_mara
 from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
 from iotvm_extensions.server_client.client import ClientsFactory
 from iotvm_extensions.server_client.server import start_server
@@ -151,7 +153,13 @@ class CLI:
             f"Creating configuration.json ({len(data)} key-value pairs)"
         )
 
-        json_object = json.dumps(data, indent=4)
+        class EnhancedJSONEncoder(json.JSONEncoder):
+            def default(self, o):
+                if dataclasses.is_dataclass(o):
+                    return dataclasses.asdict(o)
+                return super().default(o)
+
+        json_object = json.dumps(data, indent=4, cls=EnhancedJSONEncoder)
         path_to_file: str = os.path.join(EXPERIMENT_INPUT_DIRECTORY, "configuration.json")
         assert os.path.exists(path_to_file) is False
         with open(path_to_file, "w") as outfile:
@@ -193,6 +201,9 @@ class CLI:
 
     def generate_report_cached(self) -> None:
         generate_report_cached(path_to_output_dir=EXPERIMENT_OUTPUT_DIRECTORY)
+
+    def generate_report_mara(self) -> None:
+        generate_report_mara()
 
 
 if __name__ == "__main__":

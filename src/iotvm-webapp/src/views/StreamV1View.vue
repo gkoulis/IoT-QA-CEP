@@ -329,7 +329,7 @@ const formatDateTime = (timestamp) => {
   </main>
 </template>
 
-<style>
+<style scoped>
 .CommonSimpleTable {
   width: 100%;
   font-size: 16px;

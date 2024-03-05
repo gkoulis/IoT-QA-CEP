@@ -6,6 +6,7 @@ Modified at: Friday 03 November 2023
 
 import os
 from typing import Dict, List
+from ._common_errors_distributions import CED1, CED2, CED3, CED4, CED5, CED6
 
 
 # DO NOT CHANGE.
@@ -18,7 +19,7 @@ CONFIGURATION_SCRIPT_NAME = __name__
 # ####################################################################################################
 
 
-EXPERIMENT_NAME: str = "paper-experiment-1-v1"
+EXPERIMENT_NAME: str = "after-paper-experiment-6-v1"
 
 
 # ####################################################################################################
@@ -90,18 +91,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 0.2,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 17.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 33.5,
-        },
+        "ttp_between_errors_distribution": CED1.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED1.error_ttp_distribution,
         "frequency_distribution_seed": 1,
         "up_sampling_distribution_seed": 1,
         "noise_distributions_seed": 1,
-        "errors_distributions_seed": 862551904,
+        "errors_distributions_seed": CED1.errors_distributions_seed,
     },
     "sensor-2": {
         "sample_name": "sample1",
@@ -118,18 +113,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 0.1,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 47.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 47.0,
-        },
+        "ttp_between_errors_distribution": CED2.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED2.error_ttp_distribution,
         "frequency_distribution_seed": 2,
         "up_sampling_distribution_seed": 2,
         "noise_distributions_seed": 2,
-        "errors_distributions_seed": 672927785,
+        "errors_distributions_seed": CED2.errors_distributions_seed,
     },
     "sensor-3": {
         "sample_name": "sample1",
@@ -142,18 +131,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 2.0,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 19.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 29.0,
-        },
+        "ttp_between_errors_distribution": CED3.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED3.error_ttp_distribution,
         "frequency_distribution_seed": 3,
         "up_sampling_distribution_seed": 3,
         "noise_distributions_seed": 3,
-        "errors_distributions_seed": 173395504,
+        "errors_distributions_seed": CED3.errors_distributions_seed,
     },
     "sensor-4": {
         "sample_name": "sample1",
@@ -170,18 +153,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 2.0,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 118.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 15.0,
-        },
+        "ttp_between_errors_distribution": CED1.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED1.error_ttp_distribution,
         "frequency_distribution_seed": 4,
         "up_sampling_distribution_seed": 4,
         "noise_distributions_seed": 4,
-        "errors_distributions_seed": 440574014,
+        "errors_distributions_seed": CED1.errors_distributions_seed,
     },
     "sensor-5": {
         "sample_name": "sample1",
@@ -198,18 +175,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 0.2,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 168.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 38.0,
-        },
+        "ttp_between_errors_distribution": CED2.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED2.error_ttp_distribution,
         "frequency_distribution_seed": 5,
         "up_sampling_distribution_seed": 5,
         "noise_distributions_seed": 5,
-        "errors_distributions_seed": 888738903,
+        "errors_distributions_seed": CED2.errors_distributions_seed,
     },
     "sensor-6": {
         "sample_name": "sample1",
@@ -226,18 +197,12 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
                 "scale": 0.2,
             },
         ],
-        "ttp_between_errors_distribution": {
-            "type": "exponential",
-            "scale": 157.0,
-        },
-        "error_ttp_distribution": {
-            "type": "exponential",
-            "scale": 10.0,
-        },
+        "ttp_between_errors_distribution": CED3.ttp_between_errors_distribution,
+        "error_ttp_distribution": CED3.error_ttp_distribution,
         "frequency_distribution_seed": 6,
         "up_sampling_distribution_seed": 6,
         "noise_distributions_seed": 6,
-        "errors_distributions_seed": 919622034,
+        "errors_distributions_seed": CED3.errors_distributions_seed,
     },
 }
 MG__EXPECTED_RECURRING_TIME_WINDOWS: int = 50
@@ -248,6 +213,20 @@ MG__EXPECTED_RECURRING_TIME_WINDOWS: int = 50
 # ####################################################################################################
 
 
+"""
+paper-experiment-1-v1    simulation-2023-11-04-20-23-00    2
+paper-experiment-1-v2    simulation-2023-11-08-20-01-00    1
+paper-experiment-1-v3    simulation-2024-01-17-14-34-00    1
+---
+after-paper-experiment-1-v1    simulation-2024-01-22-18-50-00    3
+after-paper-experiment-2-v1    simulation-2024-01-22-19-54-00    2
+after-paper-experiment-3-v1    simulation-2024-01-24-18-08-00    2
+after-paper-experiment-4-v1    simulation-2024-01-24-18-32-00    2
+after-paper-experiment-5-v1    simulation-2024-02-17-20-20-00    2
+after-paper-experiment-6-v1    simulation-2024-02-17-20-30-00    2
+"""
+
+
 REPORT__EXPERIMENT_NAME_LIST: List[str] = [EXPERIMENT_NAME]
-REPORT__SIMULATION_NAME_LIST: List[str] = ["simulation-2023-11-04-20-23-00"]
+REPORT__SIMULATION_NAME_LIST: List[str] = ["simulation-2024-02-17-20-30-00"]
 REPORT__CYCLE_LIST: List[int] = [2]

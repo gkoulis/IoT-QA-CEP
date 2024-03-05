@@ -125,6 +125,7 @@ public class EventEngineApplication {
 
     final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
         new FabricationForecastingServiceAdapter();
+    // TODO I must add experiment and other fields to these records! This is very important!
     final SensingRecordingServiceAdapter sensingRecordingServiceAdapter =
         new SensingRecordingServiceAdapter();
 

@@ -1,5 +1,7 @@
 package org.softwareforce.iotvm.eventengine.cep;
 
+import io.confluent.kafka.schemaregistry.client.MockSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.util.Collections;
@@ -111,22 +113,30 @@ public final class Constants {
 
   /* ------------ Serialization / Deserialization ------------ */
 
-  private static final Map<String, String> SERDE_CONFIG =
-      Collections.singletonMap(
-          AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-          KafkaConfiguration.SCHEMA_REGISTRY_URL);
+//  private static final Map<String, String> SERDE_CONFIG =
+//      Collections.singletonMap(
+//          AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+//          KafkaConfiguration.SCHEMA_REGISTRY_URL);
+private static final Map<String, String> SERDE_CONFIG =
+        Collections.singletonMap(
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                "mock://localhost");
 
   public static final Serde<String> STRING_SERDE = new Serdes.StringSerde();
   public static final Serde<SensorTelemetryRawEventIBO> SENSOR_TELEMETRY_RAW_EVENT_IBO_SERDE =
       new SpecificAvroSerde<>();
   public static final Serde<SensorTelemetryEventIBO> SENSOR_TELEMETRY_EVENT_IBO_SERDE =
       new SpecificAvroSerde<>();
+
+  public static final SchemaRegistryClient SCHEMA_REGISTRY_CLIENT = new MockSchemaRegistryClient();
+
   public static final Serde<SensorTelemetryMeasurementEventIBO>
       SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE = new SpecificAvroSerde<>();
   public static final Serde<SensorTelemetryMeasurementsAverageAggregateIBO>
       SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_AGGREGATE_IBO_SERDE = new SpecificAvroSerde<>();
   public static final Serde<SensorTelemetryMeasurementsAverageEventIBO>
       SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_IBO_SERDE = new SpecificAvroSerde<>();
+  // TODO Prosoxi me ta mock!
 
   static {
     SENSOR_TELEMETRY_RAW_EVENT_IBO_SERDE.configure(SERDE_CONFIG, false);

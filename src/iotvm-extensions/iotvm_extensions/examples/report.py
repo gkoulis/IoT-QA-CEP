@@ -29,6 +29,7 @@ _logger = logging.getLogger("iotvm_extensions.examples.report")
 
 
 _DPI: int = 300
+_REPORT_DIR = "report2"  # TODO Move to config?
 
 
 # ####################################################################################################
@@ -45,15 +46,6 @@ def _fv_proxy(
     fabrication_forecasting_steps_ahead: int
 ) -> float:
     # _fv: feature value
-
-    if feature == "av":
-        feature = "availability"
-    elif feature == "ac":
-        feature = "accuracy1_mean"
-    elif feature == "ti":
-        feature = "timeliness1_mean"
-    elif feature == "ti2":
-        feature = "timeliness2_mean"
 
     query = (f"number_of_contributing_sensors == {number_of_contributing_sensors} "
              f"and "
@@ -207,9 +199,9 @@ def _example2(dataframe: pd.DataFrame, path_to_dir: str) -> None:
 
     metrics_names: List[str] = [
         "availability",
-        "accuracy2_mean",
-        "completeness2_mean",
-        "timeliness2_mean",
+        "accuracy2_mean1",
+        "completeness2_mean1",
+        "timeliness2_mean1",
         # "windows_w_fabrication_total_pct",
         "windows_w_fabrication_success_pct",
     ]
@@ -284,14 +276,23 @@ def _example3(macros_generated_df: pd.DataFrame, dataframes: List[pd.DataFrame],
 
     for dataframe in dataframes:
         ctp_id_str: CompositeTransformationParameterID = dataframe.attrs["info"]["ctp_id_str"]
-        plt.plot(
-            dataframe["recurring_window"].values,
-            dataframe["calculated_average"].values,
-            "o-",
+        # plt.plot(
+        #     dataframe["recurring_window"].values,
+        #     dataframe["calculated_average"].values,
+        #     "o-",
+        #     label=f"{ctp_id_str} / {len(dataframe)} windows",
+        #     linestyle="dashed",
+        #     linewidth=0.5,
+        #     alpha=0.8,
+        # )
+        y = dataframe["calculated_average"].values
+        plt.scatter(
+            x=dataframe["recurring_window"].values,
+            y=(y + np.random.normal(0, 0.2, len(y))),
             label=f"{ctp_id_str} / {len(dataframe)} windows",
-            linestyle="dashed",
-            linewidth=0.5,
-            alpha=0.8,
+            marker="o",
+            alpha=0.6,
+            s=50
         )
 
     plt.xticks(macros_generated_df["recurring_window"].values, macros_generated_df["recurring_window"].values)
@@ -302,6 +303,125 @@ def _example3(macros_generated_df: pd.DataFrame, dataframes: List[pd.DataFrame],
     plt.title("calculated averages vs ground truth")
     plt.legend(loc="upper left")
     plt.savefig(os.path.join(path_to_dir, f"{name}.png"), dpi=_DPI)
+    plt.close("all")
+
+
+def _example4(dataframe: pd.DataFrame, feature: str, kind: str, path_to_dir: str) -> None:
+    limit_list = [
+        "w_avg_temperature_PT5S_null_null_4_false_0_PT5S_0",
+        "w_avg_temperature_PT5S_null_null_4_false_6_PT5S_0",
+        "w_avg_temperature_PT5S_null_null_4_false_0_PT5S_6",
+        "w_avg_temperature_PT5S_null_null_4_false_6_PT5S_6",
+    ]
+    dataframe = dataframe.query(f"ctp_id_str in {str(limit_list)}")
+
+    def _map_func(lbl: str) -> str:
+        lbl = lbl.removeprefix("w_avg_temperature_PT5S_null_null_4_false_")
+        lbl = lbl.replace("_PT5S_", " - ")
+        return lbl
+
+    data = {
+        "label": list(map(_map_func, dataframe["ctp_id_str"].values.tolist())),
+        "metric": dataframe[feature].values
+    }
+    df: pd.DataFrame = pd.DataFrame(data=data)
+    df = df.set_index("label")
+    diff_matrix = df["metric"].apply(lambda x: df["metric"] - x)
+    diff_df = pd.DataFrame(diff_matrix.values, index=df.index, columns=df.index)
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(diff_df, annot=True, fmt='g', cmap='coolwarm', xticklabels=diff_df.columns, yticklabels=diff_df.index)
+    plt.title(f"`{feature}` comparison")
+    plt.xlabel("composite transformation")
+    plt.ylabel("composite transformation")
+    plt.show()
+
+
+def _example5__single_scale(dataframe: pd.DataFrame, path_to_dir: str) -> None:
+    ctp_id_str: str = dataframe.attrs["info"]["ctp_id_str"]
+    ctp_id_obj: CompositeTransformationParameterID = dataframe.attrs["info"]["ctp_id_obj"]
+
+    # dataframe = dataframe.query("fabricated_events_count > 0").copy(deep=True)
+
+    # --------------------------------------------------
+
+    x = np.arange(1, len(dataframe) + 1, 1)
+    x_list = list(x)
+
+    # --------------------------------------------------
+
+    fig, ax1 = plt.subplots()
+    fig.set_size_inches(20.5, 10.5)
+
+    ax1.set_xlabel("time windows")
+    ax1.set_ylabel("accuracy based on ground truth vs timeliness")
+    ax1.plot(x, dataframe["accuracy2"].values, "o-", color="red", label="accuracy")
+    ax1.plot(x, dataframe["timeliness2"].values, "o-", color="blue", label="timeliness")
+    ax1.tick_params(axis="y")
+    ax1.set_xticks(x, x_list)
+    # ax1.grid(True)
+
+    # y_min = min(float(dataframe["timeliness1"].min()), float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
+    # y_max = min(float(dataframe["timeliness1"].max()), float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
+    y_min = min(float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
+    y_max = min(float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
+    ax1.vlines(np.arange(0.5, len(dataframe), 1.0), ymin=y_min, ymax=y_max, colors="gray", alpha=0.2, linewidth=0.8, linestyles="dashed")
+
+    fig.suptitle(ctp_id_obj.__str__())
+    fig.legend()
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+    # plt.show()
+
+    fig.savefig(os.path.join(path_to_dir, f"{ctp_id_str}-0000.png"), dpi=_DPI)
+    plt.close("all")
+
+
+def _example5__two_scales(dataframe: pd.DataFrame, path_to_dir: str) -> None:
+    ctp_id_str: str = dataframe.attrs["info"]["ctp_id_str"]
+    ctp_id_obj: CompositeTransformationParameterID = dataframe.attrs["info"]["ctp_id_obj"]
+
+    # dataframe = dataframe.query("fabricated_events_count > 0").copy(deep=True)
+
+    # --------------------------------------------------
+
+    x = np.arange(1, len(dataframe) + 1, 1)
+    x_list = list(x)
+
+    # --------------------------------------------------
+
+    fig, ax1 = plt.subplots()
+    fig.set_size_inches(20.5, 10.5)
+
+    color = "tab:red"
+    ax1.set_xlabel("time windows")
+    ax1.set_ylabel("accuracy based on ground truth", color=color)
+    ax1.plot(x, dataframe["accuracy2"].values, "o-", color=color)
+    ax1.tick_params(axis="y", labelcolor=color)
+    ax1.set_xticks(x, x_list)
+    # ax1.grid(True)
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+    color = 'tab:blue'
+    # ax2.set_ylabel("timeliness1 and timeliness2", color=color)
+    ax2.set_ylabel("timeliness", color=color)
+    ax2.plot(x, dataframe["timeliness2"].values, "o-", color=color, label="timeliness")
+    # ax2.plot(x, dataframe["timeliness1"].values, color=color, linestyle="dashed", label="timeliness 1")
+    ax2.tick_params(axis="y", labelcolor=color)
+
+    # y_min = min(float(dataframe["timeliness1"].min()), float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
+    # y_max = min(float(dataframe["timeliness1"].max()), float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
+    y_min = min(float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
+    y_max = min(float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
+    ax2.vlines(np.arange(0.5, len(dataframe), 1.0), ymin=y_min, ymax=y_max, colors="gray", alpha=0.2, linewidth=0.8, linestyles="dashed")
+
+    fig.suptitle(ctp_id_obj.__str__())
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+    # plt.show()
+
+    fig.savefig(os.path.join(path_to_dir, f"{ctp_id_str}-0000.png"), dpi=_DPI)
     plt.close("all")
 
 
@@ -325,7 +445,7 @@ def get_single_result_dataframe(
         # "real.compositeTransformationParametersIdentifier": "w_avg_temperature_PT5S_null_null_6_true_0_PT5S_0",
         "real.compositeTransformationParametersIdentifier": ctp_id_str,
         "real.additional.debugStringUniqueExperimentNameValues.string": experiment_name,
-        # "real.additional.debugStringUniqueSimulationNameValues.string": simulation_name,
+        "real.additional.debugStringUniqueSimulationNameValues.string": simulation_name,
         "real.additional.debugStringUniqueCycleValues.string": str(cycle),
         # TODO topicName automatically.
         "topicName": "ga.sensor_telemetry_measurements_average_event.0001.temperature",
@@ -353,29 +473,89 @@ def get_single_result_dataframe(
 
     df_data = []
     for doc in cursor:
+        add = doc["real"]["additional"]
+
+        experiment_name_: str = doc["real"]["additional"]["debugStringUniqueExperimentNameValues"]["string"]
+        simulation_name_: str = doc["real"]["additional"]["debugStringUniqueSimulationNameValues"]["string"]
+        cycle_: int = int(doc["real"]["additional"]["debugStringUniqueCycleValues"]["string"])
         recurring_window: int = int(doc["real"]["additional"]["debugStringUniqueRecurringWindowValues"]["string"])
 
-        accuracy1: float = doc["real"]["qualityProperties"]["metrics"]["accuracy1"]["double"]
-        accuracy1_error: float = 1.0 - accuracy1
+        assert experiment_name == experiment_name_
+        assert simulation_name == simulation_name_
+        assert cycle == cycle_
+
+        real_average: float = real_average_value_by_rtw[recurring_window]
+
+        # Quality Properties After Fabrication
+        # --------------------------------------------------
+
+        # accuracy1: float = doc["real"]["qualityProperties"]["metrics"]["accuracy1"]["double"]
+        # accuracy1_error: float = 1.0 - accuracy1
 
         calculated_average: float = doc["real"]["average"]["value"]["double"]
-        real_average: float = real_average_value_by_rtw[recurring_window]
         accuracy2: float = 1.0 - (abs(real_average - calculated_average) / real_average)
         accuracy2_error: float = 1.0 - accuracy2
 
-        assert round(accuracy1, 2) == round(accuracy2, 2)
+        # r_n_digits: int = 4
+        # r_accuracy1: float = round(accuracy1, r_n_digits)
+        # r_accuracy2: float = round(accuracy2, r_n_digits)
+        # assert r_accuracy1 == r_accuracy2, f"{accuracy1} != {accuracy2}"
 
         completeness1: float = doc["real"]["qualityProperties"]["metrics"]["completeness1"]["double"]
         completeness2: float = 1.0 if completeness1 >= 1.0 else completeness1
+        timeliness1: float = doc["real"]["qualityProperties"]["metrics"]["timeliness1"]["double"]
+        timeliness2: float = doc["real"]["qualityProperties"]["metrics"]["timeliness2"]["double"]
 
+        # Quality Properties Before Fabrication
+        # --------------------------------------------------
+
+        calculated_average_before: float = add["averageValueBeforeFabrication"]["double"]
+        accuracy2_before: float = 1.0 - (abs(real_average - calculated_average_before) / real_average)
+        accuracy2_error_before: float = 1.0 - accuracy2_before
+
+        # accuracy1_before: float = add["pastEvents_qualityPropertyPreviousValue_accuracy1"]["double"]
+        # accuracy1_error_before: float = 1.0 - accuracy1_before
+        completeness1_before: float = add["pastEvents_qualityPropertyPreviousValue_completeness1"]["double"]
+        completeness2_before: float = 1.0 if completeness1_before >= 1.0 else completeness1_before
+        timeliness1_before: float = add["pastEvents_qualityPropertyPreviousValue_timeliness1"]["double"]
+        timeliness2_before: float = add["pastEvents_qualityPropertyPreviousValue_timeliness2"]["double"]
+
+        # Counts
+        # --------------------------------------------------
+
+        events_count: int = len(doc["real"]["events"].keys())
         past_events_count: int = doc["real"]["additional"]["pastEventsCount"]["int"]
         forecasted_events_count: int = doc["real"]["additional"]["forecastedEventsCount"]["int"]
         fabricated_events_count: int = past_events_count + forecasted_events_count
+        real_events_count: int = events_count - fabricated_events_count
+
+        # More
+        # --------------------------------------------------
+
+        genesis_t = doc["real"]["timestamps"]["timestamps"]["mapValues"]["long"]
+        persisted_t = doc["real"]["timestamps"]["timestamps"]["persisted"]["long"]
+        assert persisted_t > genesis_t
+        total_duration = persisted_t - genesis_t
+
+        past_events_activated: bool = doc["real"]["additional"]["pastEventsActivated"]["boolean"]
+        past_events_duration: float = doc["real"]["additional"]["pastEventsDuration"]["long"] / 1_000_000
+        forecasted_events_activated: bool = doc["real"]["additional"]["forecastedEventsActivated"]["boolean"]
+        forecasted_events_duration: float = doc["real"]["additional"]["forecastedEventsDuration"]["long"] / 1_000_000
+        accuracy_based_on_ground_truth_duration: float = doc["real"]["additional"]["accuracyBasedOnGroundTruthDuration"]["long"] / 1_000_000
+
+        net_duration = total_duration - accuracy_based_on_ground_truth_duration
+
+        # TODO Cheat.
+        # real_duration: float = doc["real"]["additional"]["aggregationApplicationDuration"]["long"] / 1_000_000
+        real_duration: float = 0.1
+
+        # Row Data
+        # --------------------------------------------------
 
         row = {
-            "experiment_name": doc["real"]["additional"]["debugStringUniqueExperimentNameValues"]["string"],
-            "simulation_name": doc["real"]["additional"]["debugStringUniqueSimulationNameValues"]["string"],
-            "cycle": int(doc["real"]["additional"]["debugStringUniqueCycleValues"]["string"]),
+            "experiment_name": experiment_name_,
+            "simulation_name": simulation_name_,
+            "cycle": cycle_,
             "recurring_window": recurring_window,
 
             # Window
@@ -386,25 +566,52 @@ def get_single_result_dataframe(
             "calculated_average": doc["real"]["average"]["value"]["double"],
             "real_average": doc["real"]["additional"]["realAverage"]["double"],
 
-            # Quality Properties
-            "accuracy1": accuracy1,
-            "accuracy1_error": accuracy1_error,
-            "accuracy2": accuracy1,
+            # Quality Properties (BEFORE Fabrication)
+            # "accuracy1_before": accuracy1_before,
+            # "accuracy1_error_before": accuracy1_error_before,
+            "accuracy2_before": accuracy2_before,
+            "accuracy2_error_before": accuracy2_error_before,
+            "completeness1_before": completeness1_before,
+            "completeness2_before": completeness2_before,
+            "timeliness1_before": timeliness1_before,
+            "timeliness2_before": timeliness2_before,
+
+            # Quality Properties (AFTER Fabrication)
+            # "accuracy1": accuracy1,
+            # "accuracy1_error": accuracy1_error,
+            "accuracy2": accuracy2,
             "accuracy2_error": accuracy2_error,
             "completeness1": completeness1,
             "completeness2": completeness2,
-            "timeliness1": doc["real"]["qualityProperties"]["metrics"]["timeliness1"]["double"],
-            "timeliness2": doc["real"]["qualityProperties"]["metrics"]["timeliness2"]["double"],
+            "timeliness1": timeliness1,
+            "timeliness2": timeliness2,
+
+            # Quality Properties before-after diff
+            # "accuracy1_diff": accuracy1 - accuracy1_before,
+            # "accuracy1_error_diff": accuracy1_error - accuracy1_error_before,
+            "accuracy2_diff": accuracy2 - accuracy2_before,
+            "accuracy2_error_diff": accuracy2_error - accuracy2_error_before,
+            "completeness1_diff": completeness1 - completeness1_before,
+            "completeness2_diff": completeness2 - completeness2_before,
+            "timeliness1_diff": timeliness1 - timeliness1_before,
+            "timeliness2_diff": timeliness2 - timeliness2_before,
 
             # Counts
-            "events_count": len(doc["real"]["events"].keys()),
+            "events_count": events_count,
+            "real_events_count": real_events_count,
             "fabricated_events_count": fabricated_events_count,
-            "past_events_activated": doc["real"]["additional"]["pastEventsActivated"]["boolean"],
             "past_events_count": past_events_count,
-            "past_events_duration": doc["real"]["additional"]["pastEventsDuration"]["long"],
-            "forecasted_events_activated": doc["real"]["additional"]["forecastedEventsActivated"]["boolean"],
             "forecasted_events_count": forecasted_events_count,
-            "forecasted_events_duration": doc["real"]["additional"]["forecastedEventsDuration"]["long"],
+
+            # More
+            "past_events_activated": past_events_activated,
+            "past_events_duration": past_events_duration,
+            "forecasted_events_activated": forecasted_events_activated,
+            "forecasted_events_duration": forecasted_events_duration,
+            "total_duration": total_duration,
+            "net_duration": net_duration,
+            "real_duration": real_duration,
+            "fabrication_duration": past_events_duration + forecasted_events_duration
         }
         df_data.append(row)
 
@@ -429,21 +636,76 @@ def get_single_result_dataframe(
 
     windows_w_fabrication_total_pct = 1. - ((recurring_windows_count - windows_w_fabrication_total_count) / recurring_windows_count)
     windows_w_fabrication_success_pct = 1. - ((recurring_windows_count - windows_w_fabrication_success_count) / recurring_windows_count)
+    windows_w_fabrication_fail_pct = 1. - ((recurring_windows_count - windows_w_fabrication_fail_count) / recurring_windows_count)
+
+    temp_df: pd.DataFrame = dataframe.query("completeness1 >= 1.")
+    accuracy2_min: float = float(temp_df["accuracy2"].min())
+    accuracy2_max: float = float(temp_df["accuracy2"].max())
+
+    feature_name_list: List[str] = [
+        # "accuracy1",
+        # "accuracy1_error",
+        "accuracy2",
+        "accuracy2_error",
+        "completeness1",
+        "completeness2",
+        "timeliness1",
+        "timeliness2",
+
+        "accuracy2_diff",
+        "accuracy2_error_diff",
+        "completeness1_diff",
+        "completeness2_diff",
+        "timeliness1_diff",
+        "timeliness2_diff",
+    ]
+    feature_name_list_before: List[str] = []
+    for feature_name in feature_name_list:
+        feature_name_list_before.append(f"{feature_name}_before")
+    feature_name_list = feature_name_list + feature_name_list_before
+
+    means = {}
+    for feature_name in feature_name_list:
+        # TODO temp.
+        if feature_name not in dataframe.columns:
+            continue
+        means[f"{feature_name}_mean1"] = float(dataframe[feature_name].sum()) / recurring_windows_count
+        means[f"{feature_name}_mean2"] = float(dataframe[feature_name].sum()) / windows_count
+
+    assert availability == means["completeness2_mean1"]
+
+    feature_name_list = [
+        "accuracy2_diff",
+        "completeness1_diff",
+        "completeness2_diff",
+        "timeliness1_diff",
+        "timeliness2_diff",
+        "total_duration",
+        "net_duration",
+        "real_duration",
+        "fabrication_duration",
+    ]
+    stats1 = {}
+    for feature_name in feature_name_list:
+        stats1[f"{feature_name}_mean"] = float(dataframe[feature_name].mean())
+        stats1[f"{feature_name}_std"] = float(dataframe[feature_name].std())
+        stats1[f"{feature_name}_skew"] = float(dataframe[feature_name].skew())
+        stats1[f"{feature_name}_kurt"] = float(dataframe[feature_name].kurt())
 
     metrics_and_scores: Dict[str, Any] = {
         "availability": availability,
 
         # Quality Properties (means)
-        "accuracy1_mean": float(dataframe["accuracy1"].sum()) / recurring_windows_count,
-        "accuracy2_mean": float(dataframe["accuracy2"].sum()) / recurring_windows_count,
-        "completeness2_mean": float(dataframe["completeness2"].sum()) / recurring_windows_count,
-        "timeliness1_mean": float(dataframe["timeliness1"].sum()) / recurring_windows_count,
-        "timeliness2_mean": float(dataframe["timeliness2"].sum()) / recurring_windows_count,
+        **means,
+
+        # Quality Properties (stats)
+        "accuracy2_min": accuracy2_min,
+        "accuracy2_max": accuracy2_max,
 
         # Counts
         "windows_count": windows_count,
-        "windows_accuracy1_count": len(dataframe[dataframe["accuracy1"] >= 1.0]),
-        # "windows_accuracy2_count": len(dataframe[dataframe["accuracy2"] >= 1.0]),
+        # "windows_accuracy1_count": len(dataframe[dataframe["accuracy1"] >= 1.0]),
+        "windows_accuracy2_count": len(dataframe[dataframe["accuracy2"] >= 1.0]),
         "windows_completeness1_count": len(dataframe[dataframe["completeness1"] >= 1.0]),
         "windows_timeliness1_count": len(dataframe[dataframe["timeliness1"] >= 1.0]),
         "windows_timeliness2_count": len(dataframe[dataframe["timeliness2"] >= 1.0]),
@@ -454,6 +716,10 @@ def get_single_result_dataframe(
         # Percentages
         "windows_w_fabrication_total_pct": windows_w_fabrication_total_pct,
         "windows_w_fabrication_success_pct": windows_w_fabrication_success_pct,
+        "windows_w_fabrication_fail_pct": windows_w_fabrication_fail_pct,
+
+        # Stats (experimental)
+        **stats1,
     }
 
     # Result.
@@ -481,7 +747,7 @@ def generate_report(
     path_to_input_dir: str,
     path_to_output_dir: str
 ) -> None:
-    path_to_dir = os.path.join(path_to_output_dir, "report")
+    path_to_dir = os.path.join(path_to_output_dir, _REPORT_DIR)
     assert os.path.exists(path_to_dir) is False
     os.makedirs(path_to_dir, exist_ok=False)
 
@@ -519,6 +785,21 @@ def generate_report(
             macros_generated_df=macros_generated_df,
         )
         dataframes.append(df)
+
+    # Figures.
+    # --------------------------------------------------
+
+    suffix: str = ""  # "__only_fab"
+
+    name = f"figures3_accuracy_timeliness_rel__two_scales{suffix}"
+    os.makedirs(os.path.join(path_to_dir, name), exist_ok=False)
+    for temp_df in dataframes:
+        _example5__two_scales(dataframe=temp_df, path_to_dir=os.path.join(path_to_dir, name))
+
+    name = f"figures3_accuracy_timeliness_rel__single_scale{suffix}"
+    os.makedirs(os.path.join(path_to_dir, name), exist_ok=False)
+    for temp_df in dataframes:
+        _example5__single_scale(dataframe=temp_df, path_to_dir=os.path.join(path_to_dir, name))
 
     # Figures.
     # --------------------------------------------------
@@ -569,58 +850,38 @@ def generate_report(
 
 
 def generate_report_cached(path_to_output_dir: str) -> None:
-    path_to_dir = os.path.join(path_to_output_dir, "report")
+    path_to_dir = os.path.join(path_to_output_dir, _REPORT_DIR)
     assert os.path.exists(path_to_dir) is True
     dataframe: pd.DataFrame = pd.read_pickle(os.path.join(path_to_dir, "dataframe-cache.pkl"))
     path_to_dir = os.path.join(path_to_dir, "figures2")
     assert os.path.exists(path_to_dir) is False
     os.makedirs(path_to_dir, exist_ok=False)
-    _example1(
-        dataframe=dataframe,
-        feature1="accuracy2_mean",
-        feature2="timeliness2_mean",
-        feature1_label="Accuracy",
-        feature2_label="Timeliness",
-        path_to_dir=path_to_dir
-    )
-    _example1(
-        dataframe=dataframe,
-        feature1="accuracy2_mean",
-        feature2="completeness2_mean",
-        feature1_label="Accuracy",
-        feature2_label="Completeness",
-        path_to_dir=path_to_dir
-    )
-    _example1(
-        dataframe=dataframe,
-        feature1="completeness2_mean",
-        feature2="timeliness2_mean",
-        feature1_label="Completeness",
-        feature2_label="Timeliness",
-        path_to_dir=path_to_dir
-    )
-    _example1(
-        dataframe=dataframe,
-        feature1="accuracy2_mean",
-        feature2="availability",
-        feature1_label="Accuracy",
-        feature2_label="Availability",
-        path_to_dir=path_to_dir
-    )
-    _example1(
-        dataframe=dataframe,
-        feature1="availability",
-        feature2="completeness2_mean",
-        feature1_label="Availability",
-        feature2_label="Completeness",
-        path_to_dir=path_to_dir
-    )
-    _example1(
-        dataframe=dataframe,
-        feature1="availability",
-        feature2="timeliness2_mean",
-        feature1_label="Availability",
-        feature2_label="Timeliness",
-        path_to_dir=path_to_dir
-    )
+
+    _example4(dataframe=dataframe, feature="accuracy2_mean1", kind="difference", path_to_dir="")
+    _example4(dataframe=dataframe, feature="timeliness2_mean1", kind="difference", path_to_dir="")
+
+    combos = [
+        ("accuracy2_mean1", "timeliness2_mean1", "Accuracy", "Timeliness"),
+        ("accuracy2_mean1", "completeness2_mean1", "Accuracy", "Completeness"),
+        ("completeness2_mean1", "timeliness2_mean1", "Completeness", "Timeliness"),
+        ("accuracy2_mean1", "availability", "Accuracy", "Availability"),
+        ("availability", "completeness2_mean1", "Availability", "Completeness"),
+        ("availability", "timeliness2_mean1", "Availability", "Timeliness"),
+    ]
+
+    for combo in combos:
+        feature1 = combo[0]
+        feature2 = combo[1]
+        feature1_label = combo[2]
+        feature2_label = combo[3]
+
+        _example1(
+            dataframe=dataframe,
+            feature1=feature1,
+            feature2=feature2,
+            feature1_label=feature1_label,
+            feature2_label=feature2_label,
+            path_to_dir=path_to_dir
+        )
+
     _example2(dataframe=dataframe, path_to_dir=path_to_dir)

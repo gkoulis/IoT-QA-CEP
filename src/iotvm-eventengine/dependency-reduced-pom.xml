@@ -72,7 +72,7 @@
               <transformers>
                 <transformer />
                 <transformer>
-                  <mainClass>org.softwareforce.iotvm.eventengine.EventEngineApplication</mainClass>
+                  <mainClass>org.softwareforce.iotvm.eventengine.EventEngineApplicationSimulation</mainClass>
                 </transformer>
               </transformers>
             </configuration>
@@ -132,6 +132,6 @@
     <maven.compiler.target>19</maven.compiler.target>
     <maven.compiler.source>19</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <kafka.version>3.5.0</kafka.version>
+    <kafka.version>3.7.0</kafka.version>
   </properties>
 </project>

@@ -7,7 +7,7 @@ import { RouterLink, RouterView } from "vue-router";
     <header
       class="relative flex h-8 px-4 space-x-4 flex-shrink-0 items-center bg-black"
     >
-      <p class="text-white font-black">IoT VM DQ</p>
+      <p class="text-white font-black">IoT Simulation Coordinator and Monitor</p>
       <div class="space-x-4">
         <RouterLink to="/" class="text-gray-300 text-xs leading-loose"
           >Home</RouterLink
@@ -15,10 +15,28 @@ import { RouterLink, RouterView } from "vue-router";
         <RouterLink
           to="/dashboard-v1"
           class="text-gray-300 text-xs leading-loose"
-          >Dashboard v1</RouterLink
+          >Dashboard</RouterLink
         >
         <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
-          >Stream v1</RouterLink
+          >Real-Time Monitoring</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+        >IoT Physical Environment</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+          >Initiator</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+        >Debugger</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+        >Kafka</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+        >Composite Transformations</RouterLink
+        >
+        <RouterLink to="/stream-v1" class="text-gray-300 text-xs leading-loose"
+        >Diagnostics</RouterLink
         >
       </div>
     </header>
@@ -27,7 +45,7 @@ import { RouterLink, RouterView } from "vue-router";
     </main>
     <footer class="relative bg-black">
       <div class="text-center py-1 px-4">
-        <p class="text-white text-xs">Powered by Software Force</p>
+        <p class="text-white text-xs">© 2023 Software Force</p>
       </div>
     </footer>
   </div>

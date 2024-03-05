@@ -66,11 +66,15 @@ public class AggregatorImpl
       aggregationApplicationsInsertionsCount++;
     }
 
+    final long start = System.nanoTime();
     aggregate
         .getAverage()
         .setValue(
             CalculationUtils.calculateAverage(aggregate.getEvents().values().stream().toList())
                 .orElse((double) Short.MIN_VALUE));
+    final long end = System.nanoTime();
+    final long duration = end - start;
+    additional.put("aggregationApplicationDuration", duration); // Keep only the last.
 
     if (aggregate.getTimestamps().getTimestamps().containsKey("firstAggregationApplication")) {
       if (aggregate.getTimestamps().getTimestamps().get("firstAggregationApplication") == null) {

@@ -5,6 +5,12 @@ Start docker
 Delete volumes if necessary  
 Delete Kafka Streams local data
 
+```
+docker compose -f docker-compose.yml up -d
+docker compose -f iotvm-docker/docker-compose.yml up -d
+docker compose -f ../iotvm-docker/docker-compose.yml up -d
+```
+
 Parameterize iotvm_extensions.examples.configuration._YOUR_FILE  
 Change imports in `iotvm_extensions.examples.configuration.__init__.py`  
 
@@ -30,6 +36,8 @@ python -m iotvm_extensions.examples_cli run_sensor_simulation_example
 python -m iotvm_extensions.examples_cli ensure_forecasters
 ```
 
+Check the console after `python -m iotvm_extensions.examples_cli ensure_forecasters`
+Copy `simulation_name` value and change the value of `REPORT__SIMULATION_NAME_LIST` in your configuration.
 
 python -m iotvm_extensions.examples_cli generate_report  
 python -m iotvm_extensions.examples_cli generate_report_cached  

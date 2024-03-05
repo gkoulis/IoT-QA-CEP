@@ -325,6 +325,11 @@ public class AverageCalculationCompositeTransformationFactory
               additional.put(
                   "debugStringUniqueRecurringWindowValues", debugStringUniqueRecurringWindowValues);
 
+              additional.put("averageValueBeforeFabrication", value.getAverage().getValue());
+              for (final String metricKey : qualityPropertiesIBO.getMetrics().keySet()) {
+                additional.put(metricKey + "BeforeFabrication", qualityPropertiesIBO.getMetrics().get(metricKey));
+              }
+
               return SensorTelemetryMeasurementsAverageEventIBO.newBuilder()
                   .setCompositeTransformationName(this.getName())
                   .setCompositeTransformationIdentifier(this.getUniqueIdentifier())
@@ -697,8 +702,11 @@ public class AverageCalculationCompositeTransformationFactory
         // Accuracy based on ground-truth.
         .mapValues(
             (key, value) -> {
+              long start = System.nanoTime();
+
               if (value.getEvents().isEmpty()) {
                 value.getQualityProperties().getMetrics().put("accuracy1", null);
+                value.getAdditional().put("accuracyBasedOnGroundTruthDuration", 0L);
                 return value;
               }
 
@@ -720,6 +728,7 @@ public class AverageCalculationCompositeTransformationFactory
               double accuracy = 1d - ((Math.abs(real - expected)) / real);
               value.getQualityProperties().getMetrics().put("accuracy1", accuracy);
               value.getAdditional().put("realAverage", real);
+              value.getAdditional().put("accuracyBasedOnGroundTruthDuration", System.nanoTime() - start);
 
               return value;
             })

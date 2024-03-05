@@ -13,7 +13,7 @@
     <!-- <description></description> -->
 
     <modules>
-		    <module>src/iotvm-eventengine</module>
+        <module>src/iotvm-eventengine</module>
         <module>src/iotvm-gateway</module>
     </modules>
 </project>
