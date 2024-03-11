@@ -13,3 +13,7 @@ thrift
 PyQt5
 seaborn
 optuna
+avro-python3
+avro
+fastparquet
+pyarrow

@@ -86,16 +86,12 @@ class RecordedSensorMeasurement(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("RecordedSensorMeasurement")
         if self.name is not None:
             oprot.writeFieldBegin("name", TType.STRING, 1)
-            oprot.writeString(
-                self.name.encode("utf-8") if sys.version_info[0] == 2 else self.name
-            )
+            oprot.writeString(self.name.encode("utf-8") if sys.version_info[0] == 2 else self.name)
             oprot.writeFieldEnd()
         if self.value is not None:
             oprot.writeFieldBegin("value", TType.DOUBLE, 2)
@@ -103,9 +99,7 @@ class RecordedSensorMeasurement(object):
             oprot.writeFieldEnd()
         if self.unit is not None:
             oprot.writeFieldBegin("unit", TType.STRING, 3)
-            oprot.writeString(
-                self.unit.encode("utf-8") if sys.version_info[0] == 2 else self.unit
-            )
+            oprot.writeString(self.unit.encode("utf-8") if sys.version_info[0] == 2 else self.unit)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -210,18 +204,12 @@ class RecordedSensorData(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("RecordedSensorData")
         if self.sensorId is not None:
             oprot.writeFieldBegin("sensorId", TType.STRING, 1)
-            oprot.writeString(
-                self.sensorId.encode("utf-8")
-                if sys.version_info[0] == 2
-                else self.sensorId
-            )
+            oprot.writeString(self.sensorId.encode("utf-8") if sys.version_info[0] == 2 else self.sensorId)
             oprot.writeFieldEnd()
         if self.measurements is not None:
             oprot.writeFieldBegin("measurements", TType.LIST, 2)
@@ -238,12 +226,8 @@ class RecordedSensorData(object):
             oprot.writeFieldBegin("additional", TType.MAP, 4)
             oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.additional))
             for kiter14, viter15 in self.additional.items():
-                oprot.writeString(
-                    kiter14.encode("utf-8") if sys.version_info[0] == 2 else kiter14
-                )
-                oprot.writeString(
-                    viter15.encode("utf-8") if sys.version_info[0] == 2 else viter15
-                )
+                oprot.writeString(kiter14.encode("utf-8") if sys.version_info[0] == 2 else kiter14)
+                oprot.writeString(viter15.encode("utf-8") if sys.version_info[0] == 2 else viter15)
             oprot.writeMapEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -309,9 +293,7 @@ class PhysicalQuantityDataPoint(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("PhysicalQuantityDataPoint")
         if self.value is not None:

@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.2 Monday 11 March 2024
+
+- Added new simulation module in `iotvm_extensions` project.
+- `iotvm_extensions` code format
+- Added CEP simulation functionality to Event Engine.
+
 ## Saturday 04 November 2023
 
 Many changes and improvements.  

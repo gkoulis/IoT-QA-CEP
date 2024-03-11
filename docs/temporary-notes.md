@@ -12,9 +12,10 @@ C:\Program Files\Java\apache-maven-3.9.3
 
 Πάω σε κάθε project που έχει avro και εκτελώ: mvn clean compile
 
-
+```
 mvn spotless:check
 mvn spotless:apply
+```
 
 
 Για dropwizard:

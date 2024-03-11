@@ -46,9 +46,7 @@ class _ScheduleExecutionContext:
                 f": {item.operation.to_print_string()}"
             )
             if self._dry_run is False:
-                simulate_sensor_operation(
-                    op=item.operation, fail_silently=self._fail_silently
-                )
+                simulate_sensor_operation(op=item.operation, fail_silently=self._fail_silently)
             self.queue.task_done()
 
     def initialize(self, dry_run: bool, fail_silently: bool) -> None:
@@ -66,9 +64,7 @@ class _ScheduleExecutionContext:
 _C: _ScheduleExecutionContext = _ScheduleExecutionContext()
 
 
-def execute_schedule(
-    schedule_df: pd.DataFrame, dry_run: bool, fail_silently: bool
-) -> None:
+def execute_schedule(schedule_df: pd.DataFrame, dry_run: bool, fail_silently: bool) -> None:
     """
     Limitations:
     - One call per process.
@@ -91,8 +87,7 @@ def execute_schedule(
         now_timestamp: pd.Timestamp = pd.Timestamp(now_time_ns, unit="ns", tz="UTC")
 
         slice_df: pd.DataFrame = schedule_df[
-            (schedule_df["timestamp"] <= now_timestamp)
-            & (schedule_df["planned"] == False)
+            (schedule_df["timestamp"] <= now_timestamp) & (schedule_df["planned"] == False)
         ]
 
         if slice_df.empty:
@@ -108,6 +103,6 @@ def execute_schedule(
 
         schedule_df.loc[slice_df.index, "planned"] = True
 
-        time.sleep(0.85)
+        time.sleep(0.85)  # TODO as param.
 
     _C.graceful_stop()

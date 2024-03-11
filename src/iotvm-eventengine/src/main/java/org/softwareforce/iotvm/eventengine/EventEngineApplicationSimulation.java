@@ -1,21 +1,18 @@
 package org.softwareforce.iotvm.eventengine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TestOutputTopic;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.SimpleCompositeTransformationFactoriesManager;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationFactory;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationParameters;
-import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationParametersJsonNode;
-import org.softwareforce.iotvm.eventengine.cep.ct.CompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.*;
 import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
@@ -24,116 +21,282 @@ import org.softwareforce.iotvm.eventengine.extensions.SensingRecordingServiceAda
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.shared.event.*;
 
-import java.io.InputStream;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
 public class EventEngineApplicationSimulation {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventEngineApplicationSimulation.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(EventEngineApplicationSimulation.class);
 
-    private static List<AverageCalculationCompositeTransformationParameters> loadAverageCalculationParametersSets() {
-        try (InputStream in = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream("average-calculation-parameters-sets.json")) {
-            final ObjectMapper mapper = new ObjectMapper();
-            final List<AverageCalculationCompositeTransformationParametersJsonNode> items =
-                    mapper.readValue(
-                            in,
-                            mapper
-                                    .getTypeFactory()
-                                    .constructCollectionType(
-                                            List.class,
-                                            AverageCalculationCompositeTransformationParametersJsonNode.class));
-            return items.stream()
-                    .map(AverageCalculationCompositeTransformationParametersJsonNode::toParameters)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+  private static List<SensorTelemetryRawEventIBO> getSensorTelemetryRawEventIBOList(
+      Instant timestamp, int size) {
+    final List<SensorTelemetryRawEventIBO> list = new ArrayList<>();
+
+    final Random rand = new Random(42);
+
+    for (int i = 0; i < size; i++) {
+      timestamp = timestamp.plusSeconds(1L); // TODO add random jitter.
+      final long timestampEpochMilli = timestamp.toEpochMilli();
+
+      final int sensorIdNum = rand.nextInt(6) + 1;
+
+      double temperature = rand.nextDouble() * (30 - 20) + 20;
+      temperature = (double) (Math.round(temperature * 100.0) / 100.0);
+
+      final Map<String, Long> timestamps = new HashMap<>();
+      timestamps.put(Constants.SENSED, timestampEpochMilli);
+
+      list.add(
+          SensorTelemetryRawEventIBO.newBuilder()
+              .setSensorId("sensor-" + sensorIdNum)
+              .setMeasurements(
+                  List.of(
+                      MeasurementIBO.newBuilder()
+                          .setName(PhysicalQuantity.TEMPERATURE.getName())
+                          .setValue(temperature)
+                          .setUnit(PhysicalQuantity.TEMPERATURE.getUnit())
+                          .build()))
+              .setTimestamps(
+                  TimestampsIBO.newBuilder()
+                      .setDefaultTimestamp(timestampEpochMilli) // TODO It will become null...
+                      .setTimestamps(timestamps)
+                      .build())
+              .setIdentifiers(
+                  IdentifiersIBO.newBuilder()
+                      .setClientSideId(UUID.randomUUID().toString())
+                      .setCorrelationIds(new HashMap<>())
+                      .build())
+              .setAdditional(new HashMap<>())
+              .build());
     }
 
-    public SensorTelemetryMeasurementEventIBO test1(long defaultTimestamp) {
-        SensorTelemetryMeasurementEventIBO event = SensorTelemetryMeasurementEventIBO
-                .newBuilder()
-                .setSensorId("sensor-1")
-                .setMeasurement(MeasurementIBO.newBuilder().setName(PhysicalQuantity.TEMPERATURE.getName()).setValue(20D).setUnit(PhysicalQuantity.TEMPERATURE.getUnit()).build())
-                .setTimestamps(TimestampsIBO.newBuilder().setDefaultTimestamp(defaultTimestamp).setTimestamps(new HashMap<>()).build())
-                .setIdentifiers(IdentifiersIBO.newBuilder().setClientSideId(null).setCorrelationIds(new HashMap<>()).build())
-                .setAdditional(new HashMap<>())
-                .build();
-        return event;
+    return list;
+  }
+
+  private static List<AverageCalculationCompositeTransformationParameters>
+      loadAverageCalculationParametersSets() {
+    try (InputStream in =
+        Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream("average-calculation-parameters-sets.json")) {
+      final ObjectMapper mapper = new ObjectMapper();
+      final List<AverageCalculationCompositeTransformationParametersJsonNode> items =
+          mapper.readValue(
+              in,
+              mapper
+                  .getTypeFactory()
+                  .constructCollectionType(
+                      List.class,
+                      AverageCalculationCompositeTransformationParametersJsonNode.class));
+      return items.stream()
+          .map(AverageCalculationCompositeTransformationParametersJsonNode::toParameters)
+          .collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static void main(String[] args) {
+    new EventEngineApplicationSimulation().run1();
+  }
+
+  public void run1() {
+    long startTime = System.nanoTime();
+
+    ApplicationConfiguration.getInstance().load();
+
+    // TODO Do not forget to delete kafka-streams directory... IMPORTANT!!!!!!!
+
+    // Dependencies
+    // --------------------------------------------------
+
+    final IBOPersistenceServiceImpl iboPersistenceServiceImpl =
+        new IBOPersistenceServiceImpl(
+            new PersistenceConfiguration(
+                "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
+                "iotvmdb"));
+    final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
+        new FabricationForecastingServiceAdapter();
+    final SensingRecordingServiceAdapter sensingRecordingServiceAdapter =
+        new SensingRecordingServiceAdapter();
+
+    // Composite Transformations Parameters
+    // --------------------------------------------------
+
+    final IngestionCompositeTransformationParameters ingestionParameters =
+        new IngestionCompositeTransformationParameters();
+    final SplittingCompositeTransformationParameters splittingParameters =
+        new SplittingCompositeTransformationParameters();
+    final List<AverageCalculationCompositeTransformationParameters>
+        averageCalculationParametersList = loadAverageCalculationParametersSets();
+    //    final AverageCalculationCompositeTransformationParameters averageCalculationParameters =
+    //        new AverageCalculationCompositeTransformationParameters(
+    //            PhysicalQuantity.TEMPERATURE, Duration.ofSeconds(5), null, null, 1, true, 10,
+    // null, 0);
+
+    // Composite Transformations Factories
+    // --------------------------------------------------
+
+    final CompositeTransformationFactory ingestionCTF =
+        new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
+    final CompositeTransformationFactory splittingCTF =
+        new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceServiceImpl);
+    //    final CompositeTransformationFactory averageCalculationCTF =
+    //        new AverageCalculationCompositeTransformationFactory(
+    //            averageCalculationParameters,
+    //            iboPersistenceServiceImpl,
+    //            fabricationForecastingServiceAdapter,
+    //            sensingRecordingServiceAdapter);
+
+    final List<CompositeTransformationFactory> averageCalculationCTFs = new ArrayList<>();
+    for (final AverageCalculationCompositeTransformationParameters parametersSet :
+        averageCalculationParametersList) {
+      final CompositeTransformationFactory averageCalculation =
+          new AverageCalculationCompositeTransformationFactory(
+              parametersSet,
+              iboPersistenceServiceImpl,
+              fabricationForecastingServiceAdapter,
+              sensingRecordingServiceAdapter);
+
+      averageCalculationCTFs.add(averageCalculation);
     }
 
-    public SensorTelemetryRawEventIBO getRawEvent() {
-        return SensorTelemetryRawEventIBO.newBuilder()
-                .setSensorId("sensor-1")
-                .setMeasurements(List.of(MeasurementIBO.newBuilder().setName(PhysicalQuantity.TEMPERATURE.getName()).setValue(10.0D).setUnit(PhysicalQuantity.TEMPERATURE.getUnit()).build()))
-                .setTimestamps(TimestampsIBO.newBuilder().setDefaultTimestamp(null).setTimestamps(new HashMap<>()).build())
-                .setIdentifiers(IdentifiersIBO.newBuilder().setClientSideId(null).setCorrelationIds(new HashMap<>()).build())
-                .setAdditional(new HashMap<>())
-                .build();
+    // Composite Transformations Factories Manager
+    // --------------------------------------------------
+
+    final SimpleCompositeTransformationFactoriesManager manager =
+        SimpleCompositeTransformationFactoriesManager.newInstance()
+            .withCompositeTransformationFactory(ingestionCTF)
+            .withCompositeTransformationFactory(splittingCTF)
+        // .withCompositeTransformationFactory(averageCalculationCTF)
+        ;
+    // TODO You can add a custom CTF to record input and output and organize them in FS in
+    // real-time!
+
+    for (final CompositeTransformationFactory ctf : averageCalculationCTFs) {
+      manager.withCompositeTransformationFactory(ctf);
     }
 
-    public static void main(String[] args) {
-        new EventEngineApplicationSimulation().run3();
+    // Kafka Streams Configuration
+    // --------------------------------------------------
+
+    final KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
+    final Properties kafkaStreamsProperties = kafkaConfiguration.getKafkaStreamsProperties();
+
+    // Kafka Streams
+    // --------------------------------------------------
+
+    final StreamsBuilder streamsBuilder = manager.build();
+    final Topology topology = streamsBuilder.build();
+    final TopologyTestDriver topologyTestDriver =
+        new TopologyTestDriver(topology, kafkaStreamsProperties);
+
+    // SerDe
+    // --------------------------------------------------
+
+    final Serde<String> STRING_SERDE = Constants.STRING_SERDE;
+    final Serde<SensorTelemetryRawEventIBO> SENSOR_TELEMETRY_RAW_EVENT_IBO_SERDE =
+        Constants.SENSOR_TELEMETRY_RAW_EVENT_IBO_SERDE;
+    final Serde<SensorTelemetryEventIBO> SENSOR_TELEMETRY_EVENT_IBO_SERDE =
+        Constants.SENSOR_TELEMETRY_EVENT_IBO_SERDE;
+    final Serde<SensorTelemetryMeasurementEventIBO> SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE =
+        Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE;
+    final Serde<SensorTelemetryMeasurementsAverageEventIBO>
+        SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_IBO_SERDE =
+            Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_IBO_SERDE;
+
+    // Input Topics
+    // --------------------------------------------------
+
+    final TestInputTopic<String, SensorTelemetryRawEventIBO> SENSOR_TELEMETRY_RAW_EVENT_TIT =
+        topologyTestDriver.createInputTopic(
+            Constants.SENSOR_TELEMETRY_RAW_EVENT_TOPIC,
+            STRING_SERDE.serializer(),
+            SENSOR_TELEMETRY_RAW_EVENT_IBO_SERDE.serializer());
+
+    //    final TestInputTopic<String, SensorTelemetryEventIBO> SENSOR_TELEMETRY_EVENT_TIT =
+    //        topologyTestDriver.createInputTopic(
+    //            Constants.SENSOR_TELEMETRY_EVENT_TOPIC,
+    //            STRING_SERDE.serializer(),
+    //            SENSOR_TELEMETRY_EVENT_IBO_SERDE.serializer());
+    //
+    //    final Map<String, TestInputTopic<String, SensorTelemetryMeasurementEventIBO>>
+    // SENSOR_TELEMETRY_MEASUREMENT_EVENT_TIT_MAP = new HashMap<>();
+    //
+    //
+    // SENSOR_TELEMETRY_MEASUREMENT_EVENT_TIT_MAP.put(Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC, topologyTestDriver.createInputTopic(
+    //        Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC,
+    //        STRING_SERDE.serializer(),
+    //        SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE.serializer()));
+    //
+    //    for (final PhysicalQuantity physicalQuantity : PhysicalQuantity.values()) {
+    //      final String topic =
+    // Constants.getSensorTelemetryMeasurementEventTopic(physicalQuantity);
+    //      SENSOR_TELEMETRY_MEASUREMENT_EVENT_TIT_MAP.put(topic,
+    // topologyTestDriver.createInputTopic(
+    //          topic,
+    //          STRING_SERDE.serializer(),
+    //          SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE.serializer()));
+    //    }
+
+    // Output Topics
+    // --------------------------------------------------
+
+    //    final TestOutputTopic<String, SensorTelemetryEventIBO> SENSOR_TELEMETRY_EVENT_TOT =
+    //        topologyTestDriver.createOutputTopic(
+    //            Constants.SENSOR_TELEMETRY_EVENT_TOPIC,
+    //            STRING_SERDE.deserializer(),
+    //            SENSOR_TELEMETRY_EVENT_IBO_SERDE.deserializer());
+    //
+    //    final TestOutputTopic<String, SensorTelemetryMeasurementEventIBO>
+    // SENSOR_TELEMETRY_MEASUREMENT_EVENT_TEMPERATURE_TOT =
+    //        topologyTestDriver.createOutputTopic(
+    //            Constants.getSensorTelemetryMeasurementEventTopic(PhysicalQuantity.TEMPERATURE),
+    //            STRING_SERDE.deserializer(),
+    //            SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE.deserializer());
+    //
+
+    //    final String testTopic =
+    // Constants.getSensorTelemetryMeasurementsAverageEventTopic(PhysicalQuantity.TEMPERATURE,
+    // averageCalculationParameters.getUniqueIdentifier());
+    //    final TestOutputTopic<String, SensorTelemetryMeasurementsAverageEventIBO>
+    //        SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_TOT =
+    //            topologyTestDriver.createOutputTopic(
+    //                testTopic,
+    //                STRING_SERDE.deserializer(),
+    //                SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_IBO_SERDE.deserializer());
+
+    // Simulation: Ingestion
+    // --------------------------------------------------
+
+    final List<SensorTelemetryRawEventIBO> sensorTelemetryRawEventIBOList =
+        getSensorTelemetryRawEventIBOList(Instant.now(), 100);
+
+    for (final SensorTelemetryRawEventIBO event : sensorTelemetryRawEventIBOList) {
+      SENSOR_TELEMETRY_RAW_EVENT_TIT.pipeInput("universal", event);
     }
 
-    public void run3() {
-        ApplicationConfiguration.getInstance().load();
+    // topologyTestDriver.advanceWallClockTime(Duration.ofMinutes(6));
 
-        // TODO Do not forget to delete kafka-streams directory...
+    System.out.println(topologyTestDriver.producedTopicNames());
 
-        final KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
-        final Properties kafkaStreamsProperties = kafkaConfiguration.getKafkaStreamsProperties();
+    // Simulation: Splitting
+    // --------------------------------------------------
 
-        final IBOPersistenceServiceImpl iboPersistenceServiceImpl =
-                new IBOPersistenceServiceImpl(
-                        new PersistenceConfiguration(
-                                "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false", "iotvmdb"));
+    // Runs automatically! Just declare all input and output topics.
 
-        final AverageCalculationCompositeTransformationParameters parameters = new AverageCalculationCompositeTransformationParameters(
-                PhysicalQuantity.TEMPERATURE,
-                Duration.ofSeconds(5),
-                null,
-                null,
-                1,
-                true,
-                10,
-                null,
-                0
-        );
+    // Simulation: Average Calculation
+    // --------------------------------------------------
 
-        final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter = new FabricationForecastingServiceAdapter();
-        final SensingRecordingServiceAdapter sensingRecordingServiceAdapter = new SensingRecordingServiceAdapter();
-        final CompositeTransformationFactory averageCalculationCTF = new AverageCalculationCompositeTransformationFactory(parameters, iboPersistenceServiceImpl, fabricationForecastingServiceAdapter, sensingRecordingServiceAdapter);
+    // Runs automatically! Just declare all input and output topics.
 
-        final SimpleCompositeTransformationFactoriesManager manager = SimpleCompositeTransformationFactoriesManager.newInstance().withCompositeTransformationFactory(averageCalculationCTF);
-        final StreamsBuilder streamsBuilder = manager.build();
-        final Topology topology = streamsBuilder.build();
-        final TopologyTestDriver testDriver = new TopologyTestDriver(topology, kafkaStreamsProperties);
+    // Kafka Streams
+    // --------------------------------------------------
 
-        final PhysicalQuantity physicalQuantity = PhysicalQuantity.TEMPERATURE;
-        final String inputTopicName = Constants.getSensorTelemetryMeasurementEventTopic(physicalQuantity);
-        // final String outputTopicName = Constants.getSensorTelemetryMeasurementsAverageEventTopic(physicalQuantity);
-        final String outputTopicName = "ga.sensor_telemetry_measurements_average_event.0001.temperature.w_avg_temperature_PT5S_null_null_1_true_10_PT5S_10"; // TODO Auto.
+    topologyTestDriver.close();
 
-        final Serde<String> stringSerde = Constants.STRING_SERDE;
-        final Serde<SensorTelemetryMeasurementEventIBO> sensorTelemetryMeasurementEventIBOSerde = Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE;
-        final Serde<SensorTelemetryMeasurementsAverageEventIBO> sensorTelemetryMeasurementsAverageEventIBOSerde = Constants.SENSOR_TELEMETRY_MEASUREMENTS_AVERAGE_EVENT_IBO_SERDE;
-        final TestInputTopic<String, SensorTelemetryMeasurementEventIBO> inputTopic = testDriver.createInputTopic(inputTopicName, stringSerde.serializer(), sensorTelemetryMeasurementEventIBOSerde.serializer());
-        final TestOutputTopic<String, SensorTelemetryMeasurementsAverageEventIBO> outputTopic = testDriver.createOutputTopic(outputTopicName, stringSerde.deserializer(), sensorTelemetryMeasurementsAverageEventIBOSerde.deserializer());
+    long endTime = System.nanoTime();
+    long diff = endTime - startTime;
+    System.out.println(diff);
 
-        inputTopic.pipeInput("universal", this.test1(0L));
-        // inputTopic.advanceTime(Duration.ofSeconds(6));
-        inputTopic.pipeInput("universal", this.test1(1000000L));
-
-        System.out.println(outputTopic.readKeyValue());
-        System.out.println(testDriver.getAllStateStores().keySet());
-
-        testDriver.close();
-    }
+    // TODO Delete files...?
+  }
 }

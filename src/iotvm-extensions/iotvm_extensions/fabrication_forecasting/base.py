@@ -55,11 +55,7 @@ def _aggregate_and_transform(
     frequency_in_seconds: int,
     default_timestamp_gte: Optional[int] = None,
     default_timestamp_lte: Optional[int] = None,
-) -> Tuple[
-    Dict[pd.Timestamp, WindowedMeasurement],
-    Optional[datetime.datetime],
-    Optional[datetime.datetime],
-]:
+) -> Tuple[Dict[pd.Timestamp, WindowedMeasurement], Optional[datetime.datetime], Optional[datetime.datetime],]:
     client: MongoClient = get_default_mongodb_client()
     collection = client["iotvmdb"]["universal"]
 
@@ -67,13 +63,9 @@ def _aggregate_and_transform(
     if default_timestamp_gte is not None or default_timestamp_lte is not None:
         default_timestamp_limit["real.timestamps.defaultTimestamp.long"] = {}
     if default_timestamp_gte is not None:
-        default_timestamp_limit["real.timestamps.defaultTimestamp.long"][
-            "$gte"
-        ] = default_timestamp_gte
+        default_timestamp_limit["real.timestamps.defaultTimestamp.long"]["$gte"] = default_timestamp_gte
     if default_timestamp_lte is not None:
-        default_timestamp_limit["real.timestamps.defaultTimestamp.long"][
-            "$lte"
-        ] = default_timestamp_lte
+        default_timestamp_limit["real.timestamps.defaultTimestamp.long"]["$lte"] = default_timestamp_lte
 
     cursor = collection.aggregate(
         [
@@ -214,9 +206,7 @@ def _measurements_by_timestamp_to_dataframe(
     # Datetime Index with all periods.
     # --------------------------------------------------
 
-    datetime_index: pd.DatetimeIndex = pd.date_range(
-        start=start_dt, end=end_dt, freq=frequency
-    )
+    datetime_index: pd.DatetimeIndex = pd.date_range(start=start_dt, end=end_dt, freq=frequency)
     timestamp_list: List[pd.Timestamp] = datetime_index.to_list()
 
     # Join datetime index and measurements.
@@ -260,9 +250,7 @@ def _measurements_by_timestamp_to_dataframe(
     # return pd.DataFrame(data=df_data)
 
 
-def _merge_dataframes(
-    df1: pd.DataFrame, df2: pd.DataFrame, sort_by: Optional[str] = None
-) -> pd.DataFrame:
+def _merge_dataframes(df1: pd.DataFrame, df2: pd.DataFrame, sort_by: Optional[str] = None) -> pd.DataFrame:
     df1_cols = df1.columns.tolist()
     df1_cols.sort()
     df2_cols = df2.columns.tolist()
@@ -294,9 +282,7 @@ def _validate_frequency(dataframe: pd.DataFrame, column: str) -> None:
     if len(dataframe) == 1:
         # TODO add names to dataframes (as convention for debugging)!
         single_value = dataframe[column].iloc[0]
-        _logger.warning(
-            f"Could not validate frequency because dataframe has only one row! (value : {single_value})"
-        )
+        _logger.warning(f"Could not validate frequency because dataframe has only one row! (value : {single_value})")
         return
     assert len(dataframe[column]) == len(dataframe[column].unique())
     series = dataframe[column] - dataframe[column].shift(1)
@@ -329,9 +315,7 @@ def _arima_model(params: Dict[str, Any], y_train: np.ndarray):
     return model
 
 
-def build_key(
-    sensor_id: str, physical_quantity: str, topic_name: str, frequency_in_seconds: int
-) -> str:
+def build_key(sensor_id: str, physical_quantity: str, topic_name: str, frequency_in_seconds: int) -> str:
     return f"{sensor_id}:{physical_quantity}:{topic_name}:{frequency_in_seconds}"
 
 
@@ -439,9 +423,7 @@ class SensorMeasurementForecaster:
         self._completeness = 1 - ((real - expected) / real)
 
     def _handle_nan_values(self) -> None:
-        assert (
-            bool(self._dataframe.tail(n=1).isnull().values.any()) is False
-        ), "Unreachable!"
+        assert bool(self._dataframe.tail(n=1).isnull().values.any()) is False, "Unreachable!"
         if self._dataframe.isnull().values.any():
             self._dataframe.interpolate(inplace=True)
         assert bool(self._dataframe.isnull().values.any()) is False, "Unreachable!"
@@ -451,11 +433,7 @@ class SensorMeasurementForecaster:
         mean: float = float(self._dataframe["measurement"].mean())
         std: float = float(self._dataframe["measurement"].std())
         _logger.debug(
-            f"Unique Values = {len(unique_values)}"
-            f"\n"
-            f"mean          = {mean}"
-            f"\n"
-            f"std           = {std}"
+            f"Unique Values = {len(unique_values)}" f"\n" f"mean          = {mean}" f"\n" f"std           = {std}"
         )
 
     def is_ready(self) -> bool:
@@ -484,9 +462,7 @@ class SensorMeasurementForecaster:
 
         For the rest of the windows which contain NaN, interpolation is performed.
         """
-        _logger.debug(
-            f"Executing `refresh_train` for SensorMeasurementForecaster : {self._key}"
-        )
+        _logger.debug(f"Executing `refresh_train` for SensorMeasurementForecaster : {self._key}")
 
         self._reset()
 
@@ -559,18 +535,14 @@ class SensorMeasurementForecaster:
 
         if self._auto is True:
             random_state = random.randint(1, 1_000_000_000)
-            auto_arima_model_params = _get_default_auto_arima_params(
-                y_train=None, random_state=random_state
-            )
+            auto_arima_model_params = _get_default_auto_arima_params(y_train=None, random_state=random_state)
 
             auto_arima_model_params["trace"] = 2 if self._debug is True else False
             auto_arima_model_params["return_valid_fits"] = False
             # TODO Check -> http://alkaline-ml.com/pmdarima/tips_and_tricks.html
 
             _logger.debug(f"Training ARIMA with random_state={random_state}")
-            self._model = _auto_arima_model(
-                params=auto_arima_model_params, y_train=y_train
-            )
+            self._model = _auto_arima_model(params=auto_arima_model_params, y_train=y_train)
         else:
             self._model = _arima_model(params={"order": (1, 0, 0)}, y_train=y_train)
 
@@ -684,9 +656,7 @@ class SensorMeasurementForecaster:
         # Merge new values with existing.
         # --------------------------------------------------
 
-        self._dataframe = _merge_dataframes(
-            df1=self._dataframe, df2=dataframe, sort_by="window"
-        )
+        self._dataframe = _merge_dataframes(df1=self._dataframe, df2=dataframe, sort_by="window")
         del dataframe
 
         # Measure quality of dataframe.
@@ -749,9 +719,7 @@ class SensorMeasurementForecaster:
 
         future_timestamps_alt = []
         for i in range(1, future_periods + 1):
-            future_timestamps_alt.append(
-                start_ + pd.Timedelta(seconds=(i * self._frequency_in_seconds))
-            )
+            future_timestamps_alt.append(start_ + pd.Timedelta(seconds=(i * self._frequency_in_seconds)))
 
         assert future_timestamps_alt == future_timestamps
 
@@ -769,9 +737,7 @@ class SensorMeasurementForecaster:
 
         nanoseconds: int = (self._frequency_in_seconds * 1_000_000_000) - 1
         t_delta: pd.Timedelta = pd.Timedelta(nanoseconds=nanoseconds)
-        self._last_forecast_df["window_end"] = (
-            self._last_forecast_df["window"] + t_delta
-        )
+        self._last_forecast_df["window_end"] = self._last_forecast_df["window"] + t_delta
 
     def forecast(
         self,
@@ -845,9 +811,7 @@ class SensorMeasurementForecaster:
         #  χρησιμοποίησε βασικά για όλα το start timestamp!
         metrics = {
             "timeSteps": i_diff,
-            "timeDifference": (
-                result["window"] - self._dataframe["window"].iloc[-1]
-            ).total_seconds(),
+            "timeDifference": (result["window"] - self._dataframe["window"].iloc[-1]).total_seconds(),
             "completeness": self._completeness,
         }
 

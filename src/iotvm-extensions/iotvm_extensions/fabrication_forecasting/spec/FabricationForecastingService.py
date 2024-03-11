@@ -113,9 +113,7 @@ class Client(iotvm_extensions.shared.base.BaseService.Client, Iface):
             return result.success
         if result.exc is not None:
             raise result.exc
-        raise TApplicationException(
-            TApplicationException.MISSING_RESULT, "forecast failed: unknown result"
-        )
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "forecast failed: unknown result")
 
 
 class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProcessor):
@@ -135,9 +133,7 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         if name not in self._processMap:
             iprot.skip(TType.STRUCT)
             iprot.readMessageEnd()
-            x = TApplicationException(
-                TApplicationException.UNKNOWN_METHOD, "Unknown function %s" % (name)
-            )
+            x = TApplicationException(TApplicationException.UNKNOWN_METHOD, "Unknown function %s" % (name))
             oprot.writeMessageBegin(name, TMessageType.EXCEPTION, seqid)
             x.write(oprot)
             oprot.writeMessageEnd()
@@ -178,9 +174,7 @@ class Processor(iotvm_extensions.shared.base.BaseService.Processor, Iface, TProc
         except Exception:
             logging.exception("Unexpected exception in handler")
             msg_type = TMessageType.EXCEPTION
-            result = TApplicationException(
-                TApplicationException.INTERNAL_ERROR, "Internal error"
-            )
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, "Internal error")
         oprot.writeMessageBegin("forecast", msg_type, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -229,9 +223,7 @@ class ensure_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("ensure_args")
         if self.scope is not None:
@@ -316,9 +308,7 @@ class forecast_args(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("forecast_args")
         if self.scope is not None:
@@ -413,9 +403,7 @@ class forecast_result(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("forecast_result")
         if self.success is not None:

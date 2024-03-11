@@ -79,16 +79,12 @@ class BackcastException(TException):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("BackcastException")
         if self.reason is not None:
             oprot.writeFieldBegin("reason", TType.STRING, 1)
-            oprot.writeString(
-                self.reason.encode("utf-8") if sys.version_info[0] == 2 else self.reason
-            )
+            oprot.writeString(self.reason.encode("utf-8") if sys.version_info[0] == 2 else self.reason)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -184,34 +180,22 @@ class BackcastScope(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("BackcastScope")
         if self.physicalQuantity is not None:
             oprot.writeFieldBegin("physicalQuantity", TType.STRING, 1)
             oprot.writeString(
-                self.physicalQuantity.encode("utf-8")
-                if sys.version_info[0] == 2
-                else self.physicalQuantity
+                self.physicalQuantity.encode("utf-8") if sys.version_info[0] == 2 else self.physicalQuantity
             )
             oprot.writeFieldEnd()
         if self.sensorId is not None:
             oprot.writeFieldBegin("sensorId", TType.STRING, 2)
-            oprot.writeString(
-                self.sensorId.encode("utf-8")
-                if sys.version_info[0] == 2
-                else self.sensorId
-            )
+            oprot.writeString(self.sensorId.encode("utf-8") if sys.version_info[0] == 2 else self.sensorId)
             oprot.writeFieldEnd()
         if self.topicName is not None:
             oprot.writeFieldBegin("topicName", TType.STRING, 3)
-            oprot.writeString(
-                self.topicName.encode("utf-8")
-                if sys.version_info[0] == 2
-                else self.topicName
-            )
+            oprot.writeString(self.topicName.encode("utf-8") if sys.version_info[0] == 2 else self.topicName)
             oprot.writeFieldEnd()
         if self.frequencyInSeconds is not None:
             oprot.writeFieldBegin("frequencyInSeconds", TType.I64, 4)
@@ -292,9 +276,7 @@ class BackcastRequest(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("BackcastRequest")
         if self.startTimestamp is not None:
@@ -307,11 +289,7 @@ class BackcastRequest(object):
             oprot.writeFieldEnd()
         if self.comment is not None:
             oprot.writeFieldBegin("comment", TType.STRING, 3)
-            oprot.writeString(
-                self.comment.encode("utf-8")
-                if sys.version_info[0] == 2
-                else self.comment
-            )
+            oprot.writeString(self.comment.encode("utf-8") if sys.version_info[0] == 2 else self.comment)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -408,9 +386,7 @@ class BackcastResponse(object):
 
     def write(self, oprot):
         if oprot._fast_encode is not None and self.thrift_spec is not None:
-            oprot.trans.write(
-                oprot._fast_encode(self, [self.__class__, self.thrift_spec])
-            )
+            oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin("BackcastResponse")
         if self.value is not None:
@@ -429,9 +405,7 @@ class BackcastResponse(object):
             oprot.writeFieldBegin("metrics", TType.MAP, 4)
             oprot.writeMapBegin(TType.STRING, TType.DOUBLE, len(self.metrics))
             for kiter7, viter8 in self.metrics.items():
-                oprot.writeString(
-                    kiter7.encode("utf-8") if sys.version_info[0] == 2 else kiter7
-                )
+                oprot.writeString(kiter7.encode("utf-8") if sys.version_info[0] == 2 else kiter7)
                 oprot.writeDouble(viter8)
             oprot.writeMapEnd()
             oprot.writeFieldEnd()

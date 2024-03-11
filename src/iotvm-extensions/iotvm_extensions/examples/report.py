@@ -43,23 +43,25 @@ def _fv_proxy(
     number_of_contributing_sensors: int,
     ignore_completeness_filtering: bool,
     fabrication_past_events_steps_behind: int,
-    fabrication_forecasting_steps_ahead: int
+    fabrication_forecasting_steps_ahead: int,
 ) -> float:
     # _fv: feature value
 
-    query = (f"number_of_contributing_sensors == {number_of_contributing_sensors} "
-             f"and "
-             f"ignore_completeness_filtering == {ignore_completeness_filtering} "
-             f"and "
-             f"fabrication_past_events_steps_behind == {fabrication_past_events_steps_behind}"
-             f" and "
-             f"fabrication_forecasting_steps_ahead == {fabrication_forecasting_steps_ahead}")
+    query = (
+        f"number_of_contributing_sensors == {number_of_contributing_sensors} "
+        f"and "
+        f"ignore_completeness_filtering == {ignore_completeness_filtering} "
+        f"and "
+        f"fabrication_past_events_steps_behind == {fabrication_past_events_steps_behind}"
+        f" and "
+        f"fabrication_forecasting_steps_ahead == {fabrication_forecasting_steps_ahead}"
+    )
     temp_df = dataframe.query(query)
     assert len(temp_df) == 1
     value = float(temp_df[feature].iloc[0])
 
-    if feature == "completeness1_mean" and value > 1.:
-        value = 1.
+    if feature == "completeness1_mean" and value > 1.0:
+        value = 1.0
 
     value = value * 100
     value = round(value, 2)
@@ -67,20 +69,14 @@ def _fv_proxy(
 
 
 def _example1(
-    dataframe: pd.DataFrame,
-    feature1: str,
-    feature2: str,
-    feature1_label: str,
-    feature2_label: str,
-    path_to_dir: str
+    dataframe: pd.DataFrame, feature1: str, feature2: str, feature1_label: str, feature2_label: str, path_to_dir: str
 ) -> None:
-
     def _fv(
         feature: str,
         number_of_contributing_sensors: int,
         ignore_completeness_filtering: bool,
         fabrication_past_events_steps_behind: int,
-        fabrication_forecasting_steps_ahead: int
+        fabrication_forecasting_steps_ahead: int,
     ) -> float:
         return _fv_proxy(
             dataframe=dataframe,
@@ -88,62 +84,30 @@ def _example1(
             number_of_contributing_sensors=number_of_contributing_sensors,
             ignore_completeness_filtering=ignore_completeness_filtering,
             fabrication_past_events_steps_behind=fabrication_past_events_steps_behind,
-            fabrication_forecasting_steps_ahead=fabrication_forecasting_steps_ahead
+            fabrication_forecasting_steps_ahead=fabrication_forecasting_steps_ahead,
         )
 
     f1: str = feature1
     f2: str = feature2
     # f3: str = "timeliness2_mean"
-    min_value = 1.
-    max_value = 0.
+    min_value = 1.0
+    max_value = 0.0
     feature1_label: str = feature1_label
     feature2_label: str = feature2_label
     # feature3_label: str = "timeliness (2)"
 
     data = [
-        [
-            _fv(f1, 2, False, 0, 0),
-            _fv(f1, 4, False, 0, 0),
-            _fv(f1, 6, False, 0, 0)
-        ],
-        [
-            _fv(f2, 2, False, 0, 0),
-            _fv(f2, 4, False, 0, 0),
-            _fv(f2, 6, False, 0, 0)
-        ],
+        [_fv(f1, 2, False, 0, 0), _fv(f1, 4, False, 0, 0), _fv(f1, 6, False, 0, 0)],
+        [_fv(f2, 2, False, 0, 0), _fv(f2, 4, False, 0, 0), _fv(f2, 6, False, 0, 0)],
         #
-        [
-            _fv(f1, 2, False, 4, 0),
-            _fv(f1, 4, False, 4, 0),
-            _fv(f1, 6, False, 4, 0)
-        ],
-        [
-            _fv(f2, 2, False, 4, 0),
-            _fv(f2, 4, False, 4, 0),
-            _fv(f2, 6, False, 4, 0)
-        ],
+        [_fv(f1, 2, False, 4, 0), _fv(f1, 4, False, 4, 0), _fv(f1, 6, False, 4, 0)],
+        [_fv(f2, 2, False, 4, 0), _fv(f2, 4, False, 4, 0), _fv(f2, 6, False, 4, 0)],
         #
-        [
-            _fv(f1, 2, False, 0, 4),
-            _fv(f1, 4, False, 0, 4),
-            _fv(f1, 6, False, 0, 4)
-        ],
-        [
-            _fv(f2, 2, False, 0, 4),
-            _fv(f2, 4, False, 0, 4),
-            _fv(f2, 6, False, 0, 4)
-        ],
+        [_fv(f1, 2, False, 0, 4), _fv(f1, 4, False, 0, 4), _fv(f1, 6, False, 0, 4)],
+        [_fv(f2, 2, False, 0, 4), _fv(f2, 4, False, 0, 4), _fv(f2, 6, False, 0, 4)],
         #
-        [
-            _fv(f1, 2, False, 4, 4),
-            _fv(f1, 4, False, 4, 4),
-            _fv(f1, 6, False, 4, 4)
-        ],
-        [
-            _fv(f2, 2, False, 4, 4),
-            _fv(f2, 4, False, 4, 4),
-            _fv(f2, 6, False, 4, 4)
-        ],
+        [_fv(f1, 2, False, 4, 4), _fv(f1, 4, False, 4, 4), _fv(f1, 6, False, 4, 4)],
+        [_fv(f2, 2, False, 4, 4), _fv(f2, 4, False, 4, 4), _fv(f2, 6, False, 4, 4)],
     ]
 
     for d1 in data:
@@ -186,7 +150,7 @@ def _example2(dataframe: pd.DataFrame, path_to_dir: str) -> None:
         number_of_contributing_sensors: int,
         ignore_completeness_filtering: bool,
         fabrication_past_events_steps_behind: int,
-        fabrication_forecasting_steps_ahead: int
+        fabrication_forecasting_steps_ahead: int,
     ) -> float:
         return _fv_proxy(
             dataframe=dataframe,
@@ -194,7 +158,7 @@ def _example2(dataframe: pd.DataFrame, path_to_dir: str) -> None:
             number_of_contributing_sensors=number_of_contributing_sensors,
             ignore_completeness_filtering=ignore_completeness_filtering,
             fabrication_past_events_steps_behind=fabrication_past_events_steps_behind,
-            fabrication_forecasting_steps_ahead=fabrication_forecasting_steps_ahead
+            fabrication_forecasting_steps_ahead=fabrication_forecasting_steps_ahead,
         )
 
     metrics_names: List[str] = [
@@ -247,15 +211,15 @@ def _example2(dataframe: pd.DataFrame, path_to_dir: str) -> None:
     axs[0].set_title("2 sensors")
     axs[0].set_xticks(x + bar_width, [f"{str(c)}" for c in combinations])
     axs[0].legend(loc="upper left", ncols=3)
-    axs[0].set_ylim(0, 110.)
+    axs[0].set_ylim(0, 110.0)
 
     axs[1].set_title("4 sensors")
     axs[1].set_yticks([])
-    axs[1].set_ylim(0, 110.)
+    axs[1].set_ylim(0, 110.0)
 
     axs[2].set_title("6 sensors")
     axs[2].set_yticks([])
-    axs[2].set_ylim(0, 110.)
+    axs[2].set_ylim(0, 110.0)
 
     fig.savefig(os.path.join(path_to_dir, f"aggregated-metrics-comparison-01.png"), dpi=_DPI)
 
@@ -292,13 +256,21 @@ def _example3(macros_generated_df: pd.DataFrame, dataframes: List[pd.DataFrame],
             label=f"{ctp_id_str} / {len(dataframe)} windows",
             marker="o",
             alpha=0.6,
-            s=50
+            s=50,
         )
 
     plt.xticks(macros_generated_df["recurring_window"].values, macros_generated_df["recurring_window"].values)
     y_min = macros_generated_df["comment__average_value"].min()
     y_max = macros_generated_df["comment__average_value"].max()
-    plt.vlines(np.arange(0.5, len(macros_generated_df), 1.0), ymin=y_min, ymax=y_max, colors="gray", alpha=0.2, linewidth=0.8, linestyles="dashed")
+    plt.vlines(
+        np.arange(0.5, len(macros_generated_df), 1.0),
+        ymin=y_min,
+        ymax=y_max,
+        colors="gray",
+        alpha=0.2,
+        linewidth=0.8,
+        linestyles="dashed",
+    )
 
     plt.title("calculated averages vs ground truth")
     plt.legend(loc="upper left")
@@ -320,17 +292,14 @@ def _example4(dataframe: pd.DataFrame, feature: str, kind: str, path_to_dir: str
         lbl = lbl.replace("_PT5S_", " - ")
         return lbl
 
-    data = {
-        "label": list(map(_map_func, dataframe["ctp_id_str"].values.tolist())),
-        "metric": dataframe[feature].values
-    }
+    data = {"label": list(map(_map_func, dataframe["ctp_id_str"].values.tolist())), "metric": dataframe[feature].values}
     df: pd.DataFrame = pd.DataFrame(data=data)
     df = df.set_index("label")
     diff_matrix = df["metric"].apply(lambda x: df["metric"] - x)
     diff_df = pd.DataFrame(diff_matrix.values, index=df.index, columns=df.index)
 
     plt.figure(figsize=(10, 8))
-    sns.heatmap(diff_df, annot=True, fmt='g', cmap='coolwarm', xticklabels=diff_df.columns, yticklabels=diff_df.index)
+    sns.heatmap(diff_df, annot=True, fmt="g", cmap="coolwarm", xticklabels=diff_df.columns, yticklabels=diff_df.index)
     plt.title(f"`{feature}` comparison")
     plt.xlabel("composite transformation")
     plt.ylabel("composite transformation")
@@ -365,7 +334,15 @@ def _example5__single_scale(dataframe: pd.DataFrame, path_to_dir: str) -> None:
     # y_max = min(float(dataframe["timeliness1"].max()), float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
     y_min = min(float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
     y_max = min(float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
-    ax1.vlines(np.arange(0.5, len(dataframe), 1.0), ymin=y_min, ymax=y_max, colors="gray", alpha=0.2, linewidth=0.8, linestyles="dashed")
+    ax1.vlines(
+        np.arange(0.5, len(dataframe), 1.0),
+        ymin=y_min,
+        ymax=y_max,
+        colors="gray",
+        alpha=0.2,
+        linewidth=0.8,
+        linestyles="dashed",
+    )
 
     fig.suptitle(ctp_id_obj.__str__())
     fig.legend()
@@ -403,7 +380,7 @@ def _example5__two_scales(dataframe: pd.DataFrame, path_to_dir: str) -> None:
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
-    color = 'tab:blue'
+    color = "tab:blue"
     # ax2.set_ylabel("timeliness1 and timeliness2", color=color)
     ax2.set_ylabel("timeliness", color=color)
     ax2.plot(x, dataframe["timeliness2"].values, "o-", color=color, label="timeliness")
@@ -414,7 +391,15 @@ def _example5__two_scales(dataframe: pd.DataFrame, path_to_dir: str) -> None:
     # y_max = min(float(dataframe["timeliness1"].max()), float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
     y_min = min(float(dataframe["timeliness2"].min()), float(dataframe["accuracy2"].min()))
     y_max = min(float(dataframe["timeliness2"].max()), float(dataframe["accuracy2"].max()))
-    ax2.vlines(np.arange(0.5, len(dataframe), 1.0), ymin=y_min, ymax=y_max, colors="gray", alpha=0.2, linewidth=0.8, linestyles="dashed")
+    ax2.vlines(
+        np.arange(0.5, len(dataframe), 1.0),
+        ymin=y_min,
+        ymax=y_max,
+        colors="gray",
+        alpha=0.2,
+        linewidth=0.8,
+        linestyles="dashed",
+    )
 
     fig.suptitle(ctp_id_obj.__str__())
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
@@ -431,7 +416,7 @@ def get_single_result_dataframe(
     ctp_id_str: str,
     cycle: int,
     recurring_windows_count: int,
-    macros_generated_df: pd.DataFrame
+    macros_generated_df: pd.DataFrame,
 ) -> pd.DataFrame:
     ctp_id_obj: CompositeTransformationParameterID = parse_ctp_id(ctp_id=ctp_id_str)
     ctp_id_pl: str = ctp_id_obj.__str__()
@@ -452,9 +437,7 @@ def get_single_result_dataframe(
     }
     cursor = collection.aggregate(
         [
-            {
-                "$match": match
-            },
+            {"$match": match},
         ]
     )
 
@@ -541,7 +524,9 @@ def get_single_result_dataframe(
         past_events_duration: float = doc["real"]["additional"]["pastEventsDuration"]["long"] / 1_000_000
         forecasted_events_activated: bool = doc["real"]["additional"]["forecastedEventsActivated"]["boolean"]
         forecasted_events_duration: float = doc["real"]["additional"]["forecastedEventsDuration"]["long"] / 1_000_000
-        accuracy_based_on_ground_truth_duration: float = doc["real"]["additional"]["accuracyBasedOnGroundTruthDuration"]["long"] / 1_000_000
+        accuracy_based_on_ground_truth_duration: float = (
+            doc["real"]["additional"]["accuracyBasedOnGroundTruthDuration"]["long"] / 1_000_000
+        )
 
         net_duration = total_duration - accuracy_based_on_ground_truth_duration
 
@@ -557,15 +542,12 @@ def get_single_result_dataframe(
             "simulation_name": simulation_name_,
             "cycle": cycle_,
             "recurring_window": recurring_window,
-
             # Window
             "start_timestamp": doc["real"]["startTimestamp"],
             "end_timestamp": doc["real"]["endTimestamp"],
-
             # Average
             "calculated_average": doc["real"]["average"]["value"]["double"],
             "real_average": doc["real"]["additional"]["realAverage"]["double"],
-
             # Quality Properties (BEFORE Fabrication)
             # "accuracy1_before": accuracy1_before,
             # "accuracy1_error_before": accuracy1_error_before,
@@ -575,7 +557,6 @@ def get_single_result_dataframe(
             "completeness2_before": completeness2_before,
             "timeliness1_before": timeliness1_before,
             "timeliness2_before": timeliness2_before,
-
             # Quality Properties (AFTER Fabrication)
             # "accuracy1": accuracy1,
             # "accuracy1_error": accuracy1_error,
@@ -585,7 +566,6 @@ def get_single_result_dataframe(
             "completeness2": completeness2,
             "timeliness1": timeliness1,
             "timeliness2": timeliness2,
-
             # Quality Properties before-after diff
             # "accuracy1_diff": accuracy1 - accuracy1_before,
             # "accuracy1_error_diff": accuracy1_error - accuracy1_error_before,
@@ -595,14 +575,12 @@ def get_single_result_dataframe(
             "completeness2_diff": completeness2 - completeness2_before,
             "timeliness1_diff": timeliness1 - timeliness1_before,
             "timeliness2_diff": timeliness2 - timeliness2_before,
-
             # Counts
             "events_count": events_count,
             "real_events_count": real_events_count,
             "fabricated_events_count": fabricated_events_count,
             "past_events_count": past_events_count,
             "forecasted_events_count": forecasted_events_count,
-
             # More
             "past_events_activated": past_events_activated,
             "past_events_duration": past_events_duration,
@@ -611,7 +589,7 @@ def get_single_result_dataframe(
             "total_duration": total_duration,
             "net_duration": net_duration,
             "real_duration": real_duration,
-            "fabrication_duration": past_events_duration + forecasted_events_duration
+            "fabrication_duration": past_events_duration + forecasted_events_duration,
         }
         df_data.append(row)
 
@@ -631,12 +609,22 @@ def get_single_result_dataframe(
     windows_count: int = len(dataframe)
 
     windows_w_fabrication_total_count: int = len(dataframe[dataframe["fabricated_events_count"] > 0])
-    windows_w_fabrication_success_count: int = len(dataframe[((dataframe["fabricated_events_count"] > 0) & (dataframe["completeness1"] >= 1.0))])
-    windows_w_fabrication_fail_count: int = len(dataframe[((dataframe["fabricated_events_count"] > 0) & (dataframe["completeness1"] < 1.0))])
+    windows_w_fabrication_success_count: int = len(
+        dataframe[((dataframe["fabricated_events_count"] > 0) & (dataframe["completeness1"] >= 1.0))]
+    )
+    windows_w_fabrication_fail_count: int = len(
+        dataframe[((dataframe["fabricated_events_count"] > 0) & (dataframe["completeness1"] < 1.0))]
+    )
 
-    windows_w_fabrication_total_pct = 1. - ((recurring_windows_count - windows_w_fabrication_total_count) / recurring_windows_count)
-    windows_w_fabrication_success_pct = 1. - ((recurring_windows_count - windows_w_fabrication_success_count) / recurring_windows_count)
-    windows_w_fabrication_fail_pct = 1. - ((recurring_windows_count - windows_w_fabrication_fail_count) / recurring_windows_count)
+    windows_w_fabrication_total_pct = 1.0 - (
+        (recurring_windows_count - windows_w_fabrication_total_count) / recurring_windows_count
+    )
+    windows_w_fabrication_success_pct = 1.0 - (
+        (recurring_windows_count - windows_w_fabrication_success_count) / recurring_windows_count
+    )
+    windows_w_fabrication_fail_pct = 1.0 - (
+        (recurring_windows_count - windows_w_fabrication_fail_count) / recurring_windows_count
+    )
 
     temp_df: pd.DataFrame = dataframe.query("completeness1 >= 1.")
     accuracy2_min: float = float(temp_df["accuracy2"].min())
@@ -651,7 +639,6 @@ def get_single_result_dataframe(
         "completeness2",
         "timeliness1",
         "timeliness2",
-
         "accuracy2_diff",
         "accuracy2_error_diff",
         "completeness1_diff",
@@ -694,14 +681,11 @@ def get_single_result_dataframe(
 
     metrics_and_scores: Dict[str, Any] = {
         "availability": availability,
-
         # Quality Properties (means)
         **means,
-
         # Quality Properties (stats)
         "accuracy2_min": accuracy2_min,
         "accuracy2_max": accuracy2_max,
-
         # Counts
         "windows_count": windows_count,
         # "windows_accuracy1_count": len(dataframe[dataframe["accuracy1"] >= 1.0]),
@@ -712,12 +696,10 @@ def get_single_result_dataframe(
         "windows_w_fabrication_total_count": windows_w_fabrication_total_count,
         "windows_w_fabrication_success_count": windows_w_fabrication_success_count,
         "windows_w_fabrication_fail_count": windows_w_fabrication_fail_count,
-
         # Percentages
         "windows_w_fabrication_total_pct": windows_w_fabrication_total_pct,
         "windows_w_fabrication_success_pct": windows_w_fabrication_success_pct,
         "windows_w_fabrication_fail_pct": windows_w_fabrication_fail_pct,
-
         # Stats (experimental)
         **stats1,
     }
@@ -745,7 +727,7 @@ def generate_report(
     cycle_list: List[int],
     recurring_windows_count: int,
     path_to_input_dir: str,
-    path_to_output_dir: str
+    path_to_output_dir: str,
 ) -> None:
     path_to_dir = os.path.join(path_to_output_dir, _REPORT_DIR)
     assert os.path.exists(path_to_dir) is False
@@ -807,9 +789,11 @@ def generate_report(
     df_list_1: List[pd.DataFrame] = []
     for temp_df in dataframes:
         ctp_id_obj: CompositeTransformationParameterID = temp_df.attrs["info"]["ctp_id_obj"]
-        if (ctp_id_obj.fabrication_past_events_steps_behind == 0
-                and ctp_id_obj.fabrication_forecasting_steps_ahead == 0
-                and ctp_id_obj.ignore_completeness_filtering is False):
+        if (
+            ctp_id_obj.fabrication_past_events_steps_behind == 0
+            and ctp_id_obj.fabrication_forecasting_steps_ahead == 0
+            and ctp_id_obj.ignore_completeness_filtering is False
+        ):
             df_list_1.append(temp_df)
 
     os.makedirs(os.path.join(path_to_dir, "figures1"), exist_ok=False)
@@ -817,7 +801,7 @@ def generate_report(
         macros_generated_df=macros_generated_df,
         dataframes=df_list_1,
         name="figure-no-fabrication-vs-ground-truth",
-        path_to_dir=os.path.join(path_to_dir, "figures1")
+        path_to_dir=os.path.join(path_to_dir, "figures1"),
     )
 
     # Convert to a single dataframe (only aggregated metrics and scores).
@@ -881,7 +865,7 @@ def generate_report_cached(path_to_output_dir: str) -> None:
             feature2=feature2,
             feature1_label=feature1_label,
             feature2_label=feature2_label,
-            path_to_dir=path_to_dir
+            path_to_dir=path_to_dir,
         )
 
     _example2(dataframe=dataframe, path_to_dir=path_to_dir)

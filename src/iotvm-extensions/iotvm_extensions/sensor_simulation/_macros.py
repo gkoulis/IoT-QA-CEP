@@ -8,9 +8,7 @@ def _measurement_value__rand() -> float:
     return random.random()
 
 
-def _measurement_value__noise(
-    base: float, pct: float = 0.01, round_n_digits: int = 2
-) -> float:
+def _measurement_value__noise(base: float, pct: float = 0.01, round_n_digits: int = 2) -> float:
     assert type(base) == float
     assert type(pct) == float
     assert type(round_n_digits) == int
@@ -22,9 +20,7 @@ def _measurement_value__noise(
     return round(random.uniform(minimum, maximum), round_n_digits)
 
 
-def _measurement_value__between(
-    minimum: float, maximum: float, round_n_digits: int = 2
-) -> float:
+def _measurement_value__between(minimum: float, maximum: float, round_n_digits: int = 2) -> float:
     assert type(minimum) == float
     assert type(maximum) == float
     assert type(round_n_digits) == int
@@ -49,9 +45,7 @@ def _physical_quantity__temperature(value: float, unit: str = "CELSIUS") -> Meas
 
 
 # noinspection PyPep8Naming
-def _args_to_SimulatedSensorOperation(
-    *args, operation: str, fail: bool
-) -> EvaluatedSimulatedSensorOperation:
+def _args_to_SimulatedSensorOperation(*args, operation: str, fail: bool) -> EvaluatedSimulatedSensorOperation:
     assert len(args) > 0
     measurements: List[Measurement] = []
     for measurement in args:
@@ -100,9 +94,7 @@ _MACRO_LOCALS: Dict[str, callable] = {
 def evaluate_macro(
     string: str, sensor_id: str, timestamp: int, additional: Dict[str, Any]
 ) -> EvaluatedSimulatedSensorOperation:
-    instance: EvaluatedSimulatedSensorOperation = eval(
-        string, _MACRO_GLOBALS, _MACRO_LOCALS
-    )
+    instance: EvaluatedSimulatedSensorOperation = eval(string, _MACRO_GLOBALS, _MACRO_LOCALS)
     instance.sensor_id = sensor_id
     instance.timestamp = timestamp
     instance.additional = additional

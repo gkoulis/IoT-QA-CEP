@@ -19,9 +19,7 @@ def run_client_example() -> None:
     factory.register_service(service_class=FabricationForecastingService)
     factory.register_service(service_class=SensingRecordingService)
 
-    service: SensingRecordingService = factory.get_service(
-        service_name="SensingRecordingService"
-    )
+    service: SensingRecordingService = factory.get_service(service_name="SensingRecordingService")
 
     if service is None:
         _logger.error("SensingRecordingService is None. Aborting...")
@@ -32,11 +30,7 @@ def run_client_example() -> None:
             service.recordSensorData(
                 recordedSensorData=RecordedSensorData(
                     sensorId=f"sensor-{i}",
-                    measurements=[
-                        RecordedSensorMeasurement(
-                            name="temperature", value=10.1, unit="C"
-                        )
-                    ],
+                    measurements=[RecordedSensorMeasurement(name="temperature", value=10.1, unit="C")],
                     timestamp=time.time_ns(),
                     additional={},
                 )

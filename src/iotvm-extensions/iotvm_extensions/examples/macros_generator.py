@@ -93,9 +93,7 @@ class ExponentialDistribution:
         return self.random(size=self.size)
 
 
-DistributionType = Union[
-    NormalDistribution, ConstantDistribution, ExponentialDistribution
-]
+DistributionType = Union[NormalDistribution, ConstantDistribution, ExponentialDistribution]
 
 
 def _obj_to_distribution(seed_name: str, obj: Dict) -> DistributionType:
@@ -103,10 +101,7 @@ def _obj_to_distribution(seed_name: str, obj: Dict) -> DistributionType:
     assert type(obj) == dict
 
     if obj["type"] == "constant":
-        return ConstantDistribution(
-            seed_name=seed_name,
-            loc=obj["loc"]
-        )
+        return ConstantDistribution(seed_name=seed_name, loc=obj["loc"])
 
     elif obj["type"] == "normal":
         return NormalDistribution(
@@ -116,15 +111,14 @@ def _obj_to_distribution(seed_name: str, obj: Dict) -> DistributionType:
         )
 
     elif obj["type"] == "exponential":
-        return ExponentialDistribution(
-            seed_name=seed_name,
-            scale=obj["scale"]
-        )
+        return ExponentialDistribution(seed_name=seed_name, scale=obj["scale"])
 
     raise ValueError("invalid type!")
 
 
-def _any_to_distribution(seed_name: str, obj: Union[List[Dict], Dict, None]) -> Union[List[DistributionType], DistributionType, None]:
+def _any_to_distribution(
+    seed_name: str, obj: Union[List[Dict], Dict, None]
+) -> Union[List[DistributionType], DistributionType, None]:
     if obj is None:
         return None
 
@@ -250,9 +244,7 @@ def generate_errors_intervals(
 # ####################################################################################################
 
 
-def perform_up_sampling(
-    df: pd.DataFrame, distribution: DistributionType
-) -> pd.DataFrame:
+def perform_up_sampling(df: pd.DataFrame, distribution: DistributionType) -> pd.DataFrame:
     df.set_index(
         keys=df["relative_timestamp"].values,
         drop=True,
@@ -269,9 +261,7 @@ def perform_up_sampling(
         relative_timestamps.append(relative_timestamps[-1] + interval)
     relative_timestamps = relative_timestamps[:-1]
 
-    new_df: pd.DataFrame = df.reindex(
-        df.index.union(pd.Index(relative_timestamps))
-    ).interpolate(method="linear")
+    new_df: pd.DataFrame = df.reindex(df.index.union(pd.Index(relative_timestamps))).interpolate(method="linear")
     new_df["relative_timestamp"] = new_df.index.values
     new_df.reset_index(drop=True, inplace=True)
 
@@ -349,7 +339,9 @@ def plot_generated_synthetic_data_by_example(df: pd.DataFrame, path_to_dir: str,
     # --------------------------------------------------
 
     plt.figure(figsize=(18, 10))
-    plt.plot(df["relative_timestamp"], df["value"], label="original sample", color="black", linestyle="dashed", linewidth=0.5)
+    plt.plot(
+        df["relative_timestamp"], df["value"], label="original sample", color="black", linestyle="dashed", linewidth=0.5
+    )
     plt.plot(
         df["relative_timestamp"].values,
         df["noisy_value"].values,
@@ -376,7 +368,7 @@ def plot_generated_synthetic_data_by_example(df: pd.DataFrame, path_to_dir: str,
             label="Error",
             color="pink",
             alpha=0.5,
-            )
+        )
 
     plt.legend(loc="best", frameon=False)
     plt.title(f"{sensor_id} generated synthetic data")
@@ -387,7 +379,9 @@ def plot_generated_synthetic_data_by_example(df: pd.DataFrame, path_to_dir: str,
     plt.close("all")
 
 
-def plot_multiple_generated_synthetic_data_by_example(df_list: List[pd.DataFrame], path_to_dir: str, display_errors: bool) -> None:
+def plot_multiple_generated_synthetic_data_by_example(
+    df_list: List[pd.DataFrame], path_to_dir: str, display_errors: bool
+) -> None:
     plt.figure(figsize=(18, 10))
 
     color_palette = sns.color_palette("deep", len(df_list))
@@ -443,11 +437,14 @@ def plot_time_windows_style1() -> None:
     plt.yticks([1, 2], ["sensor-1", "sensor-2"])
     plt.vlines([0.5, 1.5, 2.5, 3.5, 4.5, 5.5], ymin=0, ymax=6, colors="gray", alpha=0.1)
     plt.hlines([0.5, 1.5, 2.5, 3.5, 4.5, 5.5], xmin=0, xmax=6, colors="gray", alpha=0.1)
-    plt.annotate(text="12.4", xy=(1., 1.1),)
-    plt.annotate(text="13.4", xy=(2., 1.1))
-    plt.annotate(text="16.4", xy=(3., 1.1))
-    plt.annotate(text="15.4", xy=(4., 1.1))
-    plt.annotate(text="12.4", xy=(5., 1.1))
+    plt.annotate(
+        text="12.4",
+        xy=(1.0, 1.1),
+    )
+    plt.annotate(text="13.4", xy=(2.0, 1.1))
+    plt.annotate(text="16.4", xy=(3.0, 1.1))
+    plt.annotate(text="15.4", xy=(4.0, 1.1))
+    plt.annotate(text="12.4", xy=(5.0, 1.1))
     plt.show()
 
 
@@ -614,7 +611,7 @@ def generate_synthetic_data_by_example(
 
     tick_count: int = len(df)
     tick_with_error_count: int = len(df.query("error == 1"))
-    tick_with_error_pct: float = 1. - ((tick_count - tick_with_error_count) / tick_count)
+    tick_with_error_pct: float = 1.0 - ((tick_count - tick_with_error_count) / tick_count)
 
     errors_metrics: Dict = {
         "tick_count": tick_count,
@@ -644,13 +641,10 @@ def generate_synthetic_data_by_example(
 
 
 def optimize_distribution_parameters_v1(dataset_path_to_file: str) -> None:
-
     # Sample 1.
     # --------------------------------------------------
 
-    sample1_df: pd.DataFrame = pd.read_csv(
-        dataset_path_to_file, delimiter="\t", header=0, index_col=False
-    )
+    sample1_df: pd.DataFrame = pd.read_csv(dataset_path_to_file, delimiter="\t", header=0, index_col=False)
     sample1_df["timestamp"] = pd.to_datetime(sample1_df["timestamp"])
 
     # Objective Target.
@@ -686,13 +680,9 @@ def optimize_distribution_parameters_v1(dataset_path_to_file: str) -> None:
             up_sampling_distribution=up_sampling_distribution,
             noise_distributions=noise_distributions,
             ttp_between_errors_distribution=ExponentialDistribution(
-                seed_name="errors_distributions",
-                scale=exp_dist_scale1
+                seed_name="errors_distributions", scale=exp_dist_scale1
             ),
-            error_ttp_distribution=ExponentialDistribution(
-                seed_name="errors_distributions",
-                scale=exp_dist_scale2
-            ),
+            error_ttp_distribution=ExponentialDistribution(seed_name="errors_distributions", scale=exp_dist_scale2),
             frequency_distribution_seed=frequency_distribution_seed,
             up_sampling_distribution_seed=up_sampling_distribution_seed,
             noise_distributions_seed=noise_distributions_seed,
@@ -723,14 +713,13 @@ def optimize_distribution_parameters_v1(dataset_path_to_file: str) -> None:
     pprint.pprint(errors_metrics, sort_dicts=False, indent=2)
 
 
-def generate_macros_multiple_sensors(dataset_path_to_file: str, sensors_parameters: Dict[str, Dict], path_to_experiment_input_directory: str) -> None:
-
+def generate_macros_multiple_sensors(
+    dataset_path_to_file: str, sensors_parameters: Dict[str, Dict], path_to_experiment_input_directory: str
+) -> None:
     # Sample 1.
     # --------------------------------------------------
 
-    sample1_df: pd.DataFrame = pd.read_csv(
-        dataset_path_to_file, delimiter="\t", header=0, index_col=False
-    )
+    sample1_df: pd.DataFrame = pd.read_csv(dataset_path_to_file, delimiter="\t", header=0, index_col=False)
     sample1_df["timestamp"] = pd.to_datetime(sample1_df["timestamp"])
 
     samples: Dict[str, np.ndarray] = {
@@ -749,11 +738,21 @@ def generate_macros_multiple_sensors(dataset_path_to_file: str, sensors_paramete
         parameters_by_sensor_id[sensor_id]["sample"] = samples[sample_name]
         del parameters_by_sensor_id[sensor_id]["sample_name"]
 
-        parameters_by_sensor_id[sensor_id]["frequency_distribution"] = _any_to_distribution(seed_name="frequency_distribution", obj=parameters_by_sensor_id[sensor_id]["frequency_distribution"])
-        parameters_by_sensor_id[sensor_id]["up_sampling_distribution"] = _any_to_distribution(seed_name="up_sampling_distribution", obj=parameters_by_sensor_id[sensor_id]["up_sampling_distribution"])
-        parameters_by_sensor_id[sensor_id]["noise_distributions"] = _any_to_distribution(seed_name="noise_distributions", obj=parameters_by_sensor_id[sensor_id]["noise_distributions"])
-        parameters_by_sensor_id[sensor_id]["ttp_between_errors_distribution"] = _any_to_distribution(seed_name="errors_distributions", obj=parameters_by_sensor_id[sensor_id]["ttp_between_errors_distribution"])
-        parameters_by_sensor_id[sensor_id]["error_ttp_distribution"] = _any_to_distribution(seed_name="errors_distributions", obj=parameters_by_sensor_id[sensor_id]["error_ttp_distribution"])
+        parameters_by_sensor_id[sensor_id]["frequency_distribution"] = _any_to_distribution(
+            seed_name="frequency_distribution", obj=parameters_by_sensor_id[sensor_id]["frequency_distribution"]
+        )
+        parameters_by_sensor_id[sensor_id]["up_sampling_distribution"] = _any_to_distribution(
+            seed_name="up_sampling_distribution", obj=parameters_by_sensor_id[sensor_id]["up_sampling_distribution"]
+        )
+        parameters_by_sensor_id[sensor_id]["noise_distributions"] = _any_to_distribution(
+            seed_name="noise_distributions", obj=parameters_by_sensor_id[sensor_id]["noise_distributions"]
+        )
+        parameters_by_sensor_id[sensor_id]["ttp_between_errors_distribution"] = _any_to_distribution(
+            seed_name="errors_distributions", obj=parameters_by_sensor_id[sensor_id]["ttp_between_errors_distribution"]
+        )
+        parameters_by_sensor_id[sensor_id]["error_ttp_distribution"] = _any_to_distribution(
+            seed_name="errors_distributions", obj=parameters_by_sensor_id[sensor_id]["error_ttp_distribution"]
+        )
 
     # Synthetic data generation (multiple).
     # --------------------------------------------------
@@ -833,8 +832,16 @@ def generate_macros_multiple_sensors(dataset_path_to_file: str, sensors_paramete
     df.to_pickle(os.path.join(path_to_experiment_input_directory, "macros_generated.pkl"))
 
     for sensor_id, temp_df in dataframe_by_sensor_id.items():
-        _store_dataframe_to_excel(df=temp_df, directory=path_to_experiment_input_directory, file_name=f"generated-synthetic-data-{sensor_id}-dataframe.xlsx")
-        _store_dataframe_attrs_to_json(df=temp_df, directory=path_to_experiment_input_directory, file_name=f"generated-synthetic-data-{sensor_id}-attributes.json")
+        _store_dataframe_to_excel(
+            df=temp_df,
+            directory=path_to_experiment_input_directory,
+            file_name=f"generated-synthetic-data-{sensor_id}-dataframe.xlsx",
+        )
+        _store_dataframe_attrs_to_json(
+            df=temp_df,
+            directory=path_to_experiment_input_directory,
+            file_name=f"generated-synthetic-data-{sensor_id}-attributes.json",
+        )
 
     path_to_dir: str = os.path.join(path_to_experiment_input_directory, "figures")
     os.makedirs(path_to_dir, exist_ok=True)
@@ -842,5 +849,9 @@ def generate_macros_multiple_sensors(dataset_path_to_file: str, sensors_paramete
         plot_generated_synthetic_data_by_example(df=temp_df, path_to_dir=path_to_dir, display_errors=False)
         plot_generated_synthetic_data_by_example(df=temp_df, path_to_dir=path_to_dir, display_errors=True)
 
-    plot_multiple_generated_synthetic_data_by_example(df_list=list(dataframe_by_sensor_id.values()), path_to_dir=path_to_dir, display_errors=False)
-    plot_multiple_generated_synthetic_data_by_example(df_list=list(dataframe_by_sensor_id.values()), path_to_dir=path_to_dir, display_errors=True)
+    plot_multiple_generated_synthetic_data_by_example(
+        df_list=list(dataframe_by_sensor_id.values()), path_to_dir=path_to_dir, display_errors=False
+    )
+    plot_multiple_generated_synthetic_data_by_example(
+        df_list=list(dataframe_by_sensor_id.values()), path_to_dir=path_to_dir, display_errors=True
+    )

@@ -33,9 +33,7 @@ class ClientsFactory:
             self._transport.close()
         self._transport = None
         self._protocol = None
-        self._clients = {
-            get_service_name(service_class=sc): None for sc in self._services_classes
-        }
+        self._clients = {get_service_name(service_class=sc): None for sc in self._services_classes}
 
     def _reconnect(self) -> None:
         # raises TException.

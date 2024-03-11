@@ -23,10 +23,7 @@ def _RecordedSensorMeasurement_to_dict(instance: RecordedSensorMeasurement) -> D
 def _RecordedSensorData_to_dict(instance: RecordedSensorData) -> Dict:
     return {
         "sensorId": instance.sensorId,
-        "measurements": [
-            _RecordedSensorMeasurement_to_dict(instance=nested)
-            for nested in instance.measurements
-        ],
+        "measurements": [_RecordedSensorMeasurement_to_dict(instance=nested) for nested in instance.measurements],
         "timestamp": instance.timestamp,
         "additional": instance.additional,
     }
@@ -65,11 +62,7 @@ def _get_basic_aggregations_ctf_reals_mongodb_aggregation(
 
     time_series: List[PhysicalQuantityDataPoint] = []
     for result in cursor:
-        time_series.append(
-            PhysicalQuantityDataPoint(
-                value=result["value"], timestamp=result["timestamp"]
-            )
-        )
+        time_series.append(PhysicalQuantityDataPoint(value=result["value"], timestamp=result["timestamp"]))
 
     return time_series
 
@@ -80,10 +73,7 @@ class SensingRecordingServiceImpl(SensingRecordingService.Iface):
 
     def recordSensorData(self, recordedSensorData: RecordedSensorData) -> None:
         if len(recordedSensorData.measurements) <= 0:
-            _logger.warning(
-                f"RecordedSensorData {recordedSensorData} has no measurements. "
-                f"Aborting persistence..."
-            )
+            _logger.warning(f"RecordedSensorData {recordedSensorData} has no measurements. " f"Aborting persistence...")
             return
 
         document = _RecordedSensorData_to_dict(instance=recordedSensorData)

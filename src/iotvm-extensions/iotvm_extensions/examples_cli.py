@@ -69,9 +69,7 @@ class CLI:
         factory: ClientsFactory = ClientsFactory()
         factory.register_service(service_class=FabricationForecastingService)
 
-        service: FabricationForecastingService = factory.get_service(
-            service_name="FabricationForecastingService"
-        )
+        service: FabricationForecastingService = factory.get_service(service_name="FabricationForecastingService")
         assert service is not None
 
         sensor_id_list: List[str] = SENSOR_ID_LIST
@@ -88,9 +86,7 @@ class CLI:
                     frequencyInSeconds=frequency_in_seconds,
                 )
                 service.ensure(scope=scope)
-                request = ForecastRequest(
-                    startTimestamp=0, endTimestamp=1, stepsAhead=10, comment="none"
-                )
+                request = ForecastRequest(startTimestamp=0, endTimestamp=1, stepsAhead=10, comment="none")
                 # service.forecast(scope=scope, request=request)  # TODO Just to make sure... add try-except.
 
     def delete_all_mongodb_documents(self) -> None:
@@ -118,7 +114,7 @@ class CLI:
         generate_macros_multiple_sensors(
             dataset_path_to_file=MG__DATASET_PATH_TO_FILE,
             sensors_parameters=MG__PARAMETERS_BY_SENSOR_ID,
-            path_to_experiment_input_directory=EXPERIMENT_INPUT_DIRECTORY
+            path_to_experiment_input_directory=EXPERIMENT_INPUT_DIRECTORY,
         )
 
     def generate_average_calculation_parameters_sets_json(self) -> None:
@@ -131,9 +127,7 @@ class CLI:
             fabrication_forecasting=FABRICATION_FORECASTING_STEPS_AHEAD_LIST,
         )
         # print(pd.DataFrame(data=data))
-        print(
-            f"Creating average-calculation-parameters-sets.json ({len(data)} parameters sets)"
-        )
+        print(f"Creating average-calculation-parameters-sets.json ({len(data)} parameters sets)")
 
         json_object = json.dumps(data, indent=4)
         path_to_file: str = os.path.join(EXPERIMENT_INPUT_DIRECTORY, "average-calculation-parameters-sets.json")
@@ -149,9 +143,7 @@ class CLI:
             if bool(re.match("^[A-Z][_A-Z0-9]*$", key)) is True:
                 data[key] = config.__dict__[key]
 
-        print(
-            f"Creating configuration.json ({len(data)} key-value pairs)"
-        )
+        print(f"Creating configuration.json ({len(data)} key-value pairs)")
 
         class EnhancedJSONEncoder(json.JSONEncoder):
             def default(self, o):
@@ -165,7 +157,10 @@ class CLI:
         with open(path_to_file, "w") as outfile:
             outfile.write(json_object)
 
-        shutil.copy(config.CONFIGURATION_SCRIPT_FILE, os.path.join(EXPERIMENT_INPUT_DIRECTORY, f"configuration-{config.CONFIGURATION_SCRIPT_NAME}.py"))
+        shutil.copy(
+            config.CONFIGURATION_SCRIPT_FILE,
+            os.path.join(EXPERIMENT_INPUT_DIRECTORY, f"configuration-{config.CONFIGURATION_SCRIPT_NAME}.py"),
+        )
 
     def generate_report(self) -> None:
         physical_quantity: str = PHYSICAL_QUANTITY
@@ -204,6 +199,11 @@ class CLI:
 
     def generate_report_mara(self) -> None:
         generate_report_mara()
+
+    def simulation1_example(self) -> None:
+        from iotvm_extensions.simulation1._base import run_example
+
+        run_example()
 
 
 if __name__ == "__main__":

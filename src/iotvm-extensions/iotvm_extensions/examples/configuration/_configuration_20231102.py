@@ -19,7 +19,7 @@ CONFIGURATION_SCRIPT_NAME = __name__
 # ####################################################################################################
 
 
-EXPERIMENT_NAME: str = "after-paper-experiment-6-v1"
+EXPERIMENT_NAME: str = "refactor-experiment-1"
 
 
 # ####################################################################################################
@@ -28,6 +28,7 @@ EXPERIMENT_NAME: str = "after-paper-experiment-6-v1"
 
 
 _BASE_PATH: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
+# TODO Change.
 EXPERIMENTS_DIRECTORY: str = os.path.join(_BASE_PATH, "local_data", "experiments")
 EXPERIMENT_DIRECTORY: str = os.path.join(EXPERIMENTS_DIRECTORY, EXPERIMENT_NAME)
 EXPERIMENT_INPUT_DIRECTORY: str = os.path.join(EXPERIMENT_DIRECTORY, "input")
@@ -70,10 +71,7 @@ FREQUENCY_IN_SECONDS_LIST: List[int] = [5]
 
 MG__DATASET_PATH_TO_FILE: str = os.path.join(_BASE_PATH, "datasets", "dataset-1-slice-9-13.csv")
 
-_MG__FREQUENCY_DISTRIBUTION: Dict = {
-    "type": "constant",
-    "loc": 5.0
-}
+_MG__FREQUENCY_DISTRIBUTION: Dict = {"type": "constant", "loc": 5.0}
 
 MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
     "sensor-1": {
@@ -81,10 +79,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "frequency_distribution": _MG__FREQUENCY_DISTRIBUTION,
         "up_sampling_distribution": None,
         "noise_distributions": [
-            {
-                "type": "constant",
-                "loc": 1.0
-            },
+            {"type": "constant", "loc": 1.0},
             {
                 "type": "normal",
                 "loc": 0.5,
@@ -103,10 +98,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "frequency_distribution": _MG__FREQUENCY_DISTRIBUTION,
         "up_sampling_distribution": None,
         "noise_distributions": [
-            {
-                "type": "constant",
-                "loc": -1.0
-            },
+            {"type": "constant", "loc": -1.0},
             {
                 "type": "normal",
                 "loc": 0.5,
@@ -127,7 +119,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "noise_distributions": [
             {
                 "type": "normal",
-                "loc": 0.,
+                "loc": 0.0,
                 "scale": 2.0,
             },
         ],
@@ -143,10 +135,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "frequency_distribution": _MG__FREQUENCY_DISTRIBUTION,
         "up_sampling_distribution": None,
         "noise_distributions": [
-            {
-                "type": "constant",
-                "loc": 4.0
-            },
+            {"type": "constant", "loc": 4.0},
             {
                 "type": "normal",
                 "loc": 0.0,
@@ -165,10 +154,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "frequency_distribution": _MG__FREQUENCY_DISTRIBUTION,
         "up_sampling_distribution": None,
         "noise_distributions": [
-            {
-                "type": "constant",
-                "loc": -0.5
-            },
+            {"type": "constant", "loc": -0.5},
             {
                 "type": "normal",
                 "loc": 0.2,
@@ -187,10 +173,7 @@ MG__PARAMETERS_BY_SENSOR_ID: Dict[str, Dict] = {
         "frequency_distribution": _MG__FREQUENCY_DISTRIBUTION,
         "up_sampling_distribution": None,
         "noise_distributions": [
-            {
-                "type": "constant",
-                "loc": 0.5
-            },
+            {"type": "constant", "loc": 0.5},
             {
                 "type": "normal",
                 "loc": 0.2,

@@ -133,16 +133,8 @@ def generate_report() -> None:
     acc_arr = np.array(accuracy2_mean2, dtype=np.float32).reshape(1, -1)
     tim2_arr = np.array(timeliness2_mean2, dtype=np.float32).reshape(1, -1)
 
-    euclidean = pairwise_distances(
-        acc_arr,
-        tim2_arr,
-        metric="euclidean"
-    )
-    correlation = pairwise_distances(
-        acc_arr,
-        tim2_arr,
-        metric="correlation"
-    )
+    euclidean = pairwise_distances(acc_arr, tim2_arr, metric="euclidean")
+    correlation = pairwise_distances(acc_arr, tim2_arr, metric="correlation")
     print(euclidean, ", ", correlation)
 
     # --------------------------------------------------
@@ -162,7 +154,7 @@ def generate_report() -> None:
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
-    color = 'tab:blue'
+    color = "tab:blue"
     ax2.set_ylabel("timeliness means over available", color=color)
     ax2.plot(x, timeliness2_mean2, color=color, label="timeliness 2")
     ax2.plot(x, timeliness1_mean2, color=color, linestyle="dashed", label="timeliness 1")

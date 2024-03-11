@@ -45,11 +45,7 @@ def build_template_df(
     cycle_values: List[int] = []
     for cycle in range(1, cycle_iterations + 1):
         # noinspection PyTypeChecker
-        cycle_values.extend(
-            np.full(
-                (recurring_windows_numbers_count,), fill_value=cycle, dtype=int
-            ).tolist()
-        )
+        cycle_values.extend(np.full((recurring_windows_numbers_count,), fill_value=cycle, dtype=int).tolist())
 
     dataframe["cycle"] = cycle_values
 
@@ -90,12 +86,8 @@ def build_schedule_df(
     grouped = macros_df.groupby(by="recurring_window")
 
     for number, group in grouped:
-        intended_simulated_sensor_operation_list: List[
-            IntendedSimulatedSensorOperation
-        ] = []
-        evaluated_simulated_sensor_operation_list: List[
-            EvaluatedSimulatedSensorOperation
-        ] = []
+        intended_simulated_sensor_operation_list: List[IntendedSimulatedSensorOperation] = []
+        evaluated_simulated_sensor_operation_list: List[EvaluatedSimulatedSensorOperation] = []
 
         for row_index, row_values in group.iterrows():
             for sensor_id in sensor_ids:
@@ -107,12 +99,10 @@ def build_schedule_df(
                 if cell_value == "" or cell_value.startswith("empty"):
                     continue
 
-                intended_simulated_sensor_operation: IntendedSimulatedSensorOperation = IntendedSimulatedSensorOperation(
-                    sensor_id=sensor_id, macro=row_values[sensor_id]
+                intended_simulated_sensor_operation: IntendedSimulatedSensorOperation = (
+                    IntendedSimulatedSensorOperation(sensor_id=sensor_id, macro=row_values[sensor_id])
                 )
-                intended_simulated_sensor_operation_list.append(
-                    intended_simulated_sensor_operation
-                )
+                intended_simulated_sensor_operation_list.append(intended_simulated_sensor_operation)
 
                 # TODO ΠΡΟΣΟΧΗ: πιο κάτω το ξανακάνω. Συνεπώς αυτό είναι ενδεικτικό. ΧΡΕΙΑΖΕΤΑΙ;;;!
                 evaluated_simulated_sensor_operation: EvaluatedSimulatedSensorOperation = evaluate_macro(
@@ -121,9 +111,7 @@ def build_schedule_df(
                     timestamp=0,
                     additional={},
                 )
-                evaluated_simulated_sensor_operation_list.append(
-                    evaluated_simulated_sensor_operation
-                )
+                evaluated_simulated_sensor_operation_list.append(evaluated_simulated_sensor_operation)
 
         recurring_window: RecurringWindow = RecurringWindow(
             number=int(number),
@@ -154,16 +142,10 @@ def build_schedule_df(
     # Calculate deltas to for operations intervals.
     # --------------------------------------------------
 
-    t_delta: pd.Timedelta = (
-        template_df["end_dt"].iloc[-1] - template_df["start_dt"].iloc[-1]
-    )
+    t_delta: pd.Timedelta = template_df["end_dt"].iloc[-1] - template_df["start_dt"].iloc[-1]
     seconds: float = t_delta.total_seconds()
-    add_to_start_dt: pd.Timedelta = pd.Timedelta(
-        seconds=seconds * start_dt_pct, unit="ns"
-    )
-    sub_from_end_dt: pd.Timedelta = pd.Timedelta(
-        seconds=seconds * end_dt_pct, unit="ns"
-    )
+    add_to_start_dt: pd.Timedelta = pd.Timedelta(seconds=seconds * start_dt_pct, unit="ns")
+    sub_from_end_dt: pd.Timedelta = pd.Timedelta(seconds=seconds * end_dt_pct, unit="ns")
 
     # Calculate operations intervals.
     # --------------------------------------------------
@@ -184,9 +166,9 @@ def build_schedule_df(
         operations_start_dt = row["operations_start_dt"]
         operations_end_dt = row["operations_end_dt"]
 
-        intended_ops: List[
-            IntendedSimulatedSensorOperation
-        ] = recurring_windows_by_number[recurring_window_number].intended_ops
+        intended_ops: List[IntendedSimulatedSensorOperation] = recurring_windows_by_number[
+            recurring_window_number
+        ].intended_ops
         intended_ops_count: int = len(intended_ops)
 
         pdt_list: List[pd.Timestamp] = pd.date_range(

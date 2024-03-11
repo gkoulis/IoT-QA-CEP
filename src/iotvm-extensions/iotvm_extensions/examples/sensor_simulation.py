@@ -37,9 +37,7 @@ def run_sensor_simulation_example(experiment_name: str, path_to_dir: str) -> Non
         microsecond=0,
         tzinfo=zoneinfo.ZoneInfo("Europe/Athens"),
     )
-    start_dt: datetime.datetime = datetime.datetime.now(
-        tz=zoneinfo.ZoneInfo("Europe/Athens")
-    )
+    start_dt: datetime.datetime = datetime.datetime.now(tz=zoneinfo.ZoneInfo("Europe/Athens"))
 
     hour = start_dt.hour
     minute = start_dt.minute
@@ -97,8 +95,6 @@ def run_sensor_simulation_example(experiment_name: str, path_to_dir: str) -> Non
     # Scheduled ops execution.
     # --------------------------------------------------
 
-    execute_schedule(
-        schedule_df=schedule_df, dry_run=dry_run, fail_silently=fail_silently
-    )
+    execute_schedule(schedule_df=schedule_df, dry_run=dry_run, fail_silently=fail_silently)
 
     _logger.info(pprint.pformat(additional_static, sort_dicts=False, indent=2))

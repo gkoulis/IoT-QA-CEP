@@ -82,31 +82,21 @@ class FabricationForecastingServiceImpl(FabricationForecastingService.Iface):
 
         self._ensuring[key] = False
 
-    def forecast(
-        self, scope: ForecastScope, request: ForecastRequest
-    ) -> ForecastResponse:
+    def forecast(self, scope: ForecastScope, request: ForecastRequest) -> ForecastResponse:
         key: str = _key(scope=scope)
 
         if key not in self._forecasters:
-            raise ForecastException(
-                f"SensorMeasurementForecaster {key} does not exist!"
-            )
+            raise ForecastException(f"SensorMeasurementForecaster {key} does not exist!")
 
         if self._ensuring[key] is True:
-            raise ForecastException(
-                f"SensorMeasurementForecaster {key} is temporary not available!"
-            )
+            raise ForecastException(f"SensorMeasurementForecaster {key} is temporary not available!")
 
         if self._forecasters[key].is_ready() is False:
             raise ForecastException(f"SensorMeasurementForecaster {key} is not ready!")
 
         steps_ahead: int = request.stepsAhead
-        start_timestamp = pd.Timestamp(
-            request.startTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
-        )
-        end_timestamp = pd.Timestamp(
-            request.endTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms"
-        )
+        start_timestamp = pd.Timestamp(request.startTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms")
+        end_timestamp = pd.Timestamp(request.endTimestamp, tzinfo=zoneinfo.ZoneInfo("UTC"), unit="ms")
         result: Optional[Dict] = self._forecasters[key].forecast(
             steps_ahead=steps_ahead,
             start_timestamp=start_timestamp,

@@ -214,6 +214,11 @@ public class AverageCalculationCompositeTransformationFactory
             Consumed.with(
                     Constants.STRING_SERDE, Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE)
                 .withTimestampExtractor(new ValidNonNullTimestampExtractor()))
+        .mapValues((v) -> {
+          // TODO Remove.
+          System.out.println(this.parameters.getUniqueIdentifier() + " : " + v.getSensorId() + ", @ " + v.getTimestamps().getDefaultTimestamp());
+          return v;
+        })
         // @future select key: greenhouse ID -> then groupByKey
         .groupByKey(
             Grouped.with(
@@ -327,7 +332,9 @@ public class AverageCalculationCompositeTransformationFactory
 
               additional.put("averageValueBeforeFabrication", value.getAverage().getValue());
               for (final String metricKey : qualityPropertiesIBO.getMetrics().keySet()) {
-                additional.put(metricKey + "BeforeFabrication", qualityPropertiesIBO.getMetrics().get(metricKey));
+                additional.put(
+                    metricKey + "BeforeFabrication",
+                    qualityPropertiesIBO.getMetrics().get(metricKey));
               }
 
               return SensorTelemetryMeasurementsAverageEventIBO.newBuilder()
@@ -728,7 +735,9 @@ public class AverageCalculationCompositeTransformationFactory
               double accuracy = 1d - ((Math.abs(real - expected)) / real);
               value.getQualityProperties().getMetrics().put("accuracy1", accuracy);
               value.getAdditional().put("realAverage", real);
-              value.getAdditional().put("accuracyBasedOnGroundTruthDuration", System.nanoTime() - start);
+              value
+                  .getAdditional()
+                  .put("accuracyBasedOnGroundTruthDuration", System.nanoTime() - start);
 
               return value;
             })

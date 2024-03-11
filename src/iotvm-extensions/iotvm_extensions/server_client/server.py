@@ -20,17 +20,13 @@ _logger = logging.getLogger("iotvm_extensions.server_client.server")
 
 
 def start_server() -> None:
-    _logger.info(
-        f"Starting TThreadPoolServer with TMultiplexedProcessor = {config.SERVER_HOST}:{config.SERVER_PORT}"
-    )
+    _logger.info(f"Starting TThreadPoolServer with TMultiplexedProcessor = {config.SERVER_HOST}:{config.SERVER_PORT}")
     m_processor: TMultiplexedProcessor = TMultiplexedProcessor()
 
     processors = [
         (
             get_service_name(FabricationForecastingService),
-            FabricationForecastingService.Processor(
-                handler=FabricationForecastingServiceImpl()
-            ),
+            FabricationForecastingService.Processor(handler=FabricationForecastingServiceImpl()),
         ),
         (
             get_service_name(SensingRecordingService),
@@ -47,9 +43,7 @@ def start_server() -> None:
     p_factory = TBinaryProtocol.TBinaryProtocolFactory()
 
     # TSimpleServer, TThreadedServer, TThreadPoolServer
-    server = TServer.TThreadPoolServer(
-        m_processor, transport, t_factory, p_factory, daemon=False
-    )
+    server = TServer.TThreadPoolServer(m_processor, transport, t_factory, p_factory, daemon=False)
     server.setNumThreads(num=4)
 
     server.serve()
