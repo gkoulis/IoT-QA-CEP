@@ -28,8 +28,8 @@ import os
 import random
 import re
 import uuid
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -43,12 +43,26 @@ _logger = logging.getLogger(__name__)
 # ####################################################################################################
 
 
+def _persist_dataframe(df: pd.DataFrame, directory: str, file_name: str) -> None:
+    path_to_file: str = os.path.join(directory, file_name)
+    df.to_json(f"{path_to_file}.json", orient="records")
+    df.to_parquet(f"{path_to_file}.parquet")
+    df.to_csv(f"{path_to_file}.csv")
+    df.to_excel(f"{path_to_file}.xlsx")
+
+
 def _to_json(obj, directory: str, file_name: str) -> None:
     json_object = json.dumps(obj, indent=4, allow_nan=False, sort_keys=False)
     path_to_file: str = os.path.join(directory, file_name)
     # assert os.path.exists(path_to_file) is False
     with open(path_to_file, "w") as outfile:
         outfile.write(json_object)
+
+
+def _from_json(path_to_file: str) -> Any:
+    with open(path_to_file, "r") as input_file:
+        data = json.load(input_file)
+        return data
 
 
 # ####################################################################################################
@@ -676,7 +690,14 @@ class Simulation:
 
         simulation_variation_iteration_list: List[Dict[str, str]] = []
 
-        for variation in [baseline] + self.variations:
+        for variation_index, variation in enumerate([baseline] + self.variations):
+            if variation_index != 0:
+                if "baseline" in variation.name.lower():
+                    raise Exception(
+                        f"variation with name `{variation.name}` is invalid "
+                        f"because it contains the substring `baseline`!"
+                    )
+
             for iteration in variation.iterations:
                 simulation_variation_iteration_list.append(
                     {
@@ -812,7 +833,7 @@ class Simulation:
                 df.sort_values(by="x", inplace=True, ignore_index=True)
                 df.set_index(keys="x", drop=True, inplace=True)
                 df["ds"] = df.index.copy(deep=True)
-                df["timestamp"] = df['ds'].apply(lambda x: int(x.timestamp() * 1000))
+                df["timestamp"] = df["ds"].apply(lambda x: int(x.timestamp() * 1000))
 
                 df.to_excel(os.path.join(svi_input_dir, f"df.xlsx"))
                 df.to_parquet(os.path.join(svi_input_dir, f"df.parquet"))
@@ -907,6 +928,7 @@ class Simulation:
 # TODO Create library with ready to use objects.
 # TODO Move to project constants or even better to library.
 DEFAULT_SEED: int = 42
+EPS = 1e-12
 
 
 def _example1() -> None:
@@ -1052,6 +1074,154 @@ def _example1() -> None:
     simulation.process(base_directory=base_directory)
 
 
-def run_example() -> None:
+def run_exampl1() -> None:
     # TODO Remove and move to examples.py
     _example1()
+
+
+def _complex_event_uid(ibo: Dict, simulation_name: str, variation_name: str, iteration_name: str) -> str:
+    ct_ps_id: str = ibo["compositeTransformationParametersIdentifier"]
+    start_timestamp: int = ibo["startTimestamp"]
+    end_timestamp: int = ibo["endTimestamp"]
+    return f"{simulation_name}/{variation_name}/{iteration_name}/{ct_ps_id}/{start_timestamp}/{end_timestamp}"
+
+
+def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iteration_name: str) -> Dict:
+    """
+    IBO to Complex Event. IBO is also a Complex Event. However, it has too much information.
+    This function creates a representation of a Complex Event for convenient processing and interpretation.
+    """
+
+    uid: str = _complex_event_uid(
+        ibo=ibo, simulation_name=simulation_name, variation_name=variation_name, iteration_name=iteration_name
+    )
+    ground_truth_counterpart_uid: str = _complex_event_uid(
+        ibo=ibo, simulation_name=simulation_name, variation_name="baseline-0", iteration_name="iteration-0"
+    )
+
+    past_events_count: int = ibo["additional"]["pastEventsCount"]["int"]
+    forecasted_events_count: int = ibo["additional"]["forecastedEventsCount"]["int"]
+
+    past_events_duration: int = ibo["additional"]["pastEventsDuration"]["long"]
+    forecasted_events_duration: int = ibo["additional"]["forecastedEventsDuration"]["long"]
+    fabricated_events_duration: int = past_events_duration + forecasted_events_duration
+
+    event: Dict[str, Any] = {
+        # IDs and taxonomy: Simulation-Variation-Iteration ----------
+        "simulation_name": simulation_name,
+        "variation_name": variation_name,
+        "iteration_name": iteration_name,
+        # TODO Keep one timestamp for ID and sorting and joining...
+        # IDs and taxonomy: Composite Transformation ----------
+        # IDs and taxonomy: Time Window ----------
+        "start_timestamp": ibo["startTimestamp"],  # TODO Convert to datetime and the to string.
+        "end_timestamp": ibo["endTimestamp"],  # TODO Convert to datetime and the to string.
+        # Business: Average Calculation ----------
+        "value": round(ibo["average"]["value"]["double"], 2),
+        "real": -1.0,  # We do not have the value yet.
+        # Business: Average Calculation (before fabrication if performed) ----------
+        "value_before": round(ibo["average"]["value"]["double"], 2),  # TODO add.
+        # Quality (after fabrication if performed) ----------
+        "completeness": ibo["qualityProperties"]["metrics"]["completeness1"]["double"],
+        "timeliness1": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
+        "timeliness2": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
+        "accuracy": -1.0,  # We do not have the value yet.
+        # Quality (before fabrication if performed) ----------
+        # TODO Add.
+        "completeness_before": ibo["qualityProperties"]["metrics"]["completeness1"]["double"],
+        "timeliness1_before": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
+        "timeliness2_before": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
+        "accuracy_before": -1.0,  # We do not have the value yet.
+        # Event Fabrication ----------
+        "past_events_count": past_events_count,
+        "forecasted_events_count": forecasted_events_count,
+        "fabricated_events_count": past_events_count + forecasted_events_count,
+        # Benchmarking ----------
+        "past_events_duration": past_events_duration,
+        "forecasted_events_duration": forecasted_events_duration,
+        "fabricated_events_duration": fabricated_events_duration,
+        # System-Specifics (they dropped after processing) ----------
+        "uid": uid,
+        "is_baseline": "baseline" in variation_name.lower(),
+        "ground_truth_counterpart_uid": ground_truth_counterpart_uid,
+    }
+
+    return event
+
+
+def _update_ground_truth(df: pd.DataFrame) -> pd.DataFrame:
+    def _update_ground_truth_apply_func(row):
+        counterpart_row = df[df["uid"] == row["ground_truth_counterpart_uid"]]
+        assert len(counterpart_row) == 1, "There should be exactly one match for each uid."
+        if not counterpart_row.empty:
+            counterpart_value = counterpart_row["value"].iloc[0]
+            return counterpart_value
+        else:
+            return None
+
+    df["real"] = df.apply(lambda row: _update_ground_truth_apply_func(row), axis=1)
+
+    return df
+
+
+def _update_accuracy(df: pd.DataFrame) -> pd.DataFrame:
+    def _update_accuracy_apply_func_factory(column_value: str, column_real: str) -> Callable:
+        def _update_accuracy_apply_func(row):
+            value_ = row[column_value]
+            real_ = row[column_real]
+            if real_ == 0:
+                value_ = value_ + EPS
+                real_ = real_ + EPS
+            return 1.0 - abs((value_ - real_) / real_)
+
+        return _update_accuracy_apply_func
+
+    _apply_func = _update_accuracy_apply_func_factory(column_value="value", column_real="real")
+    df["accuracy"] = df.apply(lambda row: _apply_func(row), axis=1)
+
+    return df
+
+
+def run_example2(simulation_name: str = "simulation-1") -> None:
+    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
+    simulations_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
+    simulation_directory: str = os.path.join(simulations_directory, simulation_name)
+
+    complex_event_list: List[Dict[str, Any]] = []
+
+    svi_list: List[Dict] = _from_json(
+        path_to_file=os.path.join(simulation_directory, "_system", "SimulationVariationIterationList.json")
+    )
+    for svi in svi_list:
+        simulation_name_: str = svi["simulationName"]
+        assert simulation_name_ == simulation_name
+        variation_name: str = svi["variationName"]
+        iteration_name: str = svi["iterationName"]
+
+        output_directory: str = os.path.join(
+            simulations_directory, simulation_name, variation_name, iteration_name, "_system", "output"
+        )
+
+        # Read all output files (i.e., files with extension `.json`).
+        # These file contains 0 or more complex events.
+        # --------------------------------------------------
+
+        output_file_name_list: List[str] = [f for f in os.listdir(output_directory) if f.endswith(".json")]
+        for output_file_name in output_file_name_list:
+            path_to_output_file: str = os.path.join(output_directory, output_file_name)
+            with open(path_to_output_file, "r") as file:
+                ibo_list: List[Dict[str, Any]] = json.load(file)
+                for ibo in ibo_list:
+                    complex_event: Dict[str, Any] = _to_complex_event(
+                        ibo=ibo,
+                        simulation_name=simulation_name,
+                        variation_name=variation_name,
+                        iteration_name=iteration_name,
+                    )
+                    complex_event_list.append(complex_event)
+
+    complex_event_df: pd.DataFrame = pd.DataFrame(data=complex_event_list)
+    _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-out")
+    complex_event_df = _update_ground_truth(df=complex_event_df)
+    complex_event_df = _update_accuracy(df=complex_event_df)
+    _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-eval")

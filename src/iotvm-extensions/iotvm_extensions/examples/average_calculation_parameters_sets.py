@@ -17,6 +17,13 @@ import itertools
 _PREFIX: str = "w_avg_"
 
 
+def build_composite_transformation_parameters_set_id(
+    physical_quantity: str,
+    time_window_size: int,
+) -> str:
+    pass  # TODO Continue. and use by `generate_composite_transformation_parameters_ids`
+
+
 def generate_composite_transformation_parameters_ids(
     physical_quantity_list: List[str],
     time_window_size: List[int],

@@ -200,10 +200,15 @@ class CLI:
     def generate_report_mara(self) -> None:
         generate_report_mara()
 
-    def simulation1_example(self) -> None:
-        from iotvm_extensions.simulation1._base import run_example
+    def simulation1_example1(self) -> None:
+        from iotvm_extensions.simulation1._base import run_example1
 
-        run_example()
+        run_example1()
+
+    def simulation1_example2(self) -> None:
+        from iotvm_extensions.simulation1._base import run_example2
+
+        run_example2()
 
 
 if __name__ == "__main__":

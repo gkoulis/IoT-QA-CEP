@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.5 Tuesday 12 March 2024
+
+### Extensions
+
+- Simulation / Variation / Iteration persistence (complex event and evaluation, i.e., accuracy calculation)
+
 ## v1.0.0-PROTOTYPE.4 Tuesday 12 March 2024
 
 ### Event Engine
