@@ -1,6 +1,8 @@
 """
 Generates the JSON for the iotvm-eventengine resource file (average-calculation-parameters-sets.json).
 
+TODO Move to simulation1 module (in Python).
+
 Author: Dimitris Gkoulis
 Created at: Thursday 12 October 2023
 Modified at: Wednesday 08 November 2023
@@ -105,15 +107,15 @@ def generate_average_calculation_parameters_sets(
     time_window_size: List[int],
     number_of_contributing_sensors: List[int],
     ignore_completeness_filtering_list: List[bool],
-    fabrication_past_events: List[int],
-    fabrication_forecasting: List[int],
+    fabrication_past_events_steps_behind: List[int],
+    fabrication_forecasting_steps_ahead: List[int],
 ) -> List[Dict]:
     combinations = itertools.product(
         time_window_size,
         number_of_contributing_sensors,
         ignore_completeness_filtering_list,
-        fabrication_past_events,
-        fabrication_forecasting,
+        fabrication_past_events_steps_behind,
+        fabrication_forecasting_steps_ahead,
     )
     combinations = list(combinations)
 

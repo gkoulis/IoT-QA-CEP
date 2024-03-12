@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.3 Tuesday 12 March 2024
+
+- Event Engine: Added simulation package.
+- Event Engine: added general utilities class.
+- `iotvm_extensions`: Added functionality to create/persist composite transformations parameters sets. Plus some improvements and changes.
+
 ## v1.0.0-PROTOTYPE.2 Monday 11 March 2024
 
 - Added new simulation module in `iotvm_extensions` project.

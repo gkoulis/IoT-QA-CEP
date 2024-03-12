@@ -33,8 +33,22 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from iotvm_extensions.examples.average_calculation_parameters_sets import generate_average_calculation_parameters_sets
 
 _logger = logging.getLogger(__name__)
+
+
+# ####################################################################################################
+# Random Context.
+# ####################################################################################################
+
+
+def _to_json(obj, directory: str, file_name: str) -> None:
+    json_object = json.dumps(obj, indent=4, allow_nan=False, sort_keys=False)
+    path_to_file: str = os.path.join(directory, file_name)
+    # assert os.path.exists(path_to_file) is False
+    with open(path_to_file, "w") as outfile:
+        outfile.write(json_object)
 
 
 # ####################################################################################################
@@ -608,13 +622,39 @@ class Variation:
 
 
 @dataclass
-class CompositeTransformation:
-    name: str
+class AverageCalculationCompositeTransformationParametersSetsSpace:
+    # TODO Consider renaming the CT to TimeWindowedBasicStatisticsCompositeTransformation
+    physical_quantity: str  # TODO It must support list
+    time_window_size_list: List[int]
+    number_of_contributing_sensors_list: List[int]
+    ignore_completeness_filtering_list: List[bool]
+    fabrication_past_events_steps_behind_list: List[int]
+    fabrication_forecasting_steps_ahead_list: List[int]
 
+    def __post_init__(self) -> None:
+        assert self.physical_quantity in ["TEMPERATURE", "HUMIDITY"]
+        self.time_window_size_list = sorted(self.time_window_size_list)
+        self.number_of_contributing_sensors_list = sorted(self.number_of_contributing_sensors_list)
+        self.ignore_completeness_filtering_list = sorted(self.ignore_completeness_filtering_list)
+        self.fabrication_past_events_steps_behind_list = sorted(self.fabrication_past_events_steps_behind_list)
+        self.fabrication_forecasting_steps_ahead_list = sorted(self.fabrication_forecasting_steps_ahead_list)
 
-@dataclass
-class CompositeTransformationSpace:
-    pass
+    def to_composite_transformation_parameters_set(self) -> List[Dict]:
+        physical_quantity: str = self.physical_quantity
+        time_window_size_list: List[int] = self.time_window_size_list
+        number_of_contributing_sensors_list: List[int] = self.number_of_contributing_sensors_list
+        ignore_completeness_filtering_list: List[bool] = self.ignore_completeness_filtering_list
+        fabrication_past_events_steps_behind: List[int] = self.fabrication_past_events_steps_behind_list
+        fabrication_forecasting_steps_ahead: List[int] = self.fabrication_forecasting_steps_ahead_list
+
+        return generate_average_calculation_parameters_sets(
+            physical_quantity=physical_quantity,
+            time_window_size=time_window_size_list,
+            number_of_contributing_sensors=number_of_contributing_sensors_list,
+            ignore_completeness_filtering_list=ignore_completeness_filtering_list,
+            fabrication_past_events_steps_behind=fabrication_past_events_steps_behind,
+            fabrication_forecasting_steps_ahead=fabrication_forecasting_steps_ahead,
+        )
 
 
 @dataclass
@@ -622,8 +662,7 @@ class Simulation:
     name: str
     sensors: List[Sensor]
     variations: List[Variation]
-    composite_transformations_spaces: Dict
-    composite_transformations: List[CompositeTransformation] = field(init=False)
+    average_ct_ps_space: AverageCalculationCompositeTransformationParametersSetsSpace
 
     def process(self, base_directory: str) -> None:
         baseline: Variation = Variation(
@@ -632,9 +671,17 @@ class Simulation:
             iterations=[Iteration(name="iteration-0", loss_seed_by_sensor={}, loss_seed_fallback=DEFAULT_SEED)],
         )
 
+        simulation_variation_iteration_list: List[Dict[str, str]] = []
+
         for variation in [baseline] + self.variations:
             for iteration in variation.iterations:
-                svi_dir: str = os.path.join(base_directory, self.name, variation.name, iteration.name, "_machine")
+                simulation_variation_iteration_list.append({
+                    "simulation_name": self.name,
+                    "variation_name": variation.name,
+                    "iteration_name": iteration.name,
+                })
+
+                svi_dir: str = os.path.join(base_directory, self.name, variation.name, iteration.name, "_system")
                 os.makedirs(svi_dir, exist_ok=True)
 
                 df_by_sensor: Dict[str, pd.DataFrame] = {}
@@ -774,8 +821,12 @@ class Simulation:
                         measurements.append(
                             {
                                 "name": seen_measurement_name,
-                                "value": value,
-                                "unit": MEASUREMENT_UNIT_BY_MEASUREMENT_NAME[seen_measurement_name],
+                                "value": {
+                                    "double": value,
+                                },
+                                "unit": {
+                                    "string": MEASUREMENT_UNIT_BY_MEASUREMENT_NAME[seen_measurement_name]
+                                },
                             }
                         )
 
@@ -787,19 +838,33 @@ class Simulation:
                             "sensorId": row["sensor"],
                             "measurements": measurements,
                             "timestamps": {
-                                "defaultTimestamp": row["timestamp"],
-                                "timestamps": {
-                                    "sensed": row["timestamp"],
+                                "defaultTimestamp": {
+                                    "long": row["timestamp"]
                                 },
-                                "identifiers": {
-                                    "clientSideId": uuid.uuid4().__str__(),
-                                    "correlationIds": {},
-                                    "additional": {
-                                        "simulation_name": self.name,
-                                        "variation_name": variation.name,
-                                        "iteration_name": iteration.name,
-                                        "ds": row["ds"].__str__(),
+                                "timestamps": {
+                                    "sensed": {
+                                        "long": row["timestamp"]
                                     },
+                                },
+                            },
+                            "identifiers": {
+                                "clientSideId": {
+                                    "string": uuid.uuid4().__str__(),
+                                },
+                                "correlationIds": {},
+                            },
+                            "additional": {
+                                "simulation_name": {
+                                    "string": self.name
+                                },
+                                "variation_name": {
+                                    "string": variation.name
+                                },
+                                "iteration_name": {
+                                    "string": iteration.name
+                                },
+                                "ds": {
+                                    "string": row["ds"].__str__()
                                 },
                             },
                         }
@@ -808,6 +873,22 @@ class Simulation:
                 json_string = json.dumps(obj=events, indent=4, allow_nan=False, sort_keys=False)
                 with open(os.path.join(svi_dir, "SensorTelemetryRawEventIBO.json"), "w") as outfile:
                     outfile.write(json_string)
+
+        # Persistence: Prerequisites
+        # --------------------------------------------------
+
+        os.makedirs(os.path.join(base_directory, self.name, "_system"), exist_ok=True)
+
+        # Persistence: Simulation Variation Iteration (list)
+        # --------------------------------------------------
+
+        _to_json(obj=simulation_variation_iteration_list, directory=os.path.join(base_directory, self.name, "_system"), file_name="SimulationVariationIterationList.json")
+
+        # Persistence: Composite Transformations (list)
+        # --------------------------------------------------
+
+        ct_ps_list: List[Dict] = self.average_ct_ps_space.to_composite_transformation_parameters_set()
+        _to_json(obj=ct_ps_list, directory=os.path.join(base_directory, self.name, "_system"), file_name="AverageCalculationCompositeTransformationParameters.json")
 
 
 # ####################################################################################################
@@ -821,8 +902,9 @@ DEFAULT_SEED: int = 42
 
 
 def _example1() -> None:
-    base_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/simulation1-EXAMPLE/"
-    path_to_dataset: str = os.path.join("/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/datasets", "dataset-1-slice-9-13.csv")
+    project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
+    base_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
+    path_to_dataset: str = os.path.join(project_directory, "datasets", "dataset-1-slice-9-13.csv")
     sample1_df: pd.DataFrame = pd.read_csv(path_to_dataset, delimiter="\t")
     sample: np.ndarray = sample1_df["value"].values
 
@@ -977,7 +1059,14 @@ def _example1() -> None:
                 ],
             )
         ],
-        composite_transformations_spaces={},
+        average_ct_ps_space=AverageCalculationCompositeTransformationParametersSetsSpace(
+            physical_quantity="TEMPERATURE",
+            time_window_size_list=[5],
+            number_of_contributing_sensors_list=[2, 4, 6],
+            ignore_completeness_filtering_list=[True],  # TODO true of false?
+            fabrication_past_events_steps_behind_list=[2, 4, 6],
+            fabrication_forecasting_steps_ahead_list=[2, 4, 6]
+        ),
     )
     simulation.process(base_directory=base_directory)
 

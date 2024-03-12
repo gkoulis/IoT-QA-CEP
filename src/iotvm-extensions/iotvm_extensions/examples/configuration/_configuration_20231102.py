@@ -34,9 +34,9 @@ EXPERIMENT_DIRECTORY: str = os.path.join(EXPERIMENTS_DIRECTORY, EXPERIMENT_NAME)
 EXPERIMENT_INPUT_DIRECTORY: str = os.path.join(EXPERIMENT_DIRECTORY, "input")
 EXPERIMENT_OUTPUT_DIRECTORY: str = os.path.join(EXPERIMENT_DIRECTORY, "output")
 
-os.makedirs(EXPERIMENT_DIRECTORY, exist_ok=True)
-os.makedirs(EXPERIMENT_INPUT_DIRECTORY, exist_ok=True)
-os.makedirs(EXPERIMENT_OUTPUT_DIRECTORY, exist_ok=True)
+# os.makedirs(EXPERIMENT_DIRECTORY, exist_ok=True)
+# os.makedirs(EXPERIMENT_INPUT_DIRECTORY, exist_ok=True)
+# os.makedirs(EXPERIMENT_OUTPUT_DIRECTORY, exist_ok=True)
 
 
 # ####################################################################################################

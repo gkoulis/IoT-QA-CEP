@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+
+  iotvm-mongodb:
+    container_name: 'iotvm_mongodb'
+    image: mongo:latest
+    hostname: iotvm-mongodb
+    ports:
+      - "27017:27017"
+    restart: "no"
+    volumes:
+      - iotvm-mongodb-data-db:/data/db
+      - iotvm-mongodb-data-configdb:/data/configdb
+
+volumes:
+  iotvm-mongodb-data-db:
+  iotvm-mongodb-data-configdb:
