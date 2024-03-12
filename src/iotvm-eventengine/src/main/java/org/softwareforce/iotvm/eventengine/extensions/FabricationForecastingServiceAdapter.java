@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
@@ -15,7 +14,6 @@ import org.softwareforce.iotvm.shared.event.MeasurementIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementEventIBO;
 import org.softwareforce.iotvm.shared.event.TimestampsIBO;
 import org.softwareforce.iotvm.shared.extensions.fabrication_forecasting.spec.FabricationForecastingService;
-import org.softwareforce.iotvm.shared.extensions.fabrication_forecasting.spec.ForecastException;
 import org.softwareforce.iotvm.shared.extensions.fabrication_forecasting.spec.ForecastRequest;
 import org.softwareforce.iotvm.shared.extensions.fabrication_forecasting.spec.ForecastResponse;
 import org.softwareforce.iotvm.shared.extensions.fabrication_forecasting.spec.ForecastScope;
@@ -115,24 +113,30 @@ public class FabricationForecastingServiceAdapter {
         new ForecastScope(physicalQuantity.getName(), sensorId, topicName, frequencyInSeconds);
     final ForecastRequest forecastRequest =
         new ForecastRequest(startTimestamp, endTimestamp, stepsAhead);
-    final ForecastResponse forecastResponse;
 
-    try {
-      final FabricationForecastingService.Client client =
-          ExtensionsClientsFactory.getInstance()
-              .getFabricationForecastingServiceClient()
-              .orElse(null);
-      if (client == null) {
-        return Optional.empty();
-      }
-      forecastResponse = client.forecast(forecastScope, forecastRequest);
-    } catch (ForecastException ex) {
-      LOGGER.warn("forecast ({}) failed. Reason: {}", forecastScope, ex.getReason());
-      return Optional.empty();
-    } catch (TException ex) {
-      LOGGER.error("forecast ({}) failed.", forecastScope, ex);
-      return Optional.empty();
-    }
+    final Map<String, Double> metrics = new HashMap<>();
+    metrics.put("timeSteps", 1D);
+    metrics.put("timeDifference", 1D);
+    metrics.put("completeness", 1D);
+    final ForecastResponse forecastResponse =
+        new ForecastResponse(25.0D, startTimestamp, endTimestamp, metrics);
+
+    //    try {
+    //      final FabricationForecastingService.Client client =
+    //          ExtensionsClientsFactory.getInstance()
+    //              .getFabricationForecastingServiceClient()
+    //              .orElse(null);
+    //      if (client == null) {
+    //        return Optional.empty();
+    //      }
+    //      forecastResponse = client.forecast(forecastScope, forecastRequest);
+    //    } catch (ForecastException ex) {
+    //      LOGGER.warn("forecast ({}) failed. Reason: {}", forecastScope, ex.getReason());
+    //      return Optional.empty();
+    //    } catch (TException ex) {
+    //      LOGGER.error("forecast ({}) failed.", forecastScope, ex);
+    //      return Optional.empty();
+    //    }
 
     // Just before the time window closes.
     final long defaultTimestamp = endTimestamp - 1;

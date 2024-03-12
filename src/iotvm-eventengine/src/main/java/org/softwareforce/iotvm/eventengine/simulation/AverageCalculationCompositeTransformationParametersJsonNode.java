@@ -1,7 +1,8 @@
-package org.softwareforce.iotvm.eventengine.cep.ct;
+package org.softwareforce.iotvm.eventengine.simulation;
 
 import java.time.Duration;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
+import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationParameters;
 
 public class AverageCalculationCompositeTransformationParametersJsonNode {
   public String physicalQuantity;

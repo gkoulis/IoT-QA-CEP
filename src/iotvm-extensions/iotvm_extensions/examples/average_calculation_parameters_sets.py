@@ -13,8 +13,12 @@ from dataclasses import dataclass, asdict
 import itertools
 
 
+# Defined by the Java back-end in the corresponding class.
+_PREFIX: str = "w_avg_"
+
+
 def generate_composite_transformation_parameters_ids(
-    physical_quantity: str,
+    physical_quantity_list: List[str],
     time_window_size: List[int],
     number_of_contributing_sensors: List[int],
     ignore_completeness_filtering_list: List[bool],
@@ -22,6 +26,7 @@ def generate_composite_transformation_parameters_ids(
     fabrication_forecasting_steps_ahead: List[int],
 ) -> List[str]:
     combinations = itertools.product(
+        physical_quantity_list,
         time_window_size,
         number_of_contributing_sensors,
         ignore_completeness_filtering_list,
@@ -35,7 +40,7 @@ def generate_composite_transformation_parameters_ids(
     multiplier: int = 1
 
     for combination in combinations:
-        ctp_id: str = f"w_avg_{physical_quantity.lower()}_PT{combination[0]}S_null_null_{combination[1]}_{str(combination[2]).lower()}_{combination[3]}_PT{combination[0] * multiplier}S_{combination[4]}"
+        ctp_id: str = f"{_PREFIX}{combination[0].lower()}_PT{combination[1]}S_null_null_{combination[2]}_{str(combination[3]).lower()}_{combination[4]}_PT{combination[1] * multiplier}S_{combination[5]}"
         ctp_id_list.append(ctp_id)
 
     return ctp_id_list
@@ -43,6 +48,7 @@ def generate_composite_transformation_parameters_ids(
 
 @dataclass
 class CompositeTransformationParameterID:
+    # TODO physical quantity.
     time_window_size: int
     number_of_contributing_sensors: int
     ignore_completeness_filtering: bool
@@ -72,7 +78,9 @@ class CompositeTransformationParameterID:
 
 
 def parse_ctp_id(ctp_id: str) -> CompositeTransformationParameterID:
+    # TODO Fix.
     ctp_id = ctp_id.removeprefix("w_avg_temperature_")
+    # TODO Physical quantity!
     parts: List[str] = ctp_id.split("_")
 
     time_window_size: str = parts[0]
@@ -103,7 +111,7 @@ def parse_ctp_id(ctp_id: str) -> CompositeTransformationParameterID:
 
 
 def generate_average_calculation_parameters_sets(
-    physical_quantity: str,
+    physical_quantity_list: List[str],
     time_window_size: List[int],
     number_of_contributing_sensors: List[int],
     ignore_completeness_filtering_list: List[bool],
@@ -111,6 +119,7 @@ def generate_average_calculation_parameters_sets(
     fabrication_forecasting_steps_ahead: List[int],
 ) -> List[Dict]:
     combinations = itertools.product(
+        physical_quantity_list,
         time_window_size,
         number_of_contributing_sensors,
         ignore_completeness_filtering_list,
@@ -123,15 +132,15 @@ def generate_average_calculation_parameters_sets(
     for combination in combinations:
         data.append(
             {
-                "physicalQuantity": physical_quantity,
-                "timeWindowSize": combination[0],
+                "physicalQuantity": combination[0],
+                "timeWindowSize": combination[1],
                 "timeWindowGrace": None,
                 "timeWindowAdvance": None,
-                "minimumNumberOfContributingSensors": combination[1],
-                "ignoreCompletenessFiltering": combination[2],
-                "pastWindowsLookup": combination[3],
+                "minimumNumberOfContributingSensors": combination[2],
+                "ignoreCompletenessFiltering": combination[3],
+                "pastWindowsLookup": combination[4],
                 "forecastingWindowSize": None,
-                "futureWindowsLookup": combination[4],
+                "futureWindowsLookup": combination[5],
             }
         )
 

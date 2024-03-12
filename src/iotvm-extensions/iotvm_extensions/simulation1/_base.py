@@ -624,15 +624,18 @@ class Variation:
 @dataclass
 class AverageCalculationCompositeTransformationParametersSetsSpace:
     # TODO Consider renaming the CT to TimeWindowedBasicStatisticsCompositeTransformation
-    physical_quantity: str  # TODO It must support list
+    physical_quantity_list: List[str]
     time_window_size_list: List[int]
     number_of_contributing_sensors_list: List[int]
     ignore_completeness_filtering_list: List[bool]
     fabrication_past_events_steps_behind_list: List[int]
     fabrication_forecasting_steps_ahead_list: List[int]
+    # TODO Θεωρώ ότι όταν το past events είναι μεγαλύτερο από το forecasting, πρέπει να απενεργοποιώ το forecasting.
+    #  Τουλάχιστον αν κρατήσω τη λογική ότι πρώτα κάνω past και μετά forecasting.
 
     def __post_init__(self) -> None:
-        assert self.physical_quantity in ["TEMPERATURE", "HUMIDITY"]
+        for physical_quantity in self.physical_quantity_list:
+            assert physical_quantity in ["TEMPERATURE", "HUMIDITY"]
         self.time_window_size_list = sorted(self.time_window_size_list)
         self.number_of_contributing_sensors_list = sorted(self.number_of_contributing_sensors_list)
         self.ignore_completeness_filtering_list = sorted(self.ignore_completeness_filtering_list)
@@ -640,7 +643,7 @@ class AverageCalculationCompositeTransformationParametersSetsSpace:
         self.fabrication_forecasting_steps_ahead_list = sorted(self.fabrication_forecasting_steps_ahead_list)
 
     def to_composite_transformation_parameters_set(self) -> List[Dict]:
-        physical_quantity: str = self.physical_quantity
+        physical_quantity_list: List[str] = self.physical_quantity_list
         time_window_size_list: List[int] = self.time_window_size_list
         number_of_contributing_sensors_list: List[int] = self.number_of_contributing_sensors_list
         ignore_completeness_filtering_list: List[bool] = self.ignore_completeness_filtering_list
@@ -648,7 +651,7 @@ class AverageCalculationCompositeTransformationParametersSetsSpace:
         fabrication_forecasting_steps_ahead: List[int] = self.fabrication_forecasting_steps_ahead_list
 
         return generate_average_calculation_parameters_sets(
-            physical_quantity=physical_quantity,
+            physical_quantity_list=physical_quantity_list,
             time_window_size=time_window_size_list,
             number_of_contributing_sensors=number_of_contributing_sensors_list,
             ignore_completeness_filtering_list=ignore_completeness_filtering_list,
@@ -675,14 +678,23 @@ class Simulation:
 
         for variation in [baseline] + self.variations:
             for iteration in variation.iterations:
-                simulation_variation_iteration_list.append({
-                    "simulation_name": self.name,
-                    "variation_name": variation.name,
-                    "iteration_name": iteration.name,
-                })
+                simulation_variation_iteration_list.append(
+                    {
+                        "simulationName": self.name,
+                        "variationName": variation.name,
+                        "iterationName": iteration.name,
+                    }
+                )
 
-                svi_dir: str = os.path.join(base_directory, self.name, variation.name, iteration.name, "_system")
-                os.makedirs(svi_dir, exist_ok=True)
+                svi_input_dir: str = os.path.join(
+                    base_directory, self.name, variation.name, iteration.name, "_system", "input"
+                )
+                os.makedirs(svi_input_dir, exist_ok=True)
+
+                svi_output_dir: str = os.path.join(
+                    base_directory, self.name, variation.name, iteration.name, "_system", "output"
+                )
+                os.makedirs(svi_output_dir, exist_ok=True)
 
                 df_by_sensor: Dict[str, pd.DataFrame] = {}
                 seen_measurement_name_list: List[str] = []
@@ -726,10 +738,12 @@ class Simulation:
 
                         df: pd.DataFrame = m_gen.df
 
-                        df.to_excel(os.path.join(svi_dir, f"{sensor_name}-{measurement_name}-df.xlsx"))
-                        df.to_parquet(os.path.join(svi_dir, f"{sensor_name}-{measurement_name}-df.parquet"))
-                        df.to_json(os.path.join(svi_dir, f"{sensor_name}-{measurement_name}-df.json"), orient="records")
-                        df.to_csv(os.path.join(svi_dir, f"{sensor_name}-{measurement_name}-df.csv"))
+                        df.to_excel(os.path.join(svi_input_dir, f"{sensor_name}-{measurement_name}-df.xlsx"))
+                        df.to_parquet(os.path.join(svi_input_dir, f"{sensor_name}-{measurement_name}-df.parquet"))
+                        df.to_json(
+                            os.path.join(svi_input_dir, f"{sensor_name}-{measurement_name}-df.json"), orient="records"
+                        )
+                        df.to_csv(os.path.join(svi_input_dir, f"{sensor_name}-{measurement_name}-df.csv"))
 
                         df_map[measurement_name] = df
 
@@ -779,10 +793,10 @@ class Simulation:
 
                     df: pd.DataFrame = combiner.df
 
-                    df.to_excel(os.path.join(svi_dir, f"{sensor_name}-df.xlsx"))
-                    df.to_parquet(os.path.join(svi_dir, f"{sensor_name}-df.parquet"))
-                    df.to_json(os.path.join(svi_dir, f"{sensor_name}-df.json"), orient="records")
-                    df.to_csv(os.path.join(svi_dir, f"{sensor_name}-df.csv"))
+                    df.to_excel(os.path.join(svi_input_dir, f"{sensor_name}-df.xlsx"))
+                    df.to_parquet(os.path.join(svi_input_dir, f"{sensor_name}-df.parquet"))
+                    df.to_json(os.path.join(svi_input_dir, f"{sensor_name}-df.json"), orient="records")
+                    df.to_csv(os.path.join(svi_input_dir, f"{sensor_name}-df.csv"))
 
                     df_by_sensor[sensor_name] = df
 
@@ -798,12 +812,12 @@ class Simulation:
                 df.sort_values(by="x", inplace=True, ignore_index=True)
                 df.set_index(keys="x", drop=True, inplace=True)
                 df["ds"] = df.index.copy(deep=True)
-                df["timestamp"] = (df["ds"].astype(int) // 10**6) * 1000
+                df["timestamp"] = df['ds'].apply(lambda x: int(x.timestamp() * 1000))
 
-                df.to_excel(os.path.join(svi_dir, f"df.xlsx"))
-                df.to_parquet(os.path.join(svi_dir, f"df.parquet"))
-                df.to_json(os.path.join(svi_dir, f"df.json"), orient="records")
-                df.to_csv(os.path.join(svi_dir, f"df.csv"))
+                df.to_excel(os.path.join(svi_input_dir, f"df.xlsx"))
+                df.to_parquet(os.path.join(svi_input_dir, f"df.parquet"))
+                df.to_json(os.path.join(svi_input_dir, f"df.json"), orient="records")
+                df.to_csv(os.path.join(svi_input_dir, f"df.csv"))
 
                 events: List[Dict] = []
                 rows: List[Dict] = df.to_dict(orient="records")
@@ -824,9 +838,7 @@ class Simulation:
                                 "value": {
                                     "double": value,
                                 },
-                                "unit": {
-                                    "string": MEASUREMENT_UNIT_BY_MEASUREMENT_NAME[seen_measurement_name]
-                                },
+                                "unit": {"string": MEASUREMENT_UNIT_BY_MEASUREMENT_NAME[seen_measurement_name]},
                             }
                         )
 
@@ -838,13 +850,9 @@ class Simulation:
                             "sensorId": row["sensor"],
                             "measurements": measurements,
                             "timestamps": {
-                                "defaultTimestamp": {
-                                    "long": row["timestamp"]
-                                },
+                                "defaultTimestamp": {"long": row["timestamp"]},
                                 "timestamps": {
-                                    "sensed": {
-                                        "long": row["timestamp"]
-                                    },
+                                    "sensed": {"long": row["timestamp"]},
                                 },
                             },
                             "identifiers": {
@@ -854,24 +862,16 @@ class Simulation:
                                 "correlationIds": {},
                             },
                             "additional": {
-                                "simulation_name": {
-                                    "string": self.name
-                                },
-                                "variation_name": {
-                                    "string": variation.name
-                                },
-                                "iteration_name": {
-                                    "string": iteration.name
-                                },
-                                "ds": {
-                                    "string": row["ds"].__str__()
-                                },
+                                "simulation_name": {"string": self.name},
+                                "variation_name": {"string": variation.name},
+                                "iteration_name": {"string": iteration.name},
+                                "ds": {"string": row["ds"].__str__()},
                             },
                         }
                     )
 
                 json_string = json.dumps(obj=events, indent=4, allow_nan=False, sort_keys=False)
-                with open(os.path.join(svi_dir, "SensorTelemetryRawEventIBO.json"), "w") as outfile:
+                with open(os.path.join(svi_input_dir, "SensorTelemetryRawEventIBO.json"), "w") as outfile:
                     outfile.write(json_string)
 
         # Persistence: Prerequisites
@@ -882,13 +882,21 @@ class Simulation:
         # Persistence: Simulation Variation Iteration (list)
         # --------------------------------------------------
 
-        _to_json(obj=simulation_variation_iteration_list, directory=os.path.join(base_directory, self.name, "_system"), file_name="SimulationVariationIterationList.json")
+        _to_json(
+            obj=simulation_variation_iteration_list,
+            directory=os.path.join(base_directory, self.name, "_system"),
+            file_name="SimulationVariationIterationList.json",
+        )
 
         # Persistence: Composite Transformations (list)
         # --------------------------------------------------
 
         ct_ps_list: List[Dict] = self.average_ct_ps_space.to_composite_transformation_parameters_set()
-        _to_json(obj=ct_ps_list, directory=os.path.join(base_directory, self.name, "_system"), file_name="AverageCalculationCompositeTransformationParameters.json")
+        _to_json(
+            obj=ct_ps_list,
+            directory=os.path.join(base_directory, self.name, "_system"),
+            file_name="AverageCalculationCompositeTransformationParameters.json",
+        )
 
 
 # ####################################################################################################
@@ -902,7 +910,8 @@ DEFAULT_SEED: int = 42
 
 
 def _example1() -> None:
-    project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
+    # project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
+    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
     base_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
     path_to_dataset: str = os.path.join(project_directory, "datasets", "dataset-1-slice-9-13.csv")
     sample1_df: pd.DataFrame = pd.read_csv(path_to_dataset, delimiter="\t")
@@ -922,6 +931,29 @@ def _example1() -> None:
         unit="sec",  # sec for simplicity, ns for precision
     )
 
+    FREQ_DIST_CONST1: DistributionType = ConstantDistribution(
+        seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None
+    )
+    FREQ_CONST1: Frequency = Frequency(distribution=FREQ_DIST_CONST1, seed=DEFAULT_SEED)
+
+    LOSS1: Loss = Loss(
+        time_between_errors_distribution=ExponentialDistribution(
+            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(17.0), size=None
+        ),
+        error_duration_distribution=ExponentialDistribution(
+            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(33.0), size=None
+        ),
+    )
+    LOSS2: Loss = Loss(
+        time_between_errors_distribution=ExponentialDistribution(
+            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(157.0), size=None
+        ),
+        error_duration_distribution=ExponentialDistribution(
+            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(20.0), size=None
+        ),
+    )
+
+    # TODO Make sure it produces the same results as before!!!!!!!!
     simulation: Simulation = Simulation(
         name="simulation-1",
         sensors=[
@@ -932,49 +964,21 @@ def _example1() -> None:
                         name="temperature",
                         unit="celsius",
                         sample=sample,
-                        frequency=Frequency(
-                            distribution=NormalDistribution(
-                                seed_name=MeasurementBasicGenerator.X_SEED_NAME,
-                                loc=t_min_to_sec(5.0),
-                                scale=t_min_to_sec(1.0),
-                                size=None,
-                            ),
-                            seed=DEFAULT_SEED,
-                        ),
+                        frequency=FREQ_CONST1,
                         start=timestamp,
                         timezone=timezone,
                         interactions=Interactions(
                             distributions=[
+                                ConstantDistribution(
+                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
+                                    loc=1.0,
+                                ),
                                 NormalDistribution(
                                     seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.0,
-                                    scale=5.0,
+                                    loc=0.5,
+                                    scale=0.2,
                                     size=None,
-                                )
-                            ],
-                            seed=DEFAULT_SEED,
-                        ),
-                    ),
-                    Measurement(
-                        name="humidity",
-                        unit="percentage",
-                        sample=sample,
-                        frequency=Frequency(
-                            distribution=ConstantDistribution(
-                                seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None
-                            ),
-                            seed=DEFAULT_SEED,
-                        ),
-                        start=timestamp,
-                        timezone=timezone,
-                        interactions=Interactions(
-                            distributions=[
-                                NormalDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.0,
-                                    scale=5.0,
-                                    size=None,
-                                )
+                                ),
                             ],
                             seed=DEFAULT_SEED,
                         ),
@@ -989,46 +993,22 @@ def _example1() -> None:
                         name="temperature",
                         unit="celsius",
                         sample=sample,
-                        frequency=Frequency(
-                            distribution=ConstantDistribution(
-                                seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None
-                            ),
-                            seed=DEFAULT_SEED,
-                        ),
+                        frequency=FREQ_CONST1,
                         start=timestamp,
                         timezone=timezone,
                         interactions=Interactions(
                             distributions=[
+                                ConstantDistribution(
+                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
+                                    loc=-1.0,
+                                    size=None,
+                                ),
                                 NormalDistribution(
                                     seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.0,
-                                    scale=10.0,
+                                    loc=0.5,
+                                    scale=0.1,
                                     size=None,
-                                )
-                            ],
-                            seed=DEFAULT_SEED,
-                        ),
-                    ),
-                    Measurement(
-                        name="humidity",
-                        unit="percentage",
-                        sample=sample,
-                        frequency=Frequency(
-                            distribution=ConstantDistribution(
-                                seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None
-                            ),
-                            seed=DEFAULT_SEED,
-                        ),
-                        start=timestamp,
-                        timezone=timezone,
-                        interactions=Interactions(
-                            distributions=[
-                                NormalDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.0,
-                                    scale=10.0,
-                                    size=None,
-                                )
+                                ),
                             ],
                             seed=DEFAULT_SEED,
                         ),
@@ -1041,33 +1021,34 @@ def _example1() -> None:
             Variation(
                 name="variation-1",
                 loss_by_sensor={
-                    "sensor-1": Loss(
-                        time_between_errors_distribution=ConstantDistribution(
-                            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, loc=t_min_to_sec(100.0), size=None
-                        ),
-                        error_duration_distribution=ConstantDistribution(
-                            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, loc=t_min_to_sec(20.0), size=None
-                        ),
-                    )
+                    "sensor-1": LOSS1,
+                    "sensor-2": LOSS2,
                 },
                 iterations=[
                     Iteration(
                         name="iteration-1",
-                        loss_seed_by_sensor={"sensor-1": DEFAULT_SEED},
+                        loss_seed_by_sensor={
+                            "sensor-1": DEFAULT_SEED,
+                            "sensor-2": DEFAULT_SEED,
+                        },
                         loss_seed_fallback=DEFAULT_SEED,
                     ),
                 ],
             )
         ],
         average_ct_ps_space=AverageCalculationCompositeTransformationParametersSetsSpace(
-            physical_quantity="TEMPERATURE",
+            physical_quantity_list=["TEMPERATURE"],
             time_window_size_list=[5],
-            number_of_contributing_sensors_list=[2, 4, 6],
-            ignore_completeness_filtering_list=[True],  # TODO true of false?
-            fabrication_past_events_steps_behind_list=[2, 4, 6],
-            fabrication_forecasting_steps_ahead_list=[2, 4, 6]
+            # number_of_contributing_sensors_list=[2, 4, 6],
+            number_of_contributing_sensors_list=[2],  # TODO Temporary.
+            ignore_completeness_filtering_list=[False],
+            # fabrication_past_events_steps_behind_list=[2, 4, 6],
+            # fabrication_forecasting_steps_ahead_list=[2, 4, 6],
+            fabrication_past_events_steps_behind_list=[0],  # TODO Temporary.
+            fabrication_forecasting_steps_ahead_list=[0],  # TODO Temporary.
         ),
     )
+    # TODO Do not allow if directory already exists!
     simulation.process(base_directory=base_directory)
 
 

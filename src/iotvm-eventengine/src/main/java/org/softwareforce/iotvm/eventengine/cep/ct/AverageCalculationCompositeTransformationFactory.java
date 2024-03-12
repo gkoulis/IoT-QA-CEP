@@ -36,7 +36,6 @@ import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestam
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.AggregatorImpl;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.InitializerImpl;
 import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
-import org.softwareforce.iotvm.eventengine.extensions.SensingRecordingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.QualityPropertiesIBO;
@@ -61,15 +60,13 @@ public class AverageCalculationCompositeTransformationFactory
   private final FixedSizeTimeWindowSpec fixedSizeTimeWindowSpec;
   private final IBOPersistenceServiceImpl iboPersistenceService;
   private final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter;
-  private final SensingRecordingServiceAdapter sensingRecordingServiceAdapter;
 
   /* ------------ Constructors ------------ */
 
   public AverageCalculationCompositeTransformationFactory(
       AverageCalculationCompositeTransformationParameters parameters,
       IBOPersistenceServiceImpl iboPersistenceService,
-      FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter,
-      SensingRecordingServiceAdapter sensingRecordingServiceAdapter) {
+      FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter) {
     this.parameters = parameters;
     this.fixedSizeTimeWindowSpec =
         new FixedSizeTimeWindowSpec(
@@ -78,7 +75,6 @@ public class AverageCalculationCompositeTransformationFactory
             this.parameters.getTimeWindowAdvance());
     this.iboPersistenceService = iboPersistenceService;
     this.fabricationForecastingServiceAdapter = fabricationForecastingServiceAdapter;
-    this.sensingRecordingServiceAdapter = sensingRecordingServiceAdapter;
   }
 
   /* ------------ Internals ------------ */
@@ -214,11 +210,6 @@ public class AverageCalculationCompositeTransformationFactory
             Consumed.with(
                     Constants.STRING_SERDE, Constants.SENSOR_TELEMETRY_MEASUREMENT_EVENT_IBO_SERDE)
                 .withTimestampExtractor(new ValidNonNullTimestampExtractor()))
-        .mapValues((v) -> {
-          // TODO Remove.
-          System.out.println(this.parameters.getUniqueIdentifier() + " : " + v.getSensorId() + ", @ " + v.getTimestamps().getDefaultTimestamp());
-          return v;
-        })
         // @future select key: greenhouse ID -> then groupByKey
         .groupByKey(
             Grouped.with(
@@ -706,42 +697,6 @@ public class AverageCalculationCompositeTransformationFactory
                 return value;
               }
             })
-        // Accuracy based on ground-truth.
-        .mapValues(
-            (key, value) -> {
-              long start = System.nanoTime();
-
-              if (value.getEvents().isEmpty()) {
-                value.getQualityProperties().getMetrics().put("accuracy1", null);
-                value.getAdditional().put("accuracyBasedOnGroundTruthDuration", 0L);
-                return value;
-              }
-
-              final long fromTimestamp = key.window().start();
-              final long toTimestamp = key.window().end() - 1;
-
-              final Optional<Double> realAverageOptional =
-                  this.sensingRecordingServiceAdapter.getRealAverage(
-                      Constants.SENSOR_IDS, physicalQuantity, fromTimestamp, toTimestamp);
-
-              if (realAverageOptional.isEmpty()) {
-                value.getQualityProperties().getMetrics().put("accuracy1", 0.0D);
-                value.getAdditional().put("realAverage", 0.0D);
-                return value;
-              }
-
-              double real = realAverageOptional.get();
-              double expected = value.getAverage().getValue();
-              double accuracy = 1d - ((Math.abs(real - expected)) / real);
-              value.getQualityProperties().getMetrics().put("accuracy1", accuracy);
-              value.getAdditional().put("realAverage", real);
-              value
-                  .getAdditional()
-                  .put("accuracyBasedOnGroundTruthDuration", System.nanoTime() - start);
-
-              return value;
-            })
-        .mapValues((key, value) -> value)
         .filter(
             (key, value) -> {
               if (this.parameters.isIgnoreCompletenessFiltering()) {

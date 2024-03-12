@@ -11,6 +11,11 @@ import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
  */
 public class AverageCalculationCompositeTransformationParameters
     extends CompositeTransformationParameters {
+  public final static String ID_PREFIX = "w_avg_";
+  // TODO as abstract method in abstract class!
+  //  It must be unique across all to ensure uniqueness of ids.
+  //  Check on start-up / registration of CTF, CT PS
+  //  TODO create consistent language: CTF, CT, CT_PS, etc.
 
   /** The {@link PhysicalQuantity} to calculate average. */
   private final PhysicalQuantity physicalQuantity;
@@ -183,7 +188,7 @@ public class AverageCalculationCompositeTransformationParameters
   @Override
   public String getUniqueIdentifier() {
     //noinspection StringBufferReplaceableByString
-    final StringBuilder sb = new StringBuilder("w_avg_");
+    final StringBuilder sb = new StringBuilder(ID_PREFIX);
 
     sb.append(this.physicalQuantity.getName());
     sb.append("_");

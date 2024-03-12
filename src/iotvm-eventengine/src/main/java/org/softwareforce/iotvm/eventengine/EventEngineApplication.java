@@ -20,9 +20,9 @@ import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguratio
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
 import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
-import org.softwareforce.iotvm.eventengine.extensions.SensingRecordingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.kafka.KafkaAdminService;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.simulation.AverageCalculationCompositeTransformationParametersJsonNode;
 
 /**
  * Event Engine Application.
@@ -126,8 +126,6 @@ public class EventEngineApplication {
     final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
         new FabricationForecastingServiceAdapter();
     // TODO I must add experiment and other fields to these records! This is very important!
-    final SensingRecordingServiceAdapter sensingRecordingServiceAdapter =
-        new SensingRecordingServiceAdapter();
 
     final CompositeTransformationFactory ingestion =
         new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
@@ -143,10 +141,7 @@ public class EventEngineApplication {
         averageCalculationParametersList) {
       final CompositeTransformationFactory averageCalculation =
           new AverageCalculationCompositeTransformationFactory(
-              parametersSet,
-              iboPersistenceServiceImpl,
-              fabricationForecastingServiceAdapter,
-              sensingRecordingServiceAdapter);
+              parametersSet, iboPersistenceServiceImpl, fabricationForecastingServiceAdapter);
 
       averageCalculationCTFs.add(averageCalculation);
     }

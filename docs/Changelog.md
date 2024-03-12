@@ -1,6 +1,17 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.4 Tuesday 12 March 2024
+
+### Event Engine
+
+- Removed SensingRecordingServiceAdapter (and calculation based on ground-truth)
+- Important changes: simulation (still working on it)
+
+### Extensions
+
+- Important changes: simulation (still working on it)
+
 ## v1.0.0-PROTOTYPE.3 Tuesday 12 March 2024
 
 - Event Engine: Added simulation package.
