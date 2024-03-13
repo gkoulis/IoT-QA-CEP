@@ -17,6 +17,10 @@ public class EventEngineApplicationSimulation {
   public void run() {
     ApplicationConfiguration.getInstance().load();
 
+    // TODO run it with enabled assertions.
+    // TODO validate the new event fabrication service -> tests etc. IMPORTANT.
+
+    // TODO Arguments or env or both.
     long start = System.nanoTime();
     final String baseDirectory =
         "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/simulation1-EXAMPLE";

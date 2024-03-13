@@ -15,11 +15,18 @@ import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.SimpleCompositeTransformationFactoriesManager;
-import org.softwareforce.iotvm.eventengine.cep.ct.*;
+import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationCompositeTransformationParameters;
+import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationMergingCompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.AverageCalculationMergingCompositeTransformationParameters;
+import org.softwareforce.iotvm.eventengine.cep.ct.CompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.IngestionCompositeTransformationParameters;
+import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationFactory;
+import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
 import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
-import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.kafka.KafkaAdminService;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.eventengine.simulation.AverageCalculationCompositeTransformationParametersJsonNode;
@@ -123,10 +130,6 @@ public class EventEngineApplication {
                 "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
                 "iotvmdb"));
 
-    final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
-        new FabricationForecastingServiceAdapter();
-    // TODO I must add experiment and other fields to these records! This is very important!
-
     final CompositeTransformationFactory ingestion =
         new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
     final CompositeTransformationFactory splitting =
@@ -141,7 +144,7 @@ public class EventEngineApplication {
         averageCalculationParametersList) {
       final CompositeTransformationFactory averageCalculation =
           new AverageCalculationCompositeTransformationFactory(
-              parametersSet, iboPersistenceServiceImpl, fabricationForecastingServiceAdapter);
+              parametersSet, iboPersistenceServiceImpl);
 
       averageCalculationCTFs.add(averageCalculation);
     }

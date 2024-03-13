@@ -26,7 +26,6 @@ import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformati
 import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
-import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.eventengine.utilities.GeneralUtilities;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementsAverageEventIBO;
@@ -127,8 +126,6 @@ public class Simulation {
             new PersistenceConfiguration(
                 "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
                 "iotvmdb"));
-    final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter =
-        new FabricationForecastingServiceAdapter();
 
     // Composite Transformations Parameters
     // --------------------------------------------------
@@ -153,7 +150,7 @@ public class Simulation {
         averageCalculationParametersList) {
       final CompositeTransformationFactory averageCalculation =
           new AverageCalculationCompositeTransformationFactory(
-              parametersSet, iboPersistenceServiceImpl, fabricationForecastingServiceAdapter);
+              parametersSet, iboPersistenceServiceImpl);
 
       averageCalculationCTFs.add(averageCalculation);
     }

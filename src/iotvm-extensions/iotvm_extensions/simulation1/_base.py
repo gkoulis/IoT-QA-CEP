@@ -26,8 +26,10 @@ Modified at: Saturday 04 November 2023
 import json
 import logging
 import os
+import pprint
 import random
 import re
+import sys
 import uuid
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -935,6 +937,20 @@ def _complex_event_uid(ibo: Dict, simulation_name: str, variation_name: str, ite
     return f"{simulation_name}/{variation_name}/{iteration_name}/{ct_ps_id}/{start_timestamp}/{end_timestamp}"
 
 
+def _extract_iot_event_value(ibo: Dict, sensor_id: str) -> Optional[float]:
+    try:
+        return round(ibo["events"][sensor_id]["measurement"]["value"]["double"], 2)
+    except KeyError:
+        return None
+
+
+def _extract_iot_event_is_fabricated(ibo: Dict, sensor_id: str) -> Optional[float]:
+    try:
+        return 1 if "eventFabricationMethod" in ibo["events"][sensor_id]["additional"] else 0
+    except KeyError:
+        return 0
+
+
 def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iteration_name: str) -> Dict:
     """
     IBO to Complex Event. IBO is also a Complex Event. However, it has too much information.
@@ -948,12 +964,10 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         ibo=ibo, simulation_name=simulation_name, variation_name="baseline-0", iteration_name="iteration-0"
     )
 
-    past_events_count: int = ibo["additional"]["pastEventsCount"]["int"]
-    forecasted_events_count: int = ibo["additional"]["forecastedEventsCount"]["int"]
-
-    past_events_duration: int = ibo["additional"]["pastEventsDuration"]["long"]
-    forecasted_events_duration: int = ibo["additional"]["forecastedEventsDuration"]["long"]
-    fabricated_events_duration: int = past_events_duration + forecasted_events_duration
+    naive_count: int = ibo["additional"]["eventFabricationNaiveCount"]["long"]
+    ses_count: int = ibo["additional"]["eventFabricationSESCount"]["long"]
+    fabricated_events_count: int = naive_count + ses_count
+    fabricated_events_duration: int = ibo["additional"]["eventFabricationDuration"]["long"]
 
     event: Dict[str, Any] = {
         # IDs and taxonomy: Simulation-Variation-Iteration ----------
@@ -967,48 +981,95 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         "end_timestamp": ibo["endTimestamp"],  # TODO Convert to datetime and the to string.
         # Business: Average Calculation ----------
         "value": round(ibo["average"]["value"]["double"], 2),
+        "value_before": round(ibo["additional"]["averageValueBeforeEventFabrication"]["double"], 2),
         "real": -1.0,  # We do not have the value yet.
-        # Business: Average Calculation (before fabrication if performed) ----------
-        "value_before": round(ibo["average"]["value"]["double"], 2),  # TODO add.
+        "value_ef": -1.0,  # We do not have the value yet.
+        "value_ef_real": -1.0,  # We do not have the value yet.
         # Quality (after fabrication if performed) ----------
         "completeness": ibo["qualityProperties"]["metrics"]["completeness1"]["double"],
-        "timeliness1": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
-        "timeliness2": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
+        "completeness_before": ibo["additional"]["completeness1BeforeEventFabrication"]["double"],
         "accuracy": -1.0,  # We do not have the value yet.
-        # Quality (before fabrication if performed) ----------
-        # TODO Add.
-        "completeness_before": ibo["qualityProperties"]["metrics"]["completeness1"]["double"],
-        "timeliness1_before": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
-        "timeliness2_before": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
         "accuracy_before": -1.0,  # We do not have the value yet.
+        "accuracy_ef": -1.0,  # We do not have the value yet.
+        "timeliness1": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
+        "timeliness1_before": ibo["additional"]["timeliness1BeforeEventFabrication"]["double"],
+        "timeliness2": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
+        "timeliness2_before": ibo["additional"]["timeliness2BeforeEventFabrication"]["double"],
         # Event Fabrication ----------
-        "past_events_count": past_events_count,
-        "forecasted_events_count": forecasted_events_count,
-        "fabricated_events_count": past_events_count + forecasted_events_count,
+        "naive_count": naive_count,
+        "ses_count": ses_count,
+        "fabricated_events_count": fabricated_events_count,
         # Benchmarking ----------
-        "past_events_duration": past_events_duration,
-        "forecasted_events_duration": forecasted_events_duration,
         "fabricated_events_duration": fabricated_events_duration,
+        # IoT Events / Sensors / Event Fabrication ----------
+        **{f"sensor-{i}": _extract_iot_event_value(ibo, f"sensor-{i}") for i in range(1, 7)},
+        **{f"sensor-{i}-ef": _extract_iot_event_is_fabricated(ibo, f"sensor-{i}") for i in range(1, 7)},
+        **{f"sensor-{i}-real": -1.0 for i in range(1, 7)},  # We do not have the value yet.
         # System-Specifics (they dropped after processing) ----------
         "uid": uid,
         "is_baseline": "baseline" in variation_name.lower(),
         "ground_truth_counterpart_uid": ground_truth_counterpart_uid,
     }
 
+    # Mean of values of fabricated events
+    # --------------------------------------------------
+
+    value_ef: float = 0.0
+    total: int = 0
+    for i in range(1, 7):
+        is_fabricated: bool = event[f"sensor-{i}-ef"] > 0
+        if is_fabricated is True:
+            value_ef = value_ef + event[f"sensor-{i}"]
+            total = total + 1
+    if total > 0:
+        value_ef = value_ef / total
+        value_ef = round(value_ef, 2)
+    else:
+        value_ef = None
+
+    event["value_ef"] = value_ef
+
+    # --------------------------------------------------
+
     return event
 
 
 def _update_ground_truth(df: pd.DataFrame) -> pd.DataFrame:
-    def _update_ground_truth_apply_func(row):
-        counterpart_row = df[df["uid"] == row["ground_truth_counterpart_uid"]]
-        assert len(counterpart_row) == 1, "There should be exactly one match for each uid."
-        if not counterpart_row.empty:
-            counterpart_value = counterpart_row["value"].iloc[0]
-            return counterpart_value
-        else:
-            return None
+    def _update_ground_truth_apply_func_factory(column: str) -> Callable:
+        def _update_ground_truth_apply_func(row):
+            counterpart_row = df[df["uid"] == row["ground_truth_counterpart_uid"]]
+            assert len(counterpart_row) == 1, "There should be exactly one match for each uid."
+            if not counterpart_row.empty:
+                counterpart_value = counterpart_row[column].iloc[0]
+                return counterpart_value
+            else:
+                return None
 
-    df["real"] = df.apply(lambda row: _update_ground_truth_apply_func(row), axis=1)
+        return _update_ground_truth_apply_func
+
+    _apply_func = _update_ground_truth_apply_func_factory(column="value")
+    df["real"] = df.apply(lambda row: _apply_func(row), axis=1)
+
+    # TODO Detect these places and make them generic (to support a sensor naming convention and dynamic min/max)
+    for i in range(1, 7):
+        _apply_func = _update_ground_truth_apply_func_factory(column=f"sensor-{i}")
+        df[f"sensor-{i}-real"] = df.apply(lambda row: _apply_func(row), axis=1)
+
+    def _mean_value_of_fabricated_events_apply_func(row):
+        value: Optional[float] = 0.0
+        total: int = 0
+        for i_ in range(1, 7):
+            if row[f"sensor-{i_}-ef"] > 0:
+                value = value + row[f"sensor-{i_}-real"]
+                total = total + 1
+        if total > 0:
+            value = value / total
+            value = round(value, 2)
+        else:
+            value = None
+        return value
+
+    df["value_ef_real"] = df.apply(lambda row: _mean_value_of_fabricated_events_apply_func(row), axis=1)
 
     return df
 
@@ -1028,6 +1089,19 @@ def _update_accuracy(df: pd.DataFrame) -> pd.DataFrame:
     _apply_func = _update_accuracy_apply_func_factory(column_value="value", column_real="real")
     df["accuracy"] = df.apply(lambda row: _apply_func(row), axis=1)
 
+    _apply_func = _update_accuracy_apply_func_factory(column_value="value_before", column_real="real")
+    df["accuracy_before"] = df.apply(lambda row: _apply_func(row), axis=1)
+
+    _apply_func = _update_accuracy_apply_func_factory(column_value="value_ef", column_real="value_ef_real")
+    df["accuracy_ef"] = df.apply(lambda row: _apply_func(row), axis=1)
+
+    return df
+
+
+def _multiply_percentage_and_round(df: pd.DataFrame, columns: List[str], round_n_digits: int) -> pd.DataFrame:
+    for column in columns:
+        df[column] = df[column] * 100
+        df[column] = df[column].round(round_n_digits)
     return df
 
 
@@ -1071,4 +1145,23 @@ def perform_evaluation(directory: str, simulation_name) -> None:
     _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-out")
     complex_event_df = _update_ground_truth(df=complex_event_df)
     complex_event_df = _update_accuracy(df=complex_event_df)
+    complex_event_df = _multiply_percentage_and_round(
+        df=complex_event_df,
+        columns=[
+            "completeness",
+            "timeliness1",
+            "timeliness2",
+            "accuracy",
+            "completeness_before",
+            "timeliness1_before",
+            "timeliness2_before",
+            "accuracy_before",
+            "accuracy_ef",
+        ],
+        round_n_digits=2,
+    )
     _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-eval")
+
+
+def perform_evaluation_aggregation(directory: str, simulation_name) -> None:
+    raise NotImplementedError  # TODO Implement.

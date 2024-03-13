@@ -14,23 +14,35 @@ import java.util.Objects;
  */
 public class OutputEvent {
 
-  /** */
+  /** The ID of the sensor. */
   private final String sensorId;
 
-  /** */
+  /** The value of the fabricated event. */
   private final Double value;
 
-  /** */
-  private final String method; // TODO enum.
+  /** The event fabrication method used to impute value. */
+  private final EventFabricationMethod method;
 
-  /** */
+  /**
+   * The relative distance from the current time-window, i.e., the time-window in which the missing
+   * event belongs to.
+   */
   private final long distance;
 
-  /** */
+  /**
+   * The timestamp (milliseconds) of the fabricated event which is equal to the start of the current
+   * time-window, i.e., the time-window in which the missing event belongs to.
+   */
   private final long timestampMs;
 
+  /* ------------ Constructors ------------ */
+
   public OutputEvent(
-      String sensorId, Double value, String method, long distance, long timestampMs) {
+      String sensorId,
+      Double value,
+      EventFabricationMethod method,
+      long distance,
+      long timestampMs) {
     this.sensorId = sensorId;
     this.value = value;
     this.method = method;
@@ -38,47 +50,58 @@ public class OutputEvent {
     this.timestampMs = timestampMs;
   }
 
+  /* ------------ Getters ------------ */
+
   public String getSensorId() {
-    return sensorId;
+    return this.sensorId;
   }
 
   public Double getValue() {
-    return value;
+    return this.value;
   }
 
-  public String getMethod() {
-    return method;
+  public EventFabricationMethod getMethod() {
+    return this.method;
   }
 
   public long getDistance() {
-    return distance;
+    return this.distance;
   }
 
   public long getTimestampMs() {
-    return timestampMs;
+    return this.timestampMs;
   }
+
+  /* ------------ Overrides ------------ */
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     OutputEvent that = (OutputEvent) o;
-    return Objects.equals(sensorId, that.sensorId);
+    return Objects.equals(this.sensorId, that.sensorId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(sensorId);
+    return Objects.hash(this.sensorId);
   }
 
   @Override
   public String toString() {
-    return "OutputEvent{" +
-        "sensorId='" + sensorId + '\'' +
-        ", value=" + value +
-        ", method='" + method + '\'' +
-        ", distance=" + distance +
-        ", timestampMs=" + timestampMs +
-        '}';
+    return "OutputEvent{"
+        + "sensorId='"
+        + this.sensorId
+        + '\''
+        + ", value="
+        + this.value
+        + ", method='"
+        + this.method
+        + '\''
+        + ", distance="
+        + this.distance
+        + ", timestampMs="
+        + this.timestampMs
+        + '}';
   }
 }

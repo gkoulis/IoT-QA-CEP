@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.softwareforce.iotvm.eventengine.cep.util.ValidationUtils;
 
 /**
  * Experimental Event Fabrication Service.
@@ -89,7 +88,8 @@ public final class EventFabricationService {
 
   /* ------------ API ------------ */
 
-  public boolean updateTimeWindowedTimeSeries(final String sensorId, double value, long timestampMs) {
+  public boolean updateTimeWindowedTimeSeries(
+      final String sensorId, double value, long timestampMs) {
     if (!this.timeSeriesBySensorId.containsKey(sensorId)) {
       LOGGER.warn("Sensor ID : {} is not registered! Aborting.", sensorId);
       return false;
@@ -214,15 +214,13 @@ public final class EventFabricationService {
             new TimeWindowedTimeSeries.TimeWindow(
                 timeWindowStartTimestampMs, this.timeWindowSizeMs);
         final long distance = timeWindow.distanceFrom(lastTimeWindow);
-        ValidationUtils.assertIsTrue(
-            candidateDistance == distance,
-            "candidateDistance " + candidateDistance + " != distance " + distance);
+        assert candidateDistance == distance;
 
         final OutputEvent outputEvent =
             new OutputEvent(
                 candidateSensorId,
                 lastPoint.getValue(),
-                "naive",
+                EventFabricationMethod.NAIVE,
                 candidateDistance,
                 timeWindowStartTimestampMs);
 

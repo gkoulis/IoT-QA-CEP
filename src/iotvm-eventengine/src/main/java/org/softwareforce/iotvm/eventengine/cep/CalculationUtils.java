@@ -62,6 +62,7 @@ public final class CalculationUtils {
       Long endTimestamp,
       int pastWindowsLookup,
       List<SensorTelemetryMeasurementEventIBO> eventList) {
+    // TODO Now we have distances!!!!!!!!!!!!!!! and differences!!!!!!
 
     final long diff = endTimestamp - startTimestamp;
     final List<Long> changePoints = new ArrayList<>();

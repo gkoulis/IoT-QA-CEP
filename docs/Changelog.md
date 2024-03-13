@@ -1,6 +1,24 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.10 Wednesday 13 March 2024
+
+### Event Engine
+
+- Removed `extensions` package (ExtensionsClientsFactory, FabricationForecastingServiceAdapter, ReconnectiveThriftClient)
+- Removed `shared.extensions` package (Apache Thrift objects)
+- Removed past events and forecasting fabrication processors from average calculation composite transformation.
+- Removed redundant and unnecessary code from average calculation composite transformation.
+- Added mapper to map `OutputEvent` to `SensorTelemetryMeasurementEventIBO`.
+- Added `EventFabricationMethod` enumeration with the supported event fabrication methods.
+- Completed integration of the new `EventFabricationService` to the average calculation composite transformation.
+- Removed support for Apache Thrift (pom.xml dependency).
+- Removed `FabricationValueMapperWithKey`.
+
+### Extensions
+
+- Improved and refactored complex event evaluation (new keys, new data, percentages, roundings, etc)
+
 ## v1.0.0-PROTOTYPE.9 Wednesday 13 March 2024
 
 ### Extensions
