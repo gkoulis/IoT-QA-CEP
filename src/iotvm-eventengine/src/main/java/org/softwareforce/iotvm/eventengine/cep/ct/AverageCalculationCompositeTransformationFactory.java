@@ -3,15 +3,7 @@ package org.softwareforce.iotvm.eventengine.cep.ct;
 import com.google.common.base.Preconditions;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -35,6 +27,9 @@ import org.softwareforce.iotvm.eventengine.cep.ct.specifics.FixedSizeTimeWindowS
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestampExtractor;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.AggregatorImpl;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.averagecalculation.InitializerImpl;
+import org.softwareforce.iotvm.eventengine.cep.fabrication.EventFabricationService;
+import org.softwareforce.iotvm.eventengine.cep.fabrication.InputEvent;
+import org.softwareforce.iotvm.eventengine.cep.fabrication.OutputEvent;
 import org.softwareforce.iotvm.eventengine.extensions.FabricationForecastingServiceAdapter;
 import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
@@ -60,6 +55,7 @@ public class AverageCalculationCompositeTransformationFactory
   private final FixedSizeTimeWindowSpec fixedSizeTimeWindowSpec;
   private final IBOPersistenceServiceImpl iboPersistenceService;
   private final FabricationForecastingServiceAdapter fabricationForecastingServiceAdapter;
+  private final EventFabricationService eventFabricationService;
 
   /* ------------ Constructors ------------ */
 
@@ -75,6 +71,7 @@ public class AverageCalculationCompositeTransformationFactory
             this.parameters.getTimeWindowAdvance());
     this.iboPersistenceService = iboPersistenceService;
     this.fabricationForecastingServiceAdapter = fabricationForecastingServiceAdapter;
+    this.eventFabricationService = new EventFabricationService(this.parameters.getTimeWindowSize().toMillis(), new HashSet<>(Constants.SENSOR_IDS));
   }
 
   /* ------------ Internals ------------ */
@@ -347,6 +344,27 @@ public class AverageCalculationCompositeTransformationFactory
                   .setAdditional(additional)
                   .build();
             })
+
+        .mapValues((key, value) -> {
+          final List<InputEvent> inputEventList = new ArrayList<>();
+          for (final SensorTelemetryMeasurementEventIBO ibo : value.getEvents().values()) {
+            this.eventFabricationService.updateTimeWindowedTimeSeries(ibo.getSensorId(), ibo.getMeasurement().getValue(), ibo.getTimestamps().getDefaultTimestamp());
+            inputEventList.add(new InputEvent(ibo.getSensorId(), ibo.getMeasurement().getValue(), ibo.getTimestamps().getDefaultTimestamp()));
+          }
+          // TODO Check completeness...
+          final Set<OutputEvent> outputEventSet = this.eventFabricationService.performEventFabrication(inputEventList, key.window().start(), this.parameters.getMinimumNumberOfContributingSensors(), this.parameters.getPastWindowsLookup(), this.parameters.getFutureWindowsLookup());
+          if (!outputEventSet.isEmpty()) {
+            System.out.println(outputEventSet.size()); // TODO Remove.
+            for (final OutputEvent o : outputEventSet) {
+              System.out.println(o);
+            }
+            System.out.println("\n");
+          }
+          // TODO Continue from here.
+          return value;
+        })
+
+
         // Fabrication: past events (name: "pastEvents").
         .mapValues(
             new FabricationValueMapperWithKey() {
@@ -697,6 +715,8 @@ public class AverageCalculationCompositeTransformationFactory
                 return value;
               }
             })
+
+
         .filter(
             (key, value) -> {
               if (this.parameters.isIgnoreCompletenessFiltering()) {

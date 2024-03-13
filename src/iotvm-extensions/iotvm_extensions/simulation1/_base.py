@@ -1074,7 +1074,7 @@ def _example1() -> None:
     simulation.process(base_directory=base_directory)
 
 
-def run_exampl1() -> None:
+def run_example1() -> None:
     # TODO Remove and move to examples.py
     _example1()
 

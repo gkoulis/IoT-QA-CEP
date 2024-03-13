@@ -170,13 +170,12 @@ public class AverageCalculationCompositeTransformationParameters
     return forecastingWindowSize;
   }
 
-  /*
+  // TODO Temporarily enabled.
   public int getFutureWindowsLookup() {
     return futureWindowsLookup;
   }
-  */
 
-  /** EXPERIMENTAL. */
+  /** TODO EXPERIMENTAL. */
   public int getFutureWindowsLookupAlternative() {
     if (this.futureWindowsLookup > 0 && this.pastWindowsLookup > 0) {
       return this.futureWindowsLookup + this.pastWindowsLookup;
