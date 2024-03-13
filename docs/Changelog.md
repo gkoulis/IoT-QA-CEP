@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.6 Wednesday 13 March 2024
+
+### Event Engine
+
+- Introducing `TimeWindowedTimeSeries` (and test). It is an optimized time-series structure for real-time time-windowed operations. It also contain time-window utilities and missing point management (linear interpolation).
+
 ## v1.0.0-PROTOTYPE.5 Tuesday 12 March 2024
 
 ### Extensions

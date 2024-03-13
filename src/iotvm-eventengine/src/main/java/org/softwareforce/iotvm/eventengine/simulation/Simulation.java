@@ -106,7 +106,13 @@ public class Simulation {
     final String iterationName = simulationVariationIteration.getIterationName();
 
     final Path kafkaStreamsStateDirectoryPath =
-        Path.of(this.baseDirectory, simulationName, variationName, iterationName, "_system", "kafka-streams");
+        Path.of(
+            this.baseDirectory,
+            simulationName,
+            variationName,
+            iterationName,
+            "_system",
+            "kafka-streams");
 
     // Cleanings
     // --------------------------------------------------
@@ -247,7 +253,8 @@ public class Simulation {
       // final String fileName = topicName + ".json";
       // For simplicity, we use only the parameters unique identifier.
       String fileName = parametersSet.getUniqueIdentifier() + ".json";
-      fileName = fileName.replaceFirst(AverageCalculationCompositeTransformationParameters.ID_PREFIX, "");
+      fileName =
+          fileName.replaceFirst(AverageCalculationCompositeTransformationParameters.ID_PREFIX, "");
       final String pathToFile =
           Path.of(
                   baseDirectory,

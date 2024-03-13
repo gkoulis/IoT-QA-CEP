@@ -11,7 +11,8 @@ import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
  */
 public class AverageCalculationCompositeTransformationParameters
     extends CompositeTransformationParameters {
-  public final static String ID_PREFIX = "w_avg_";
+  public static final String ID_PREFIX = "w_avg_";
+
   // TODO as abstract method in abstract class!
   //  It must be unique across all to ensure uniqueness of ids.
   //  Check on start-up / registration of CTF, CT PS
