@@ -16,6 +16,7 @@ Limitations:
 
 TODO Future implementations:
 - Add more distributions!
+- Figures! (the implementation is ready)
 
 Author: Dimitris Gkoulis
 Created at: Wednesday 04 October 2023
@@ -33,6 +34,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+
+from iotvm_extensions.constants import EPS, SEED
 from iotvm_extensions.examples.average_calculation_parameters_sets import generate_average_calculation_parameters_sets
 
 _logger = logging.getLogger(__name__)
@@ -685,7 +688,7 @@ class Simulation:
         baseline: Variation = Variation(
             name="baseline-0",
             loss_by_sensor={},
-            iterations=[Iteration(name="iteration-0", loss_seed_by_sensor={}, loss_seed_fallback=DEFAULT_SEED)],
+            iterations=[Iteration(name="iteration-0", loss_seed_by_sensor={}, loss_seed_fallback=SEED)],
         )
 
         simulation_variation_iteration_list: List[Dict[str, str]] = []
@@ -921,162 +924,8 @@ class Simulation:
 
 
 # ####################################################################################################
-# Tests and Examples
+# Evaluation
 # ####################################################################################################
-
-
-# TODO Create library with ready to use objects.
-# TODO Move to project constants or even better to library.
-DEFAULT_SEED: int = 42
-EPS = 1e-12
-
-
-def _example1() -> None:
-    # project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
-    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
-    base_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
-    path_to_dataset: str = os.path.join(project_directory, "datasets", "dataset-1-slice-9-13.csv")
-    sample1_df: pd.DataFrame = pd.read_csv(path_to_dataset, delimiter="\t")
-    sample: np.ndarray = sample1_df["value"].values
-
-    timezone: Optional[str] = None  # "Europe/Athens"
-
-    timestamp: pd.Timestamp = pd.Timestamp(
-        year=2024,
-        month=3,
-        day=9,
-        hour=0,
-        minute=0,
-        second=0,
-        microsecond=0,
-        tz=timezone,
-        unit="sec",  # sec for simplicity, ns for precision
-    )
-
-    FREQ_DIST_CONST1: DistributionType = ConstantDistribution(
-        seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None
-    )
-    FREQ_CONST1: Frequency = Frequency(distribution=FREQ_DIST_CONST1, seed=DEFAULT_SEED)
-
-    LOSS1: Loss = Loss(
-        time_between_errors_distribution=ExponentialDistribution(
-            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(17.0), size=None
-        ),
-        error_duration_distribution=ExponentialDistribution(
-            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(33.0), size=None
-        ),
-    )
-    LOSS2: Loss = Loss(
-        time_between_errors_distribution=ExponentialDistribution(
-            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(157.0), size=None
-        ),
-        error_duration_distribution=ExponentialDistribution(
-            seed_name=MultiMeasurementCombiner.LOSS_SEED_NAME, scale=t_min_to_sec(20.0), size=None
-        ),
-    )
-
-    # TODO Make sure it produces the same results as before!!!!!!!!
-    simulation: Simulation = Simulation(
-        name="simulation-1",
-        sensors=[
-            Sensor(
-                name="sensor-1",
-                measurements=[
-                    Measurement(
-                        name="temperature",
-                        unit="celsius",
-                        sample=sample,
-                        frequency=FREQ_CONST1,
-                        start=timestamp,
-                        timezone=timezone,
-                        interactions=Interactions(
-                            distributions=[
-                                ConstantDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=1.0,
-                                ),
-                                NormalDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.5,
-                                    scale=0.2,
-                                    size=None,
-                                ),
-                            ],
-                            seed=DEFAULT_SEED,
-                        ),
-                    ),
-                ],
-                frequency=None,
-            ),
-            Sensor(
-                name="sensor-2",
-                measurements=[
-                    Measurement(
-                        name="temperature",
-                        unit="celsius",
-                        sample=sample,
-                        frequency=FREQ_CONST1,
-                        start=timestamp,
-                        timezone=timezone,
-                        interactions=Interactions(
-                            distributions=[
-                                ConstantDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=-1.0,
-                                    size=None,
-                                ),
-                                NormalDistribution(
-                                    seed_name=MeasurementBasicGenerator.INTERACTIONS_SEED_NAME,
-                                    loc=0.5,
-                                    scale=0.1,
-                                    size=None,
-                                ),
-                            ],
-                            seed=DEFAULT_SEED,
-                        ),
-                    ),
-                ],
-                frequency=None,
-            ),
-        ],
-        variations=[
-            Variation(
-                name="variation-1",
-                loss_by_sensor={
-                    "sensor-1": LOSS1,
-                    "sensor-2": LOSS2,
-                },
-                iterations=[
-                    Iteration(
-                        name="iteration-1",
-                        loss_seed_by_sensor={
-                            "sensor-1": DEFAULT_SEED,
-                            "sensor-2": DEFAULT_SEED,
-                        },
-                        loss_seed_fallback=DEFAULT_SEED,
-                    ),
-                ],
-            )
-        ],
-        average_ct_ps_space=AverageCalculationCompositeTransformationParametersSetsSpace(
-            physical_quantity_list=["TEMPERATURE"],
-            time_window_size_list=[5],
-            # number_of_contributing_sensors_list=[2, 4, 6],
-            number_of_contributing_sensors_list=[2],  # TODO Temporary.
-            ignore_completeness_filtering_list=[False],
-            # fabrication_past_events_steps_behind_list=[2, 4, 6],
-            # fabrication_forecasting_steps_ahead_list=[2, 4, 6],
-            fabrication_past_events_steps_behind_list=[0],  # TODO Temporary.
-            fabrication_forecasting_steps_ahead_list=[0],  # TODO Temporary.
-        ),
-    )
-    # TODO Do not allow if directory already exists!
-    simulation.process(base_directory=base_directory)
-
-
-def run_example1() -> None:
-    # TODO Remove and move to examples.py
-    _example1()
 
 
 def _complex_event_uid(ibo: Dict, simulation_name: str, variation_name: str, iteration_name: str) -> str:
@@ -1182,10 +1031,8 @@ def _update_accuracy(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def run_example2(simulation_name: str = "simulation-1") -> None:
-    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
-    simulations_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
-    simulation_directory: str = os.path.join(simulations_directory, simulation_name)
+def perform_evaluation(directory: str, simulation_name) -> None:
+    simulation_directory: str = os.path.join(directory, simulation_name)
 
     complex_event_list: List[Dict[str, Any]] = []
 
@@ -1199,7 +1046,7 @@ def run_example2(simulation_name: str = "simulation-1") -> None:
         iteration_name: str = svi["iterationName"]
 
         output_directory: str = os.path.join(
-            simulations_directory, simulation_name, variation_name, iteration_name, "_system", "output"
+            directory, simulation_name, variation_name, iteration_name, "_system", "output"
         )
 
         # Read all output files (i.e., files with extension `.json`).

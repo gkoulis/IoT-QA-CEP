@@ -1,6 +1,13 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.9 Wednesday 13 March 2024
+
+### Extensions
+
+- Added presets for convenient simulation setup
+- Improved simulation (evaluation, examples, presents, constants)
+
 ## v1.0.0-PROTOTYPE.8 Wednesday 13 March 2024
 
 ### Event Engine

@@ -3,9 +3,11 @@ Author: Dimitris Gkoulis
 Created at: Sunday 10 March 2024
 """
 
+import os
 from typing import Optional
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 from ._base import (
     t_min_to_sec,
@@ -15,11 +17,18 @@ from ._base import (
     ExponentialDistribution,
     MeasurementBasicGenerator,
     MultiMeasurementCombiner,
+    Simulation,
+    Variation,
+    Iteration,
+    AverageCalculationCompositeTransformationParametersSetsSpace,
+    perform_evaluation,
 )
+from ._presets import Presets
 from ._visualization import plot_synthetic_time_series, plot_synthetic_time_series_loss_metrics
+from iotvm_extensions.constants import SEED
 
 
-def example1() -> None:
+def generator_and_combiner_example() -> None:
     temperature_arr: np.ndarray = np.random.uniform(low=20, high=30, size=100)
     humidity_arr: np.ndarray = np.random.uniform(low=10, high=90, size=100)
 
@@ -112,3 +121,83 @@ def example1() -> None:
         dpi=300,
     )
     plot_synthetic_time_series_loss_metrics(df=df, show=True, path_to_dir=None, dpi=300)
+
+
+def setup_example() -> None:
+    # TODO Get directory from environ!
+    # project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
+    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
+    base_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
+    path_to_dataset: str = os.path.join(project_directory, "datasets", "dataset-1-slice-9-13.csv")
+    sample1_df: pd.DataFrame = pd.read_csv(path_to_dataset, delimiter="\t")
+    sample: np.ndarray = sample1_df["value"].values
+
+    timezone: Optional[str] = None  # "Europe/Athens"
+    start: pd.Timestamp = pd.Timestamp(
+        year=2024,
+        month=3,
+        day=9,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+        tz=timezone,
+        unit="sec",  # sec for simplicity, ns for precision
+    )
+
+    presets: Presets = Presets()
+    presets.sample = sample
+    presets.start = start
+    presets.timezone = timezone
+    presets.prepare()
+
+    simulation: Simulation = Simulation(
+        name="simulation-1",
+        sensors=presets.PAPER_SENSORS,
+        variations=[
+            Variation(
+                name="variation-1",
+                loss_by_sensor={
+                    "sensor-1": presets.PAPER_LOSS1,
+                    "sensor-2": presets.PAPER_LOSS2,
+                    "sensor-3": presets.PAPER_LOSS3,
+                    "sensor-4": presets.PAPER_LOSS4,
+                    "sensor-5": presets.PAPER_LOSS5,
+                    "sensor-6": presets.PAPER_LOSS6,
+                },
+                iterations=[
+                    Iteration(
+                        name="iteration-1",
+                        loss_seed_by_sensor={
+                            "sensor-1": presets.PAPER_LOSS1_SEED,
+                            "sensor-2": presets.PAPER_LOSS2_SEED,
+                            "sensor-3": presets.PAPER_LOSS3_SEED,
+                            "sensor-4": presets.PAPER_LOSS4_SEED,
+                            "sensor-5": presets.PAPER_LOSS5_SEED,
+                            "sensor-6": presets.PAPER_LOSS6_SEED,
+                        },
+                        loss_seed_fallback=SEED,
+                    ),
+                ],
+            )
+        ],
+        average_ct_ps_space=AverageCalculationCompositeTransformationParametersSetsSpace(
+            physical_quantity_list=["TEMPERATURE"],
+            time_window_size_list=[5],
+            # number_of_contributing_sensors_list=[2, 4, 6],
+            number_of_contributing_sensors_list=[4],  # TODO Temporary.
+            ignore_completeness_filtering_list=[False],
+            # fabrication_past_events_steps_behind_list=[2, 4, 6],
+            # fabrication_forecasting_steps_ahead_list=[2, 4, 6],
+            fabrication_past_events_steps_behind_list=[4],  # TODO Temporary.
+            fabrication_forecasting_steps_ahead_list=[4],  # TODO Temporary.
+        ),
+    )
+    # TODO Do not allow if directory already exists!
+    simulation.process(base_directory=base_directory)
+
+
+def evaluation_example() -> None:
+    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
+    simulations_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
+    perform_evaluation(directory=simulations_directory, simulation_name="simulation-1")
