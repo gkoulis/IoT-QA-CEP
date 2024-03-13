@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.7 Wednesday 13 March 2024
+
+### Event Engine
+
+- Introducing CEP-native EventFabricationService for performing event fabrication using naive (implemented) and simple exponential smoothing (not yet implemented) methods.
+
 ## v1.0.0-PROTOTYPE.6 Wednesday 13 March 2024
 
 ### Event Engine
