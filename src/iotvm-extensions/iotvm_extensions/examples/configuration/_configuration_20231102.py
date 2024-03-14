@@ -6,8 +6,8 @@ Modified at: Friday 03 November 2023
 
 import os
 from typing import Dict, List
-from ._common_errors_distributions import CED1, CED2, CED3, CED4, CED5, CED6
 
+from ._common_errors_distributions import CED1, CED2, CED3
 
 # DO NOT CHANGE.
 CONFIGURATION_SCRIPT_FILE = __file__

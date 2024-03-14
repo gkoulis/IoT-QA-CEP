@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.util.TimestampExtractorUtil;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.MeasurementIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryEventIBO;
@@ -29,16 +29,14 @@ public class IngestionProcessor
   private static final Logger LOGGER = LoggerFactory.getLogger(IngestionProcessor.class);
 
   private ProcessorContext<String, SensorTelemetryEventIBO> context;
-  private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final IBOPersistenceService iboPersistenceService;
   private final String inputTopicName;
   private final String outputTopicName;
 
   /* ------------ Constructors ------------ */
 
   public IngestionProcessor(
-      IBOPersistenceServiceImpl iboPersistenceService,
-      String inputTopicName,
-      String outputTopicName) {
+      IBOPersistenceService iboPersistenceService, String inputTopicName, String outputTopicName) {
     this.iboPersistenceService = iboPersistenceService;
     this.inputTopicName = inputTopicName;
     this.outputTopicName = outputTopicName;
@@ -138,7 +136,7 @@ public class IngestionProcessor
     SensorTelemetryEventIBO sensorTelemetryEventIBO;
 
     sensorTelemetryRawEventIBO =
-        this.iboPersistenceService.saveAlt(this.inputTopicName, sensorTelemetryRawEventIBO);
+        this.iboPersistenceService.insert(this.inputTopicName, sensorTelemetryRawEventIBO);
     sensorTelemetryEventIBO = this.mapValue(sensorTelemetryRawEventIBO);
     sensorTelemetryEventIBO
         .getTimestamps()
@@ -146,7 +144,7 @@ public class IngestionProcessor
         .put(Constants.RECORD_TIMESTAMP, record.timestamp());
     sensorTelemetryEventIBO = this.selectTimestamp(sensorTelemetryEventIBO, record.timestamp());
     sensorTelemetryEventIBO =
-        this.iboPersistenceService.saveAlt(this.outputTopicName, sensorTelemetryEventIBO);
+        this.iboPersistenceService.insert(this.outputTopicName, sensorTelemetryEventIBO);
 
     final Record<String, SensorTelemetryEventIBO> newRecord =
         new Record<>(

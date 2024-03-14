@@ -1,10 +1,11 @@
-import json
 import dataclasses
+import json
 import os
 import re
-from typing import Dict, List
-import fire
 import shutil
+from typing import Dict, List
+
+import fire
 
 from iotvm_extensions.examples.average_calculation_parameters_sets import (
     generate_average_calculation_parameters_sets,
@@ -20,10 +21,6 @@ from iotvm_extensions.examples.configuration import (
     IGNORE_COMPLETENESS_FILTERING_LIST,
     FABRICATION_PAST_EVENTS_STEPS_BEHIND_LIST,
     FABRICATION_FORECASTING_STEPS_AHEAD_LIST,
-    SENSOR_ID_LIST,
-    PHYSICAL_QUANTITY_LOWER,
-    TOPIC_NAME,
-    FREQUENCY_IN_SECONDS_LIST,
     MG__DATASET_PATH_TO_FILE,
     MG__PARAMETERS_BY_SENSOR_ID,
     MG__EXPECTED_RECURRING_TIME_WINDOWS,
@@ -31,79 +28,31 @@ from iotvm_extensions.examples.configuration import (
     REPORT__SIMULATION_NAME_LIST,
     REPORT__CYCLE_LIST,
 )
-from iotvm_extensions.examples.fabrication_forecasting import (
-    run_fabrication_forecasting_example,
-)
 from iotvm_extensions.examples.macros_generator import (
     optimize_distribution_parameters_v1,
     generate_macros_multiple_sensors,
 )
 from iotvm_extensions.examples.report import generate_report, generate_report_cached
+from iotvm_extensions.examples.report_mara import generate_report as generate_report_mara
 from iotvm_extensions.examples.sensor_simulation import (
     run_sensor_simulation_example,
 )
-from iotvm_extensions.examples.server_client import run_client_example
-from iotvm_extensions.fabrication_forecasting.base import disable_statsmodels_convergence_warnings
-from iotvm_extensions.fabrication_forecasting.spec import (
-    FabricationForecastingService,
-)
-from iotvm_extensions.fabrication_forecasting.spec.ttypes import (
-    ForecastScope,
-    ForecastRequest,
-)
-from iotvm_extensions.examples.report_mara import generate_report as generate_report_mara
-from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
-from iotvm_extensions.server_client.client import ClientsFactory
-from iotvm_extensions.server_client.server import start_server
+from iotvm_extensions.mongodb import get_default_mongodb_client
 from ._logging import set_up_logging
 from ._prerequisites import set_up_prerequisites
 
 
 # noinspection PyMethodMayBeStatic
 class CLI:
-    def start_server(self) -> None:
-        disable_statsmodels_convergence_warnings()
-        start_server()
-
-    def ensure_forecasters(self) -> None:
-        factory: ClientsFactory = ClientsFactory()
-        factory.register_service(service_class=FabricationForecastingService)
-
-        service: FabricationForecastingService = factory.get_service(service_name="FabricationForecastingService")
-        assert service is not None
-
-        sensor_id_list: List[str] = SENSOR_ID_LIST
-        frequency_in_seconds_list: List[int] = FREQUENCY_IN_SECONDS_LIST
-        physical_quantity_lower: str = PHYSICAL_QUANTITY_LOWER
-        topic_name: str = TOPIC_NAME
-
-        for sensor_id in sensor_id_list:
-            for frequency_in_seconds in frequency_in_seconds_list:
-                scope = ForecastScope(
-                    sensorId=sensor_id,
-                    physicalQuantity=physical_quantity_lower,
-                    topicName=topic_name,
-                    frequencyInSeconds=frequency_in_seconds,
-                )
-                service.ensure(scope=scope)
-                request = ForecastRequest(startTimestamp=0, endTimestamp=1, stepsAhead=10, comment="none")
-                # service.forecast(scope=scope, request=request)  # TODO Just to make sure... add try-except.
-
     def delete_all_mongodb_documents(self) -> None:
-        client: MongoClient = get_default_mongodb_client()
+        client = get_default_mongodb_client()
         collections_names: List[str] = ["recorded_sensor_data", "universal"]
         for collection_name in collections_names:
             collection = client["iotvmdb"][collection_name]
             collection.delete_many({})
 
-    def run_fabrication_forecasting_example(self) -> None:
-        run_fabrication_forecasting_example()
-
     def run_sensor_simulation_example(self) -> None:
         run_sensor_simulation_example(experiment_name=EXPERIMENT_NAME, path_to_dir=EXPERIMENT_INPUT_DIRECTORY)
-
-    def run_client_example(self) -> None:
-        run_client_example()
 
     def optimize_distribution_parameters_v1(self) -> None:
         optimize_distribution_parameters_v1(

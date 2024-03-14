@@ -10,12 +10,12 @@ import itertools
 import logging
 import os
 from typing import Any, Dict, List
-import seaborn as sns
 
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
 from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
 from .average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id

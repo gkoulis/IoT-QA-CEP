@@ -13,13 +13,11 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertOneResult;
-import java.time.Instant;
 import javax.annotation.Nullable;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
-import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
 import org.softwareforce.iotvm.eventengine.persistence.model.PersistedIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryEventIBO;
@@ -28,13 +26,13 @@ import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementsAverageEv
 import org.softwareforce.iotvm.shared.event.SensorTelemetryRawEventIBO;
 
 /**
- * Service for managing persistence of IBO entities.
- *
- * <p>TODO make persistence optional.
+ * MongoDB implementation of {@link IBOPersistenceService} by extending {@link
+ * IBOPersistenceServiceBaseImpl}.
  *
  * @author Dimitris Gkoulis
+ * @createdAt Thursday 14 March 2024
  */
-public class IBOPersistenceServiceImpl {
+public class IBOPersistenceServiceMongoImpl extends IBOPersistenceServiceBaseImpl {
 
   private static final String COLLECTION_NAME = "universal";
 
@@ -51,7 +49,7 @@ public class IBOPersistenceServiceImpl {
 
   /* ------------ Constructors ------------ */
 
-  public IBOPersistenceServiceImpl(final PersistenceConfiguration persistenceConfiguration) {
+  public IBOPersistenceServiceMongoImpl(final PersistenceConfiguration persistenceConfiguration) {
     final ServerApi serverApi = ServerApi.builder().version(ServerApiVersion.V1).build();
     MongoClientSettings settings =
         MongoClientSettings.builder()
@@ -76,9 +74,9 @@ public class IBOPersistenceServiceImpl {
             .withCodecRegistry(this.codecRegistry);
   }
 
-  /* ------------ Logic ------------ */
+  /* ------------ Private ------------ */
 
-  public PersistedIBO save(
+  private PersistedIBO _insert(
       @Nullable ObjectId objectId,
       final String topicName,
       SensorTelemetryRawEventIBO sensorTelemetryRawEventIBO) {
@@ -93,7 +91,7 @@ public class IBOPersistenceServiceImpl {
     return persistedIBO;
   }
 
-  public PersistedIBO save(
+  private PersistedIBO _insert(
       @Nullable ObjectId objectId,
       final String topicName,
       SensorTelemetryEventIBO sensorTelemetryEventIBO) {
@@ -108,7 +106,7 @@ public class IBOPersistenceServiceImpl {
     return persistedIBO;
   }
 
-  public PersistedIBO save(
+  private PersistedIBO _insert(
       @Nullable ObjectId objectId,
       final String topicName,
       SensorTelemetryMeasurementEventIBO sensorTelemetryMeasurementEventIBO) {
@@ -123,7 +121,7 @@ public class IBOPersistenceServiceImpl {
     return persistedIBO;
   }
 
-  public PersistedIBO save(
+  private PersistedIBO _insert(
       @Nullable ObjectId objectId,
       final String topicName,
       SensorTelemetryMeasurementsAverageEventIBO sensorTelemetryMeasurementsAverageEventIBO) {
@@ -137,66 +135,5 @@ public class IBOPersistenceServiceImpl {
     final InsertOneResult insertOneResult = this.universalCollection.insertOne(persistedIBO);
     // persistedIBO.setId(insertOneResult.getInsertedId().asObjectId().getValue());
     return persistedIBO;
-  }
-
-  /* ------------ Helpers ------------ */
-
-  public SensorTelemetryRawEventIBO saveAlt(
-      final String topicName, SensorTelemetryRawEventIBO value) {
-    value.getTimestamps().getTimestamps().put(Constants.PERSISTED, Instant.now().toEpochMilli());
-
-    final ObjectId objectId = ObjectId.get();
-    value
-        .getIdentifiers()
-        .getCorrelationIds()
-        .put(Constants.PERSISTENCE_ID, objectId.toHexString());
-
-    this.save(objectId, topicName, value);
-
-    return value;
-  }
-
-  public SensorTelemetryEventIBO saveAlt(final String topicName, SensorTelemetryEventIBO value) {
-    value.getTimestamps().getTimestamps().put(Constants.PERSISTED, Instant.now().toEpochMilli());
-
-    final ObjectId objectId = ObjectId.get();
-    value
-        .getIdentifiers()
-        .getCorrelationIds()
-        .put(Constants.PERSISTENCE_ID, objectId.toHexString());
-
-    this.save(objectId, topicName, value);
-
-    return value;
-  }
-
-  public SensorTelemetryMeasurementEventIBO saveAlt(
-      final String topicName, SensorTelemetryMeasurementEventIBO value) {
-    value.getTimestamps().getTimestamps().put(Constants.PERSISTED, Instant.now().toEpochMilli());
-
-    final ObjectId objectId = ObjectId.get();
-    value
-        .getIdentifiers()
-        .getCorrelationIds()
-        .put(Constants.PERSISTENCE_ID, objectId.toHexString());
-
-    this.save(objectId, topicName, value);
-
-    return value;
-  }
-
-  public SensorTelemetryMeasurementsAverageEventIBO saveAlt(
-      final String topicName, SensorTelemetryMeasurementsAverageEventIBO value) {
-    value.getTimestamps().getTimestamps().put(Constants.PERSISTED, Instant.now().toEpochMilli());
-
-    final ObjectId objectId = ObjectId.get();
-    value
-        .getIdentifiers()
-        .getCorrelationIds()
-        .put(Constants.PERSISTENCE_ID, objectId.toHexString());
-
-    this.save(objectId, topicName, value);
-
-    return value;
   }
 }

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.FlexibleTimestampExtractor;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.IngestionProcessor;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryEventIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryRawEventIBO;
 
@@ -24,13 +24,13 @@ public final class IngestionCompositeTransformationFactory extends CompositeTran
   private static final String NAME = "ingestion";
 
   private final IngestionCompositeTransformationParameters parameters;
-  private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final IBOPersistenceService iboPersistenceService;
 
   /* ------------ Constructors ------------ */
 
   public IngestionCompositeTransformationFactory(
       IngestionCompositeTransformationParameters parameters,
-      IBOPersistenceServiceImpl iboPersistenceService) {
+      IBOPersistenceService iboPersistenceService) {
     this.parameters = parameters;
     this.iboPersistenceService = iboPersistenceService;
   }

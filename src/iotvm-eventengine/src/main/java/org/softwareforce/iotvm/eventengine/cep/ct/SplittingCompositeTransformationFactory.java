@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestampExtractor;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.MeasurementIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryEventIBO;
@@ -35,13 +35,13 @@ public final class SplittingCompositeTransformationFactory extends CompositeTran
   private static final String NAME = "splitting";
 
   private final SplittingCompositeTransformationParameters parameters;
-  private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final IBOPersistenceService iboPersistenceService;
 
   /* ------------ Constructors ------------ */
 
   public SplittingCompositeTransformationFactory(
       SplittingCompositeTransformationParameters parameters,
-      IBOPersistenceServiceImpl iboPersistenceService) {
+      IBOPersistenceService iboPersistenceService) {
     this.parameters = parameters;
     this.iboPersistenceService = iboPersistenceService;
   }
@@ -122,7 +122,7 @@ public final class SplittingCompositeTransformationFactory extends CompositeTran
 
               return sensorTelemetryMeasurementEventList;
             })
-        .mapValues((value) -> this.iboPersistenceService.saveAlt(outputTopicName, value))
+        .mapValues((value) -> this.iboPersistenceService.insert(outputTopicName, value))
         .selectKey((k, v) -> Constants.ANY_SENSOR)
         .to(outputTopicName, producedWith);
 
@@ -177,7 +177,7 @@ public final class SplittingCompositeTransformationFactory extends CompositeTran
                   .getTimestamps()
                   .getTimestamps()
                   .put(Constants.SPLITTED_L2, Instant.now().toEpochMilli());
-              return this.iboPersistenceService.saveAlt(this.getTopicName(value), value);
+              return this.iboPersistenceService.insert(this.getTopicName(value), value);
             })
         .selectKey((k, v) -> Constants.ANY_SENSOR)
         .to(outputTopicNameExtractor, producedWith);

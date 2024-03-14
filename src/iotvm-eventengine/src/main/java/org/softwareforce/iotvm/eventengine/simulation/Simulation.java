@@ -26,7 +26,7 @@ import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformati
 import org.softwareforce.iotvm.eventengine.cep.ct.SplittingCompositeTransformationParameters;
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.*;
 import org.softwareforce.iotvm.eventengine.utilities.GeneralUtilities;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementsAverageEventIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryRawEventIBO;
@@ -43,10 +43,15 @@ public class Simulation {
 
   private final String baseDirectory;
   private final String simulationName;
+  private final IBOPersistenceServiceType iboPersistenceServiceType;
 
-  public Simulation(String baseDirectory, final String simulationName) {
+  public Simulation(
+      String baseDirectory,
+      final String simulationName,
+      final IBOPersistenceServiceType iboPersistenceServiceType) {
     this.baseDirectory = baseDirectory;
     this.simulationName = simulationName;
+    this.iboPersistenceServiceType = iboPersistenceServiceType;
   }
 
   public List<SimulationVariationIteration> loadSimulationVariationIterationList() {
@@ -121,11 +126,18 @@ public class Simulation {
     // Dependencies
     // --------------------------------------------------
 
-    final IBOPersistenceServiceImpl iboPersistenceServiceImpl =
-        new IBOPersistenceServiceImpl(
-            new PersistenceConfiguration(
-                "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
-                "iotvmdb"));
+    final IBOPersistenceService iboPersistenceService;
+    switch (this.iboPersistenceServiceType) {
+      case NO_OPS -> iboPersistenceService = new IBOPersistenceServiceNoOpsImpl();
+      case BASE -> iboPersistenceService = new IBOPersistenceServiceBaseImpl();
+      case MONGODB -> iboPersistenceService =
+          new IBOPersistenceServiceMongoImpl(
+              new PersistenceConfiguration(
+                  "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
+                  "iotvmdb"));
+      default -> throw new IllegalStateException(
+          "Invalid IBOPersistenceServiceType: " + this.iboPersistenceServiceType);
+    }
 
     // Composite Transformations Parameters
     // --------------------------------------------------
@@ -141,16 +153,16 @@ public class Simulation {
     // --------------------------------------------------
 
     final CompositeTransformationFactory ingestionCTF =
-        new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
+        new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceService);
     final CompositeTransformationFactory splittingCTF =
-        new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceServiceImpl);
+        new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceService);
 
     final List<CompositeTransformationFactory> averageCalculationCTFs = new ArrayList<>();
     for (final AverageCalculationCompositeTransformationParameters parametersSet :
         averageCalculationParametersList) {
       final CompositeTransformationFactory averageCalculation =
           new AverageCalculationCompositeTransformationFactory(
-              parametersSet, iboPersistenceServiceImpl);
+              parametersSet, iboPersistenceService);
 
       averageCalculationCTFs.add(averageCalculation);
     }

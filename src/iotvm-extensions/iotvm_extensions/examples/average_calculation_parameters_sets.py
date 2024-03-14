@@ -8,10 +8,9 @@ Created at: Thursday 12 October 2023
 Modified at: Wednesday 08 November 2023
 """
 
-from typing import Dict, List
-from dataclasses import dataclass, asdict
 import itertools
-
+from dataclasses import dataclass, asdict
+from typing import Dict, List
 
 # Defined by the Java back-end in the corresponding class.
 _PREFIX: str = "w_avg_"
@@ -47,7 +46,9 @@ def generate_composite_transformation_parameters_ids(
     multiplier: int = 1
 
     for combination in combinations:
-        ctp_id: str = f"{_PREFIX}{combination[0].lower()}_PT{combination[1]}S_null_null_{combination[2]}_{str(combination[3]).lower()}_{combination[4]}_PT{combination[1] * multiplier}S_{combination[5]}"
+        ctp_id: str = (
+            f"{_PREFIX}{combination[0].lower()}_PT{combination[1]}S_null_null_{combination[2]}_{str(combination[3]).lower()}_{combination[4]}_PT{combination[1] * multiplier}S_{combination[5]}"
+        )
         ctp_id_list.append(ctp_id)
 
     return ctp_id_list
@@ -64,7 +65,9 @@ class CompositeTransformationParameterID:
     fabrication_forecasting_steps_ahead: int
 
     def __str__(self) -> str:
-        string: str = f"time window size of {self.time_window_size} secs with at least {self.number_of_contributing_sensors} sensors"
+        string: str = (
+            f"time window size of {self.time_window_size} secs with at least {self.number_of_contributing_sensors} sensors"
+        )
 
         if self.fabrication_past_events_steps_behind == 0 and self.fabrication_forecasting_steps_ahead == 0:
             return string

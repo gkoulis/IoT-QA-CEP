@@ -33,7 +33,7 @@ import org.softwareforce.iotvm.eventengine.cep.fabrication.EventFabricationMetho
 import org.softwareforce.iotvm.eventengine.cep.fabrication.EventFabricationService;
 import org.softwareforce.iotvm.eventengine.cep.fabrication.InputEvent;
 import org.softwareforce.iotvm.eventengine.cep.fabrication.OutputEvent;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
 import org.softwareforce.iotvm.shared.event.IdentifiersIBO;
 import org.softwareforce.iotvm.shared.event.QualityPropertiesIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementEventIBO;
@@ -69,14 +69,14 @@ public class AverageCalculationCompositeTransformationFactory
 
   private final AverageCalculationCompositeTransformationParameters parameters;
   private final FixedSizeTimeWindowSpec fixedSizeTimeWindowSpec;
-  private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final IBOPersistenceService iboPersistenceService;
   private final EventFabricationService eventFabricationService;
 
   /* ------------ Constructors ------------ */
 
   public AverageCalculationCompositeTransformationFactory(
       AverageCalculationCompositeTransformationParameters parameters,
-      IBOPersistenceServiceImpl iboPersistenceService) {
+      IBOPersistenceService iboPersistenceService) {
     this.parameters = parameters;
     this.fixedSizeTimeWindowSpec =
         new FixedSizeTimeWindowSpec(
@@ -177,6 +177,7 @@ public class AverageCalculationCompositeTransformationFactory
         .windowedBy(timeWindowsDefinition)
         // .emitStrategy(EmitStrategy.onWindowClose())
         // .emitStrategy(EmitStrategy.onWindowUpdate())
+        // TODO try without named (materialized)
         .aggregate(new InitializerImpl(physicalQuantity), new AggregatorImpl(), materialized)
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
@@ -378,7 +379,7 @@ public class AverageCalculationCompositeTransformationFactory
               return completeness1 >= 1;
             })
         // Persistence.
-        .mapValues((value) -> this.iboPersistenceService.saveAlt(outputTopicName, value))
+        .mapValues((value) -> this.iboPersistenceService.insert(outputTopicName, value))
         // @future Key can be the greenhouse ID.
         .selectKey((k, v) -> Constants.ANY_SENSOR)
         .to(

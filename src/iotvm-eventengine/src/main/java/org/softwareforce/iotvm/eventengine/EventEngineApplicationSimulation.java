@@ -3,6 +3,7 @@ package org.softwareforce.iotvm.eventengine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguration;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceType;
 import org.softwareforce.iotvm.eventengine.simulation.Simulation;
 
 public class EventEngineApplicationSimulation {
@@ -22,11 +23,16 @@ public class EventEngineApplicationSimulation {
 
     // TODO Arguments or env or both.
     long start = System.nanoTime();
+    // final String baseDirectory =
+    // "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-local-data/simulations";
+    // final String simulationsDirectoryPath = System.getenv("SIMULATIONS_DIRECTORY_PATH");
     final String baseDirectory =
-        "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions/local_data/simulation1-EXAMPLE";
+        "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-local-data/simulations";
     final String simulationName = "simulation-1";
+    final IBOPersistenceServiceType iboPersistenceServiceType = IBOPersistenceServiceType.NO_OPS;
 
-    final Simulation simulation = new Simulation(baseDirectory, simulationName);
+    final Simulation simulation =
+        new Simulation(baseDirectory, simulationName, iboPersistenceServiceType);
     // TODO Run validations, diagnostics.
 
     simulation.execute();

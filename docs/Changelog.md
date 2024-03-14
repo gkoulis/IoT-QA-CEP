@@ -1,6 +1,29 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.12 Thursday 14 March 2024
+
+### Event Engine
+
+- Introducing `IBOPersistenceService`, `IBOPersistenceServiceBaseImpl`, `IBOPersistenceServiceMongoImpl`, and `IBOPersistenceServiceNoOpsImpl` to ensure flexibility regarding persistence back-ends and simulation options.
+
+### Extensions
+
+- Removed `shared`, `server_client`, `helpers`, `fabrication_forecasting`, `fabrication_backcasting`, `sensing_recording`, packages
+- Refactors and removals.
+
+### Misc
+
+- Dropped support for Apache Thrift
+- Removed `iotvm-extensions-specifications`
+
+
+## v1.0.0-PROTOTYPE.11 Thursday 14 March 2024
+
+### Event Engine
+
+- Removed `findPastSensorTelemetryMeasurementEventIBO` from `IBOPersistenceServiceImpl`.
+
 ## v1.0.0-PROTOTYPE.10 Wednesday 13 March 2024
 
 ### Event Engine

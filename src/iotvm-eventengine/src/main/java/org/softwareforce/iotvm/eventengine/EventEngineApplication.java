@@ -28,7 +28,8 @@ import org.softwareforce.iotvm.eventengine.configuration.ApplicationConfiguratio
 import org.softwareforce.iotvm.eventengine.configuration.KafkaConfiguration;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
 import org.softwareforce.iotvm.eventengine.kafka.KafkaAdminService;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceMongoImpl;
 import org.softwareforce.iotvm.eventengine.simulation.AverageCalculationCompositeTransformationParametersJsonNode;
 
 /**
@@ -124,19 +125,19 @@ public class EventEngineApplication {
         kafkaAdminService.convertTopicNamesToNewTopics(topicNameList, 1, 1);
     kafkaAdminService.createTopics(newTopicList);
 
-    final IBOPersistenceServiceImpl iboPersistenceServiceImpl =
-        new IBOPersistenceServiceImpl(
+    final IBOPersistenceService iboPersistenceService =
+        new IBOPersistenceServiceMongoImpl(
             new PersistenceConfiguration(
                 "mongodb://localhost:27017/?readPreference=primary&appname=IoTVM_EventEngine&ssl=false",
                 "iotvmdb"));
 
     final CompositeTransformationFactory ingestion =
-        new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceServiceImpl);
+        new IngestionCompositeTransformationFactory(ingestionParameters, iboPersistenceService);
     final CompositeTransformationFactory splitting =
-        new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceServiceImpl);
+        new SplittingCompositeTransformationFactory(splittingParameters, iboPersistenceService);
     final CompositeTransformationFactory averageCalculationMerging =
         new AverageCalculationMergingCompositeTransformationFactory(
-            averageCalculationMergingParameters, iboPersistenceServiceImpl);
+            averageCalculationMergingParameters, iboPersistenceService);
 
     final List<CompositeTransformationFactory> averageCalculationCTFs = new ArrayList<>();
 
@@ -144,7 +145,7 @@ public class EventEngineApplication {
         averageCalculationParametersList) {
       final CompositeTransformationFactory averageCalculation =
           new AverageCalculationCompositeTransformationFactory(
-              parametersSet, iboPersistenceServiceImpl);
+              parametersSet, iboPersistenceService);
 
       averageCalculationCTFs.add(averageCalculation);
     }

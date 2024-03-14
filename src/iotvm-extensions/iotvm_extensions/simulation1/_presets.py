@@ -2,8 +2,8 @@ from typing import Optional, List
 
 import numpy as np
 import pandas as pd
-from iotvm_extensions.constants import SEED
 
+from iotvm_extensions.constants import SEED
 from ._base import (
     t_min_to_sec,
     DistributionType,
@@ -18,7 +18,6 @@ from ._base import (
     Measurement,
     Interactions,
 )
-
 
 CONSTANT_FREQUENCY_5MIN_DISTRIBUTION: DistributionType = ConstantDistribution(
     seed_name=MeasurementBasicGenerator.X_SEED_NAME, loc=t_min_to_sec(5.0), size=None

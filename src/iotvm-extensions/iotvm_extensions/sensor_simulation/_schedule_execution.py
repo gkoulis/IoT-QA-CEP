@@ -1,17 +1,12 @@
-import datetime
-import pprint
-import random
-import zoneinfo
-from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional
-
-import threading
-import queue
-import numpy as np
-import pandas as pd
-import time
 import logging
-import requests
+import queue
+import threading
+import time
+from dataclasses import dataclass
+from typing import Dict
+
+import pandas as pd
+
 from ._data_types import EvaluatedSimulatedSensorOperation
 from ._operations import simulate_sensor_operation
 

@@ -1,20 +1,11 @@
+import logging
 import time
 from typing import Dict
 
 import requests
 
 import iotvm_extensions.config as config
-from iotvm_extensions.helpers import (
-    ServerClientLocalFacade,
-    get_server_client_local_facade,
-)
-from iotvm_extensions.sensing_recording.spec.ttypes import (
-    RecordedSensorMeasurement,
-    RecordedSensorData,
-)
 from ._data_types import EvaluatedSimulatedSensorOperation
-
-import logging
 
 _logger = logging.getLogger("iotvm_extensions.sensor_simulation._operations")
 
@@ -29,11 +20,6 @@ def _push__sensor_telemetry_event__web_request(payload: Dict) -> None:
         config.GATEWAY_API_SENSOR_TELEMETRY_EVENT_URL,
         json={"sensorTelemetryEvent": payload},
     )
-
-
-def _record__sensor_telemetry_event__request(payload: RecordedSensorData) -> None:
-    client: ServerClientLocalFacade = get_server_client_local_facade()
-    client.recordSensorData(recordedSensorData=payload)
 
 
 # ####################################################################################################
@@ -66,18 +52,3 @@ def simulate_sensor_operation(op: EvaluatedSimulatedSensorOperation, fail_silent
             )
             if fail_silently is False:
                 raise ex
-
-    payload: RecordedSensorData = RecordedSensorData(
-        sensorId=op.sensor_id,
-        measurements=[RecordedSensorMeasurement(name=m.name, value=m.value, unit=m.unit) for m in op.measurements],
-        timestamp=op.timestamp,
-        # additional data regarding sensing recording ONLY!
-        additional={},
-    )
-
-    try:
-        _record__sensor_telemetry_event__request(payload=payload)
-    except Exception as ex:
-        _logger.error("Failed to execute: `_record__sensor_telemetry_event__request`", exc_info=ex)
-        if fail_silently is False:
-            raise ex

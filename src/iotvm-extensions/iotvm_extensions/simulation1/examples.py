@@ -4,11 +4,13 @@ Created at: Sunday 10 March 2024
 """
 
 import os
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import pandas as pd
 
+from iotvm_extensions.constants import SEED
 from ._base import (
     t_min_to_sec,
     DistributionType,
@@ -25,7 +27,6 @@ from ._base import (
 )
 from ._presets import Presets
 from ._visualization import plot_synthetic_time_series, plot_synthetic_time_series_loss_metrics
-from iotvm_extensions.constants import SEED
 
 
 def generator_and_combiner_example() -> None:
@@ -124,11 +125,12 @@ def generator_and_combiner_example() -> None:
 
 
 def setup_example() -> None:
-    # TODO Get directory from environ!
-    # project_directory: str = "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-extensions"
-    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
-    base_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
-    path_to_dataset: str = os.path.join(project_directory, "datasets", "dataset-1-slice-9-13.csv")
+    base_directory: str = (
+        Path(__file__).resolve().parent.parent.parent.parent.joinpath("iotvm-local-data", "simulations").__str__()
+    )
+
+    datasets_directory: str = Path(__file__).resolve().parent.parent.parent.joinpath("datasets").__str__()
+    path_to_dataset: str = os.path.join(datasets_directory, "dataset-1-slice-9-13.csv")
     sample1_df: pd.DataFrame = pd.read_csv(path_to_dataset, delimiter="\t")
     sample: np.ndarray = sample1_df["value"].values
 

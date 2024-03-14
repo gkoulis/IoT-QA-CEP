@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+
 import iotvm_extensions.config as config
 
 LOGGING = {

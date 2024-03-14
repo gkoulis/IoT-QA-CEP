@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
 import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.cep.ct.specifics.ValidNonNullTimestampExtractor;
-import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceServiceImpl;
+import org.softwareforce.iotvm.eventengine.persistence.IBOPersistenceService;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementsAverageEventIBO;
 
 /**
@@ -28,13 +28,13 @@ public class AverageCalculationMergingCompositeTransformationFactory
 
   private final AverageCalculationMergingCompositeTransformationParameters parameters;
 
-  private final IBOPersistenceServiceImpl iboPersistenceService;
+  private final IBOPersistenceService iboPersistenceService;
 
   /* ------------ Constructors ------------ */
 
   public AverageCalculationMergingCompositeTransformationFactory(
       AverageCalculationMergingCompositeTransformationParameters parameters,
-      IBOPersistenceServiceImpl iboPersistenceService) {
+      IBOPersistenceService iboPersistenceService) {
     this.parameters = parameters;
     this.iboPersistenceService = iboPersistenceService;
   }
@@ -69,7 +69,7 @@ public class AverageCalculationMergingCompositeTransformationFactory
                     .getTimestamps()
                     .getTimestamps()
                     .put(Constants.MERGED_L1, Instant.now().toEpochMilli());
-                return this.iboPersistenceService.saveAlt(outputTopicName, value);
+                return this.iboPersistenceService.insert(outputTopicName, value);
               })
           .to(outputTopicName, produced);
     }
@@ -106,7 +106,7 @@ public class AverageCalculationMergingCompositeTransformationFactory
                     .getTimestamps()
                     .getTimestamps()
                     .put(Constants.MERGED_L2, Instant.now().toEpochMilli());
-                return this.iboPersistenceService.saveAlt(outputTopicName, value);
+                return this.iboPersistenceService.insert(outputTopicName, value);
               })
           .to(outputTopicName, produced);
     }
