@@ -12,19 +12,14 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
 import com.mongodb.client.result.InsertOneResult;
 import java.time.Instant;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
-import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.softwareforce.iotvm.eventengine.cep.Constants;
-import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 import org.softwareforce.iotvm.eventengine.configuration.PersistenceConfiguration;
 import org.softwareforce.iotvm.eventengine.persistence.model.PersistedIBO;
 import org.softwareforce.iotvm.shared.event.SensorTelemetryEventIBO;
@@ -142,53 +137,6 @@ public class IBOPersistenceServiceImpl {
     final InsertOneResult insertOneResult = this.universalCollection.insertOne(persistedIBO);
     // persistedIBO.setId(insertOneResult.getInsertedId().asObjectId().getValue());
     return persistedIBO;
-  }
-
-  /**
-   * Finds the most recent {@link SensorTelemetryMeasurementEventIBO} record for a given time
-   * period.
-   *
-   * <p>NOTICE: the {@code topicName} is version. This method will search records of the current
-   * version of topic name as defined in {@link
-   * Constants#getSensorTelemetryMeasurementEventTopic(PhysicalQuantity)} and {@link
-   * Constants#SENSOR_TELEMETRY_MEASUREMENT_EVENT_TOPIC}.
-   *
-   * @param physicalQuantity the {@link PhysicalQuantity} based on which the topic is given.
-   * @param sensorId the ID of the sensor that produced the {@link
-   *     SensorTelemetryMeasurementEventIBO} instance.
-   * @param startTimestamp the start timestamp in epoch millis.
-   * @param endTimestamp the end timestamp in epoch millis.
-   * @return an {@link Optional} with the {@link SensorTelemetryMeasurementEventIBO} instance or an
-   *     empty {@link Optional} if there is no instance.
-   */
-  public Optional<SensorTelemetryMeasurementEventIBO> findPastSensorTelemetryMeasurementEventIBO(
-      final PhysicalQuantity physicalQuantity,
-      final String sensorId,
-      final long startTimestamp,
-      final long endTimestamp) {
-
-    final String topicName = Constants.getSensorTelemetryMeasurementEventTopic(physicalQuantity);
-
-    final Bson filter =
-        Filters.and(
-            Filters.eq("topicName", topicName),
-            Filters.eq("real.sensorId", sensorId),
-            Filters.gte("real.timestamps.defaultTimestamp.long", startTimestamp),
-            Filters.lt("real.timestamps.defaultTimestamp.long", endTimestamp));
-
-    PersistedIBO persistedIBO =
-        this.universalCollection
-            .find(filter)
-            .sort(Sorts.descending("real.timestamps.defaultTimestamp.long"))
-            .first();
-
-    if (persistedIBO == null) {
-      return Optional.empty();
-    }
-
-    final SensorTelemetryMeasurementEventIBO sensorTelemetryMeasurementEventIBO =
-        persistedIBO.toSensorTelemetryMeasurementEventIBO();
-    return Optional.of(sensorTelemetryMeasurementEventIBO);
   }
 
   /* ------------ Helpers ------------ */
