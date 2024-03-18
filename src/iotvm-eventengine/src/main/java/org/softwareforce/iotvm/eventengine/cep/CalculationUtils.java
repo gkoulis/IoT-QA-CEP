@@ -18,6 +18,14 @@ public final class CalculationUtils {
 
   /* ------------ Methods ------------ */
 
+  public static double calculateMSE(List<Double> yTrue, List<Double> yPred) {
+    double mse = 0.0;
+    for (int i = 0; i < yTrue.size(); i++) {
+      mse += Math.pow(yTrue.get(i) - yPred.get(i), 2);
+    }
+    return mse / (yTrue.size());
+  }
+
   public static Optional<Double> calculateAverage(
       List<SensorTelemetryMeasurementEventIBO> eventList) {
     final int size = eventList.size();

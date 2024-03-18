@@ -1,5 +1,7 @@
 package org.softwareforce.iotvm.eventengine.cep.fabrication;
 
+import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
+
 import java.util.List;
 
 /**
@@ -13,14 +15,6 @@ public class TripleExponentialSmoothingOptimization extends TripleExponentialSmo
   public TripleExponentialSmoothingOptimization(
       double alpha, double beta, double gamma, int seasonLength, int horizon) {
     super(alpha, beta, gamma, seasonLength, horizon);
-  }
-
-  private double calculateMSE(List<Double> actual, List<Double> forecast, int start) {
-    double mse = 0.0;
-    for (int i = start; i < actual.size(); i++) {
-      mse += Math.pow(actual.get(i) - forecast.get(i), 2);
-    }
-    return mse / (actual.size() - start);
   }
 
   public double[] optimizeParameters(
@@ -43,8 +37,20 @@ public class TripleExponentialSmoothingOptimization extends TripleExponentialSmo
             this.setBeta(beta);
             this.setGamma(gamma);
             this.setSeasonLength(seasonal);
-            List<Double> forecast = this.forecast(data);
-            double mse = calculateMSE(data, forecast, this.getSeasonLength());
+
+            final List<Double> forecast = this.forecast(data);
+            if (data.size() != forecast.size() - this.getHorizon()) {
+              throw new IllegalStateException();
+            }
+
+            final List<Double> yTrue = data.subList(this.getSeasonLength(), data.size());
+            // yPred (in sample predictions)
+            final List<Double> yPred = forecast.subList(this.getSeasonLength(), data.size());
+            if (yTrue.size() != yPred.size()) {
+              throw new IllegalStateException();
+            }
+
+            double mse = CalculationUtils.calculateMSE(yTrue, yPred);
             if (mse < bestMSE) {
               bestMSE = mse;
               bestAlpha = alpha;

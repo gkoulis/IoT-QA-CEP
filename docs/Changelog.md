@@ -1,6 +1,14 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.15 Monday 18 March 2024
+
+### Event Engine
+
+- Improved (experimental) `TripleExponentialSmoothing` and `TripleExponentialSmoothingOptimization`.
+- Introducing (experimental) `ExponentialSmoothingWithLinearTrend` and `ExponentialSmoothingWithLinearTrendOptimization`.
+- Moved MSE calculation to `CalculationUtils`.
+
 ## v1.0.0-PROTOTYPE.14 Monday 18 March 2024
 
 ### Event Engine
