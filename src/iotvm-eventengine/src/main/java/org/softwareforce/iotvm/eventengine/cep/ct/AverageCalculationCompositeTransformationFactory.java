@@ -92,8 +92,9 @@ public class AverageCalculationCompositeTransformationFactory
   /* ------------ Internals ------------ */
 
   private static QualityPropertiesIBO calculateAndGetQualityPropertiesIBO(
-      final long windowStartTimestamp,
-      final long windowEndTimestamp,
+      final long timeWindowStartTimestampMs,
+      final long timeWindowEndTimestampMs,
+      final long timeWindowSizeMs,
       final int minimumNumberOfContributingSensors,
       final int fabricationPastEventsStepsBehind,
       final int fabricationForecastingStepsAhead,
@@ -102,12 +103,38 @@ public class AverageCalculationCompositeTransformationFactory
         CalculationUtils.calculateCompleteness1(minimumNumberOfContributingSensors, eventIBOList);
     final double timeliness1 =
         CalculationUtils.calculateTimeliness1(
-            windowStartTimestamp, windowEndTimestamp, eventIBOList);
+            timeWindowStartTimestampMs, timeWindowEndTimestampMs, eventIBOList);
+
+    final Map<String, Long> maxDistances = new HashMap<>();
+    maxDistances.put(EventFabricationMethod.NAIVE.name(), (long) fabricationPastEventsStepsBehind);
+    maxDistances.put(
+        EventFabricationMethod.SIMPLE_EXPONENTIAL_SMOOTHING.name(),
+        (long) fabricationForecastingStepsAhead);
+    maxDistances.put(
+        EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND.name(),
+        (long) fabricationForecastingStepsAhead);
+    final long defaultMaxDistance = 0;
+
+    final Map<String, Double> alphas = new HashMap<>();
+    alphas.put(EventFabricationMethod.NAIVE.name(), 0.9);
+    alphas.put(EventFabricationMethod.SIMPLE_EXPONENTIAL_SMOOTHING.name(), 0.8);
+    alphas.put(EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND.name(), 0.8);
+    final double defaultAlpha = 0.0;
+
+    for (final EventFabricationMethod method : EventFabricationMethod.values()) {
+      Preconditions.checkState(maxDistances.containsKey(method.name()));
+      Preconditions.checkState(alphas.containsKey(method.name()));
+    }
+
     final double timeliness2 =
-        CalculationUtils.calculateTimeliness2(
-            windowStartTimestamp,
-            windowEndTimestamp,
-            fabricationPastEventsStepsBehind,
+        CalculationUtils.calculateTimeliness(
+            timeWindowStartTimestampMs,
+            timeWindowEndTimestampMs,
+            timeWindowSizeMs,
+            maxDistances,
+            defaultMaxDistance,
+            alphas,
+            defaultAlpha,
             eventIBOList);
 
     final Map<String, Double> metrics = new HashMap<>();
@@ -214,6 +241,7 @@ public class AverageCalculationCompositeTransformationFactory
                   calculateAndGetQualityPropertiesIBO(
                       key.window().start(),
                       key.window().end(),
+                      this.fixedSizeTimeWindowSpec.getTimeWindowSize().toMillis(),
                       this.parameters.getMinimumNumberOfContributingSensors(),
                       this.parameters.getPastWindowsLookup(),
                       this.parameters.getFutureWindowsLookupAlternative(),
@@ -355,6 +383,7 @@ public class AverageCalculationCompositeTransformationFactory
                   calculateAndGetQualityPropertiesIBO(
                       key.window().start(),
                       key.window().end(),
+                      this.fixedSizeTimeWindowSpec.getTimeWindowSize().toMillis(),
                       parameters.getMinimumNumberOfContributingSensors(),
                       parameters.getPastWindowsLookup(),
                       parameters.getFutureWindowsLookupAlternative(),

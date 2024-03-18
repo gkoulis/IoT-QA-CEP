@@ -1,6 +1,12 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.17 Monday 18 March 2024
+
+### Event Engine
+
+- Introducing new improved version for calculating degree of timeliness and mean timeliness.
+
 ## v1.0.0-PROTOTYPE.16 Monday 18 March 2024
 
 ### Event Engine
