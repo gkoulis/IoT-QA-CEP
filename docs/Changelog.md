@@ -1,7 +1,13 @@
 Changelog
 ===
 
-## v1.0.0-PROTOTYPE.13 Friday 14 March 2024
+## v1.0.0-PROTOTYPE.14 Monday 18 March 2024
+
+### Event Engine
+
+- Introducing (experimental) `TripleExponentialSmoothing` and `TripleExponentialSmoothingOptimization`.
+
+## v1.0.0-PROTOTYPE.13 Friday 15 March 2024
 
 trivial commit  
 

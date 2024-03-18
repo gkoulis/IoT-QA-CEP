@@ -23,11 +23,11 @@ public class EventEngineApplicationSimulation {
 
     // TODO Arguments or env or both.
     long start = System.nanoTime();
-    // final String baseDirectory =
-    // "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-local-data/simulations";
     // final String simulationsDirectoryPath = System.getenv("SIMULATIONS_DIRECTORY_PATH");
+    // final String baseDirectory =
+    // "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-local-data/simulations";
     final String baseDirectory =
-        "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-local-data/simulations";
+        "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-local-data/simulations";
     final String simulationName = "simulation-1";
     final IBOPersistenceServiceType iboPersistenceServiceType = IBOPersistenceServiceType.NO_OPS;
 
