@@ -155,6 +155,7 @@ public final class EventFabricationService {
         missingRegisteredSensorIdSet.add(registeredSensorId);
         remainingMissingRegisteredSensorIdSet.add(registeredSensorId);
       } else {
+        // TODO assert timestampMs, timeWindowStartTimestampMs and value are the same.
         existingRegisteredSensorIdSet.add(registeredSensorId);
         inputEventSet.remove(inputEvent);
       }

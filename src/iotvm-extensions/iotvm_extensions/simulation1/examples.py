@@ -200,6 +200,9 @@ def setup_example() -> None:
 
 
 def evaluation_example() -> None:
-    project_directory: str = "/home/dgk/projects/PhD/dgk-phd-monorepo/src/iotvm-extensions"
-    simulations_directory: str = os.path.join(project_directory, "local_data", "simulation1-EXAMPLE")
-    perform_evaluation(directory=simulations_directory, simulation_name="simulation-1")
+    base_directory: str = (
+        Path(__file__).resolve().parent.parent.parent.parent.joinpath("iotvm-local-data", "simulations").__str__()
+    )
+    simulation_name: str = "simulation-1"
+
+    perform_evaluation(directory=base_directory, simulation_name=simulation_name)

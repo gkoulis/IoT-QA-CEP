@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from iotvm_extensions.mongodb import MongoClient, get_default_mongodb_client
+from iotvm_extensions.mongodb import get_default_mongodb_client
 from .average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id
 
 _logger = logging.getLogger("iotvm_extensions.examples.report")
@@ -422,7 +422,7 @@ def get_single_result_dataframe(
     ctp_id_pl: str = ctp_id_obj.__str__()
 
     _logger.debug(f"Generating single result for {experiment_name}, {simulation_name}, {ctp_id_str}, {cycle}")
-    client: MongoClient = get_default_mongodb_client()
+    client = get_default_mongodb_client()
     collection = client["iotvmdb"]["universal"]
 
     match = {
