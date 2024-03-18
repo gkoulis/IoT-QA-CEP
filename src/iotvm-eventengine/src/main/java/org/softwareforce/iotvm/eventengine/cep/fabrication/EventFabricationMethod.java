@@ -8,5 +8,6 @@ package org.softwareforce.iotvm.eventengine.cep.fabrication;
  */
 public enum EventFabricationMethod {
   NAIVE,
-  SIMPLE_EXPONENTIAL_SMOOTHING
+  SIMPLE_EXPONENTIAL_SMOOTHING,
+  EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND,
 }

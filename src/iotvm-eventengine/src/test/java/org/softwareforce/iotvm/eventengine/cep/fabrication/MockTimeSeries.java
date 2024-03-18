@@ -11,8 +11,7 @@ import java.util.List;
  */
 public final class MockTimeSeries {
 
-  private MockTimeSeries() {
-  }
+  private MockTimeSeries() {}
 
   protected static List<Double> getAirTemperatureValues() {
     // Array to hold 24 hours of temperature data in a greenhouse, taken every 5 minutes

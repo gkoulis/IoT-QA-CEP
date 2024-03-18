@@ -86,6 +86,29 @@ public final class EventFabricationService {
     }
   }
 
+  private void ensureCandidateTimeConsistency(
+      final String candidateSensorId,
+      final long candidateDistance,
+      final long timeWindowStartTimestampMs) {
+    final TimeWindowedTimeSeries ts = this.timeSeriesBySensorId.get(candidateSensorId);
+    final TimeWindowedTimeSeries.TimeWindow lastTimeWindow = ts.getPoints().lastKey();
+
+    final TimeWindowedTimeSeries.TimeWindow timeWindow =
+        new TimeWindowedTimeSeries.TimeWindow(timeWindowStartTimestampMs, this.timeWindowSizeMs);
+    final long distance = timeWindow.distanceFrom(lastTimeWindow);
+
+    if (candidateDistance != distance) {
+      throw new IllegalStateException(
+          "candidateDistance "
+              + candidateDistance
+              + " is not equal to distance "
+              + distance
+              + " (timeWindowStartTimestampMs"
+              + timeWindowStartTimestampMs
+              + ")");
+    }
+  }
+
   /* ------------ API ------------ */
 
   public boolean updateTimeWindowedTimeSeries(
@@ -200,27 +223,25 @@ public final class EventFabricationService {
         candidates1.add(new Candidate(sensorId, distance));
       }
 
-      Collections.sort(candidates1); // TODO Check that it's okay.
+      Collections.sort(candidates1);
 
       for (final Candidate candidate : candidates1) {
         final String candidateSensorId = candidate.sensorId;
         final long candidateDistance = candidate.distance;
 
         final TimeWindowedTimeSeries ts = this.timeSeriesBySensorId.get(candidateSensorId);
-
         final TimeWindowedTimeSeries.TimeWindow lastTimeWindow = ts.getPoints().lastKey();
         final TimeWindowedTimeSeries.Point lastPoint = ts.getPoints().get(lastTimeWindow);
+        final Double value = lastPoint.getValue();
 
-        final TimeWindowedTimeSeries.TimeWindow timeWindow =
-            new TimeWindowedTimeSeries.TimeWindow(
-                timeWindowStartTimestampMs, this.timeWindowSizeMs);
-        final long distance = timeWindow.distanceFrom(lastTimeWindow);
-        assert candidateDistance == distance;
+        // TODO Make optional.
+        this.ensureCandidateTimeConsistency(
+            candidateSensorId, candidateDistance, timeWindowStartTimestampMs);
 
         final OutputEvent outputEvent =
             new OutputEvent(
                 candidateSensorId,
-                lastPoint.getValue(),
+                value,
                 EventFabricationMethod.NAIVE,
                 candidateDistance,
                 timeWindowStartTimestampMs);
@@ -246,7 +267,60 @@ public final class EventFabricationService {
     // --------------------------------------------------
 
     if (simpleExponentialSmoothingEnabled) {
-      // TODO Implement.
+
+      final List<Candidate> candidates1 = new ArrayList<>();
+      for (final String sensorId : remainingMissingRegisteredSensorIdSet) {
+        final Long distance =
+            this.isCandidate(sensorId, timeWindowStartTimestampMs, 2, stepsAhead).orElse(null);
+        if (distance == null) {
+          continue;
+        }
+        candidates1.add(new Candidate(sensorId, distance));
+      }
+
+      Collections.sort(candidates1);
+
+      for (final Candidate candidate : candidates1) {
+        System.out.println(
+            "Performing EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND: " + candidate.toString());
+
+        final String candidateSensorId = candidate.sensorId;
+        final long candidateDistance = candidate.distance;
+
+        final TimeWindowedTimeSeries ts = this.timeSeriesBySensorId.get(candidateSensorId);
+        final List<Double> series =
+            ts.getPoints().values().stream().map(TimeWindowedTimeSeries.Point::getValue).toList();
+
+        final double alpha = 0.1;
+        final double beta = 0.1;
+        final int horizon = stepsAhead;
+        final ExponentialSmoothingWithLinearTrend forecaster =
+            new ExponentialSmoothingWithLinearTrend(alpha, beta, horizon);
+        // TODO Optional optimizer.
+        final List<Double> forecasts = forecaster.forecast(series);
+        assert series.size() + stepsAhead == forecasts.size();
+        final Double value = forecasts.get(forecasts.size() - 1);
+
+        // TODO Make optional.
+        this.ensureCandidateTimeConsistency(
+            candidateSensorId, candidateDistance, timeWindowStartTimestampMs);
+
+        final OutputEvent outputEvent =
+            new OutputEvent(
+                candidateSensorId,
+                value,
+                EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND,
+                candidateDistance,
+                timeWindowStartTimestampMs);
+
+        outputEventSet.add(outputEvent);
+        remainingMissingRegisteredSensorIdSet.remove(candidateSensorId);
+        successfulFabricationCount = successfulFabricationCount + 1;
+
+        if (successfulFabricationCount >= shouldFabricateCount) {
+          break;
+        }
+      }
     }
 
     return outputEventSet;
@@ -277,6 +351,15 @@ public final class EventFabricationService {
     @Override
     public int hashCode() {
       return Objects.hash(sensorId);
+    }
+
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("Candidate{");
+      sb.append("sensorId='").append(sensorId).append('\'');
+      sb.append(", distance=").append(distance);
+      sb.append('}');
+      return sb.toString();
     }
   }
 }

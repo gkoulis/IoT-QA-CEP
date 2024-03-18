@@ -258,6 +258,7 @@ public class AverageCalculationCompositeTransformationFactory
               additional.put("eventFabricationDuration", 0L);
               additional.put("eventFabricationNaiveCount", 0L);
               additional.put("eventFabricationSESCount", 0L);
+              additional.put("eventFabricationESLTCount", 0L);
               additional.put("eventFabricationCount", 0L);
 
               // Update Time-Series structures.
@@ -307,6 +308,7 @@ public class AverageCalculationCompositeTransformationFactory
               long count = 0L;
               long naiveCount = 0L;
               long sesCount = 0L;
+              long esltCount = 0L;
 
               // Add fabricated events to complex event.
               // --------------------------------------------------
@@ -330,6 +332,9 @@ public class AverageCalculationCompositeTransformationFactory
                 } else if (EventFabricationMethod.SIMPLE_EXPONENTIAL_SMOOTHING.equals(
                     outputEvent.getMethod())) {
                   sesCount++;
+                } else if (EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND.equals(
+                    outputEvent.getMethod())) {
+                  esltCount++;
                 }
               }
 
@@ -362,6 +367,7 @@ public class AverageCalculationCompositeTransformationFactory
               additional.put("eventFabricationDuration", durationNs);
               additional.put("eventFabricationNaiveCount", naiveCount);
               additional.put("eventFabricationSESCount", sesCount);
+              additional.put("eventFabricationESLTCount", esltCount);
               additional.put("eventFabricationCount", count);
 
               value.setAdditional(additional);

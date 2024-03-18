@@ -1,6 +1,13 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.16 Monday 18 March 2024
+
+### Event Engine
+
+- Integrated `ExponentialSmoothingWithLinearTrend` to `EventFabricationService`.
+- Added `ensureCandidateTimeConsistency` method to `EventFabricationService` to ensure distance consistency.
+
 ## v1.0.0-PROTOTYPE.15 Monday 18 March 2024
 
 ### Event Engine

@@ -171,6 +171,7 @@ public class AverageCalculationCompositeTransformationParameters
   }
 
   // TODO Temporarily enabled.
+  // TODO Not sure!
   public int getFutureWindowsLookup() {
     return futureWindowsLookup;
   }

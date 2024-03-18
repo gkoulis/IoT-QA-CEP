@@ -1,8 +1,7 @@
 package org.softwareforce.iotvm.eventengine.cep.fabrication;
 
-import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
-
 import java.util.List;
+import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
 
 /**
  * Brute-force grid optimization for {@link TripleExponentialSmoothing}.

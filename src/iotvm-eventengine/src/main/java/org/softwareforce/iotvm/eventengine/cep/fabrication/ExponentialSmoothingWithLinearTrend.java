@@ -60,11 +60,13 @@ public class ExponentialSmoothingWithLinearTrend {
     // Start calculations from the second point.
     for (int i = 1; i < n; i++) {
       // Calculating level.
-      double newLevel = this.alpha * series.get(i) + (1 - this.alpha) * (level.get(i - 1) + trend.get(i - 1));
+      double newLevel =
+          this.alpha * series.get(i) + (1 - this.alpha) * (level.get(i - 1) + trend.get(i - 1));
       level.add(newLevel);
 
       // Calculating trend.
-      double newTrend = this.beta * (level.get(i) - level.get(i - 1)) + (1 - this.beta) * trend.get(i - 1);
+      double newTrend =
+          this.beta * (level.get(i) - level.get(i - 1)) + (1 - this.beta) * trend.get(i - 1);
       trend.add(newTrend);
     }
 

@@ -1,9 +1,8 @@
 package org.softwareforce.iotvm.eventengine.cep.fabrication;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
 public class ExponentialSmoothingWithLinearTrendTests {
 
@@ -29,8 +28,7 @@ public class ExponentialSmoothingWithLinearTrendTests {
 
     final ExponentialSmoothingWithLinearTrendOptimization optimizer =
         new ExponentialSmoothingWithLinearTrendOptimization(alpha, beta, steps);
-    double[] bestParams =
-        optimizer.optimizeParameters(data, alphaRange, betaRange);
+    double[] bestParams = optimizer.optimizeParameters(data, alphaRange, betaRange);
 
     // expected duration: 10ms - 100ms
 

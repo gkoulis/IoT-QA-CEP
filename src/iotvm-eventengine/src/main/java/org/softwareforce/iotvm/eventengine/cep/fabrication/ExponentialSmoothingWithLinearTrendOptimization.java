@@ -1,8 +1,7 @@
 package org.softwareforce.iotvm.eventengine.cep.fabrication;
 
-import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
-
 import java.util.List;
+import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
 
 /**
  * Brute-force grid optimization for {@link ExponentialSmoothingWithLinearTrend}.
@@ -10,16 +9,14 @@ import java.util.List;
  * @author Dimitris Gkoulis
  * @createdAt Monday 18 March 2024
  */
-public class ExponentialSmoothingWithLinearTrendOptimization extends ExponentialSmoothingWithLinearTrend {
+public class ExponentialSmoothingWithLinearTrendOptimization
+    extends ExponentialSmoothingWithLinearTrend {
 
   public ExponentialSmoothingWithLinearTrendOptimization(double alpha, double beta, int horizon) {
     super(alpha, beta, horizon);
   }
 
-  public double[] optimizeParameters(
-      List<Double> data,
-      double[] alphaRange,
-      double[] betaRange) {
+  public double[] optimizeParameters(List<Double> data, double[] alphaRange, double[] betaRange) {
     double bestAlpha = 0;
     double bestBeta = 0;
     double bestMSE = Double.MAX_VALUE;
