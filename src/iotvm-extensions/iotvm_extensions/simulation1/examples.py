@@ -135,6 +135,7 @@ def setup_example() -> None:
     sample: np.ndarray = sample1_df["value"].values
 
     timezone: Optional[str] = None  # "Europe/Athens"
+    # TODO The starting dt must much with the dataset's point start dt.
     start: pd.Timestamp = pd.Timestamp(
         year=2024,
         month=3,
@@ -157,42 +158,24 @@ def setup_example() -> None:
         name="simulation-1",
         sensors=presets.PAPER_SENSORS,
         variations=[
-            Variation(
-                name="variation-1",
-                loss_by_sensor={
-                    "sensor-1": presets.PAPER_LOSS1,
-                    "sensor-2": presets.PAPER_LOSS2,
-                    "sensor-3": presets.PAPER_LOSS3,
-                    "sensor-4": presets.PAPER_LOSS4,
-                    "sensor-5": presets.PAPER_LOSS5,
-                    "sensor-6": presets.PAPER_LOSS6,
-                },
-                iterations=[
-                    Iteration(
-                        name="iteration-1",
-                        loss_seed_by_sensor={
-                            "sensor-1": presets.PAPER_LOSS1_SEED,
-                            "sensor-2": presets.PAPER_LOSS2_SEED,
-                            "sensor-3": presets.PAPER_LOSS3_SEED,
-                            "sensor-4": presets.PAPER_LOSS4_SEED,
-                            "sensor-5": presets.PAPER_LOSS5_SEED,
-                            "sensor-6": presets.PAPER_LOSS6_SEED,
-                        },
-                        loss_seed_fallback=SEED,
-                    ),
-                ],
-            )
+            presets.variation("variation-1", 1, 2, 3, 4, 5, 6),
+            presets.variation("variation-2", 1, 2, 6, 4, 5, 3),
+            presets.variation("variation-3", 1, 4, 2, 3, 5, 6),
+            presets.variation("variation-4", 1, 2, 5, 4, 3, 2),
+            presets.variation("variation-5", 4, 5, 1, 2, 6, 4),
+            presets.variation("variation-6", 4, 4, 2, 2, 4, 4),
+            presets.variation("variation-7", 1, 2, 3, 1, 2, 3),
         ],
         average_ct_ps_space=AverageCalculationCompositeTransformationParametersSetsSpace(
             physical_quantity_list=["TEMPERATURE"],
-            time_window_size_list=[5],
-            # number_of_contributing_sensors_list=[2, 4, 6],
-            number_of_contributing_sensors_list=[4],  # TODO Temporary.
+            time_window_size_list=[5],  # TODO always pass string... PT5M
+            number_of_contributing_sensors_list=[2, 4, 6],
+            # number_of_contributing_sensors_list=[4],  # TODO Temporary.
             ignore_completeness_filtering_list=[False],
-            # fabrication_past_events_steps_behind_list=[2, 4, 6],
-            # fabrication_forecasting_steps_ahead_list=[2, 4, 6],
-            fabrication_past_events_steps_behind_list=[4],  # TODO Temporary.
-            fabrication_forecasting_steps_ahead_list=[4],  # TODO Temporary.
+            fabrication_past_events_steps_behind_list=[0, 2, 4, 6],  # TODO Re-run - todo add more... 8, 10, 12, 14
+            fabrication_forecasting_steps_ahead_list=[0, 2, 4, 6],  # TODO Re-run - todo add more ...
+            # fabrication_past_events_steps_behind_list=[4],  # TODO Temporary.
+            # fabrication_forecasting_steps_ahead_list=[4],  # TODO Temporary.
         ),
     )
     # TODO Do not allow if directory already exists!

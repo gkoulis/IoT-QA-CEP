@@ -12,14 +12,41 @@ import org.softwareforce.iotvm.eventengine.cep.CalculationUtils;
 public class ExponentialSmoothingWithLinearTrendOptimization
     extends ExponentialSmoothingWithLinearTrend {
 
+  private double bestAlpha;
+  private double bestBeta;
+  private double bestMSE;
+  private List<Double> bestForecasts;
+
   public ExponentialSmoothingWithLinearTrendOptimization(double alpha, double beta, int horizon) {
     super(alpha, beta, horizon);
+    this.reset();
   }
 
-  public double[] optimizeParameters(List<Double> data, double[] alphaRange, double[] betaRange) {
-    double bestAlpha = 0;
-    double bestBeta = 0;
-    double bestMSE = Double.MAX_VALUE;
+  private void reset() {
+    this.bestAlpha = 0;
+    this.bestBeta = 0;
+    this.bestMSE = Double.MAX_VALUE;
+    this.bestForecasts = null;
+  }
+
+  public double getBestAlpha() {
+    return this.bestAlpha;
+  }
+
+  public double getBestBeta() {
+    return this.bestBeta;
+  }
+
+  public double getBestMSE() {
+    return this.bestMSE;
+  }
+
+  public List<Double> getBestForecasts() {
+    return this.bestForecasts;
+  }
+
+  public void optimizeParameters(List<Double> data, double[] alphaRange, double[] betaRange) {
+    this.reset();
 
     for (double alpha : alphaRange) {
       for (double beta : betaRange) {
@@ -39,14 +66,13 @@ public class ExponentialSmoothingWithLinearTrendOptimization
         }
 
         double mse = CalculationUtils.calculateMSE(yTrue, yPred);
-        if (mse < bestMSE) {
-          bestMSE = mse;
-          bestAlpha = alpha;
-          bestBeta = beta;
+        if (mse < this.bestMSE) {
+          this.bestMSE = mse;
+          this.bestAlpha = alpha;
+          this.bestBeta = beta;
+          this.bestForecasts = forecast;
         }
       }
     }
-
-    return new double[] {bestAlpha, bestBeta, bestMSE};
   }
 }

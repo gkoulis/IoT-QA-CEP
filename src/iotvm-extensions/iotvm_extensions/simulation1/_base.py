@@ -26,8 +26,10 @@ Modified at: Saturday 04 November 2023
 import json
 import logging
 import os
+import pprint
 import random
 import re
+import sys
 import uuid
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -35,6 +37,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
+from iotvm_extensions.examples.average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id
 from iotvm_extensions.constants import EPS, SEED
 from iotvm_extensions.examples.average_calculation_parameters_sets import generate_average_calculation_parameters_sets
 
@@ -955,6 +958,9 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
     This function creates a representation of a Complex Event for convenient processing and interpretation.
     """
 
+    ct_ps_id_str: str = ibo["compositeTransformationParametersIdentifier"]
+    ct_ps_id_obj: CompositeTransformationParameterID = parse_ctp_id(ctp_id=ct_ps_id_str)
+
     uid: str = _complex_event_uid(
         ibo=ibo, simulation_name=simulation_name, variation_name=variation_name, iteration_name=iteration_name
     )
@@ -974,9 +980,14 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         "iteration_name": iteration_name,
         # TODO Keep one timestamp for ID and sorting and joining...
         # IDs and taxonomy: Composite Transformation ----------
+        "naive_max_distance_param": ct_ps_id_obj.fabrication_past_events_steps_behind,
+        "expon_max_distance_param": ct_ps_id_obj.fabrication_forecasting_steps_ahead,
+        "expon_max_distance_actual": ct_ps_id_obj.fabrication_past_events_steps_behind + ct_ps_id_obj.fabrication_forecasting_steps_ahead,
         # IDs and taxonomy: Time Window ----------
-        "start_timestamp": ibo["startTimestamp"],  # TODO Convert to datetime and the to string.
-        "end_timestamp": ibo["endTimestamp"],  # TODO Convert to datetime and the to string.
+        "start_timestamp": ibo["startTimestamp"],
+        "start_dt": str(pd.Timestamp(ibo["startTimestamp"], unit="ms", tz="UTC")),
+        "end_timestamp": ibo["endTimestamp"],
+        "end_dt": str(pd.Timestamp(ibo["endTimestamp"], unit="ms", tz="UTC")),
         # Business: Average Calculation ----------
         "value": round(ibo["average"]["value"]["double"], 2),
         "value_before": round(ibo["additional"]["averageValueBeforeEventFabrication"]["double"], 2),
@@ -1080,7 +1091,7 @@ def _update_accuracy(df: pd.DataFrame) -> pd.DataFrame:
             if real_ == 0:
                 value_ = value_ + EPS
                 real_ = real_ + EPS
-            return 1.0 - abs((value_ - real_) / real_)
+            return 1.0 - (abs(value_ - real_) / real_)
 
         return _update_accuracy_apply_func
 

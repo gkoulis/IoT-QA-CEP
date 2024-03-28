@@ -1,6 +1,21 @@
 Changelog
 ===
 
+## v.1.0.-PROTOTYPE.18 Thursday 28 March 2024
+
+### Event Engine
+
+- Changed alphas in timeliness calculation: naive = 0.8, exponential smoothing = 0.9.
+- Improved `ExponentialSmoothingWithLinearTrendOptimization`.
+- Using `ExponentialSmoothingWithLinearTrendOptimization` instead of `ExponentialSmoothingWithLinearTrend` for forecasting in `EventFabricationService`. This is 20 to 30 times slower, however, it provides much better forecasts.
+
+### Extensions
+
+- Improved average calculation parameters set ID manipulation.
+- Improved presets and base (for convenient customization).
+- Fixed bug in accuracy calculation.
+- Some other changes and improvements.
+
 ## v1.0.0-PROTOTYPE.17 Monday 18 March 2024
 
 ### Event Engine

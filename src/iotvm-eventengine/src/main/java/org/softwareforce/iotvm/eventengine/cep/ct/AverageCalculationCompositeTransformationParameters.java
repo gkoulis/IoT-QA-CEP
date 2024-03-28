@@ -178,6 +178,7 @@ public class AverageCalculationCompositeTransformationParameters
 
   /** TODO EXPERIMENTAL. */
   public int getFutureWindowsLookupAlternative() {
+    // TODO Use only this!
     if (this.futureWindowsLookup > 0 && this.pastWindowsLookup > 0) {
       return this.futureWindowsLookup + this.pastWindowsLookup;
     }

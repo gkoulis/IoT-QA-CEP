@@ -17,6 +17,8 @@ from ._base import (
     Sensor,
     Measurement,
     Interactions,
+    Variation,
+    Iteration,
 )
 
 CONSTANT_FREQUENCY_5MIN_DISTRIBUTION: DistributionType = ConstantDistribution(
@@ -278,3 +280,36 @@ class Presets:
         self.PAPER_LOSS4_SEED: int = 440574014
         self.PAPER_LOSS5_SEED: int = 888738903
         self.PAPER_LOSS6_SEED: int = 919622034
+        
+    def _get_loss_by_number(self, num: int) -> Loss:
+        return getattr(self, f"PAPER_LOSS{num}")
+        
+    def _get_seed_by_number(self, num: int) -> int:
+        return getattr(self, f"PAPER_LOSS{num}_SEED")
+    
+    def variation(self, name: str, sensor1: int, sensor2: int, sensor3: int, sensor4: int, sensor5: int, sensor6: int) -> Variation:
+        return Variation(
+            name=name,
+            loss_by_sensor={
+                "sensor-1": self._get_loss_by_number(num=sensor1),
+                "sensor-2": self._get_loss_by_number(num=sensor2),
+                "sensor-3": self._get_loss_by_number(num=sensor3),
+                "sensor-4": self._get_loss_by_number(num=sensor4),
+                "sensor-5": self._get_loss_by_number(num=sensor5),
+                "sensor-6": self._get_loss_by_number(num=sensor6),
+            },
+            iterations=[
+                Iteration(
+                    name="iteration-1",
+                    loss_seed_by_sensor={
+                        "sensor-1": self._get_seed_by_number(num=sensor1),
+                        "sensor-2": self._get_seed_by_number(num=sensor2),
+                        "sensor-3": self._get_seed_by_number(num=sensor3),
+                        "sensor-4": self._get_seed_by_number(num=sensor4),
+                        "sensor-5": self._get_seed_by_number(num=sensor5),
+                        "sensor-6": self._get_seed_by_number(num=sensor6),
+                    },
+                    loss_seed_fallback=SEED,
+                ),
+            ],
+        )

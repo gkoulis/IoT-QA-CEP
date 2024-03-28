@@ -28,12 +28,12 @@ public class ExponentialSmoothingWithLinearTrendTests {
 
     final ExponentialSmoothingWithLinearTrendOptimization optimizer =
         new ExponentialSmoothingWithLinearTrendOptimization(alpha, beta, steps);
-    double[] bestParams = optimizer.optimizeParameters(data, alphaRange, betaRange);
+    optimizer.optimizeParameters(data, alphaRange, betaRange);
 
     // expected duration: 10ms - 100ms
 
     System.out.printf(
         "Optimal parameters: alpha = %.2f, beta = %.2f, with MSE = %.4f%n",
-        bestParams[0], bestParams[1], bestParams[2]);
+        optimizer.getBestAlpha(), optimizer.getBestBeta(), optimizer.getBestMSE());
   }
 }

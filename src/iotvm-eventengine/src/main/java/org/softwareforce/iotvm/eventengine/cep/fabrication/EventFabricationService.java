@@ -291,13 +291,22 @@ public final class EventFabricationService {
         final List<Double> series =
             ts.getPoints().values().stream().map(TimeWindowedTimeSeries.Point::getValue).toList();
 
+        /*
         final double alpha = 0.1;
         final double beta = 0.1;
         final int horizon = stepsAhead;
         final ExponentialSmoothingWithLinearTrend forecaster =
             new ExponentialSmoothingWithLinearTrend(alpha, beta, horizon);
-        // TODO Optional optimizer.
         final List<Double> forecasts = forecaster.forecast(series);
+        */
+
+        double[] alphaRange = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+        double[] betaRange = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+        final int horizon = stepsAhead;
+        final ExponentialSmoothingWithLinearTrendOptimization optimizer = new ExponentialSmoothingWithLinearTrendOptimization(alphaRange[0], betaRange[0], horizon);
+        optimizer.optimizeParameters(series, alphaRange, betaRange);
+        final List<Double> forecasts = optimizer.getBestForecasts();
+
         assert series.size() + stepsAhead == forecasts.size();
         final Double value = forecasts.get(forecasts.size() - 1);
 

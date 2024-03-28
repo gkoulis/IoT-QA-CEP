@@ -173,7 +173,9 @@ public final class CalculationUtils {
               && defaultTimestamp <= timeWindowEndTimestampMs);
 
       final double alpha = alphas.getOrDefault(method, defaultAlpha);
+      // TODO Add warning when default is used?
       final long maxDistance = maxDistances.getOrDefault(method, defaultMaxDistance);
+      // TODO Add warning when default is used?
       final double degreeOfTimeliness =
           calculateTimeWindowedDecayedTimeliness(distance, maxDistance, alpha);
       degreeOfTimelinessMap.put(event.getSensorId(), degreeOfTimeliness);

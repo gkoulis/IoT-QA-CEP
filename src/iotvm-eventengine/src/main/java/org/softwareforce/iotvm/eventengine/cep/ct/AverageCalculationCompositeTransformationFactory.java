@@ -116,9 +116,9 @@ public class AverageCalculationCompositeTransformationFactory
     final long defaultMaxDistance = 0;
 
     final Map<String, Double> alphas = new HashMap<>();
-    alphas.put(EventFabricationMethod.NAIVE.name(), 0.9);
-    alphas.put(EventFabricationMethod.SIMPLE_EXPONENTIAL_SMOOTHING.name(), 0.8);
-    alphas.put(EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND.name(), 0.8);
+    alphas.put(EventFabricationMethod.NAIVE.name(), 0.8);
+    alphas.put(EventFabricationMethod.SIMPLE_EXPONENTIAL_SMOOTHING.name(), 0.9);
+    alphas.put(EventFabricationMethod.EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND.name(), 0.9);
     final double defaultAlpha = 0.0;
 
     for (final EventFabricationMethod method : EventFabricationMethod.values()) {
