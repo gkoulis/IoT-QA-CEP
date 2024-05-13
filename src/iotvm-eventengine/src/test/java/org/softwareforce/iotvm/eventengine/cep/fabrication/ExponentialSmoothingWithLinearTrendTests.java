@@ -33,7 +33,10 @@ public class ExponentialSmoothingWithLinearTrendTests {
     // expected duration: 10ms - 100ms
 
     System.out.printf(
-        "Optimal parameters: alpha = %.2f, beta = %.2f, with MSE = %.4f%n",
-        optimizer.getBestAlpha(), optimizer.getBestBeta(), optimizer.getBestMSE());
+        "Optimal parameters: alpha = %.2f, beta = %.2f, with MSE = %.4f%n, with MAE = %.4f%n",
+        optimizer.getSelectedAlpha(),
+        optimizer.getSelectedBeta(),
+        optimizer.getMSE(),
+        optimizer.getMAE());
   }
 }

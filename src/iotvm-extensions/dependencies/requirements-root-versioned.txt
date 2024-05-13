@@ -8,3 +8,4 @@ avro-python3==1.10.2
 avro==1.11.3
 fastparquet==2024.2.0
 pyarrow==15.0.1
+Jinja2==3.1.3

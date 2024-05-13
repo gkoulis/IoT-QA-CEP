@@ -21,8 +21,9 @@ public class EventEngineApplicationSimulation {
     // TODO run it with enabled assertions.
     // TODO validate the new event fabrication service -> tests etc. IMPORTANT.
 
-    // TODO Arguments or env or both.
     long start = System.nanoTime();
+
+    // TODO Arguments or env or both.
     // final String simulationsDirectoryPath = System.getenv("SIMULATIONS_DIRECTORY_PATH");
     // final String baseDirectory =
     // "/Users/gkoulis/projects/dgk-phd-monorepo/src/iotvm-local-data/simulations";
@@ -36,8 +37,9 @@ public class EventEngineApplicationSimulation {
     // TODO Run validations, diagnostics.
 
     simulation.execute();
+
     long end = System.nanoTime();
     long diff = end - start;
-    System.out.println(diff); // TODO remove.
+    LOGGER.info("EventEngineApplicationSimulation terminated after {} ns", diff);
   }
 }

@@ -17,3 +17,4 @@ avro-python3
 avro
 fastparquet
 pyarrow
+Jinja2

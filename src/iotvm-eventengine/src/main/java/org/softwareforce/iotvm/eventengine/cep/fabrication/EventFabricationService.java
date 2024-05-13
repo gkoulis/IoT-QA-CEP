@@ -214,6 +214,8 @@ public final class EventFabricationService {
     if (naiveEnabled) {
 
       final List<Candidate> candidates1 = new ArrayList<>();
+      // final List<Candidate> qualifiedCandidates1 = new ArrayList<>();
+
       for (final String sensorId : remainingMissingRegisteredSensorIdSet) {
         final Long distance =
             this.isCandidate(sensorId, timeWindowStartTimestampMs, 1, stepsBehind).orElse(null);
@@ -250,10 +252,25 @@ public final class EventFabricationService {
         remainingMissingRegisteredSensorIdSet.remove(candidateSensorId);
         successfulFabricationCount = successfulFabricationCount + 1;
 
+        // qualifiedCandidates1.add(candidate);
+
         if (successfulFabricationCount >= shouldFabricateCount) {
           break;
         }
       }
+
+      /*
+      LOGGER.trace(
+          "timeWindowStartTimestampMs : {} "
+              + "\ninputEventBySensorId keys  : {} "
+              + "\ncandidates1: {} "
+              + "\nqualified1: {} "
+              + "\n\n",
+          timeWindowStartTimestampMs,
+          inputEventBySensorId.keySet(),
+          candidates1,
+          qualifiedCandidates1);
+      */
     }
 
     // Check if the requirement is met.
@@ -281,9 +298,6 @@ public final class EventFabricationService {
       Collections.sort(candidates1);
 
       for (final Candidate candidate : candidates1) {
-        System.out.println(
-            "Performing EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND: " + candidate.toString());
-
         final String candidateSensorId = candidate.sensorId;
         final long candidateDistance = candidate.distance;
 
@@ -300,15 +314,26 @@ public final class EventFabricationService {
         final List<Double> forecasts = forecaster.forecast(series);
         */
 
-        double[] alphaRange = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
-        double[] betaRange = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+        // TODO Important: we do not handle missing data! I M P O R T A N T !
+
+        // double[] alphaRange = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+        // double[] betaRange = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9};
+        double[] alphaRange =
+            ExponentialSmoothingWithLinearTrendOptimization.generateRange(0.01, 0.99, 0.01);
+        double[] betaRange =
+            ExponentialSmoothingWithLinearTrendOptimization.generateRange(0.01, 0.99, 0.01);
         final int horizon = stepsAhead;
-        final ExponentialSmoothingWithLinearTrendOptimization optimizer = new ExponentialSmoothingWithLinearTrendOptimization(alphaRange[0], betaRange[0], horizon);
+        final ExponentialSmoothingWithLinearTrendOptimization optimizer =
+            new ExponentialSmoothingWithLinearTrendOptimization(
+                alphaRange[0], betaRange[0], horizon);
         optimizer.optimizeParameters(series, alphaRange, betaRange);
         final List<Double> forecasts = optimizer.getBestForecasts();
 
-        assert series.size() + stepsAhead == forecasts.size();
-        final Double value = forecasts.get(forecasts.size() - 1);
+        assert series.size() + horizon == forecasts.size();
+        assert horizon >= candidateDistance;
+        final int horizonDistanceDifference = horizon - (int) candidateDistance;
+        Collections.reverse(forecasts);
+        final Double value = forecasts.get(horizonDistanceDifference);
 
         // TODO Make optional.
         this.ensureCandidateTimeConsistency(
@@ -346,7 +371,8 @@ public final class EventFabricationService {
 
     @Override
     public int compareTo(Candidate other) {
-      return Long.compare(other.distance, this.distance);
+      return Long.compare(
+          this.distance, other.distance); // TODO Okay (the order is important - write to docs)?
     }
 
     @Override

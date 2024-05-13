@@ -48,6 +48,14 @@ public final class CalculationUtils {
     return mse / (yTrue.size());
   }
 
+  public static double calculateMAE(List<Double> yTrue, List<Double> yPred) {
+    double mae = 0.0;
+    for (int i = 0; i < yTrue.size(); i++) {
+      mae += Math.abs(yTrue.get(i) - yPred.get(i));
+    }
+    return mae / yTrue.size();
+  }
+
   public static Optional<Double> calculateAverage(
       List<SensorTelemetryMeasurementEventIBO> eventList) {
     final int size = eventList.size();
@@ -126,7 +134,8 @@ public final class CalculationUtils {
     // 2024-01-01T00:00:00.0000Z - 2024-01-01T00:00:0000Z
 
     assert timeWindowEndTimestampMs > timeWindowStartTimestampMs;
-    assert (timeWindowEndTimestampMs - timeWindowStartTimestampMs) == (timeWindowSizeMs - 1);
+    // assert (timeWindowEndTimestampMs - timeWindowStartTimestampMs) == (timeWindowSizeMs - 1);
+    assert (timeWindowEndTimestampMs - timeWindowStartTimestampMs) == (timeWindowSizeMs);
 
     Preconditions.checkState(maxDistances != null);
     for (final Long maxDistance : maxDistances.values()) {
@@ -173,9 +182,9 @@ public final class CalculationUtils {
               && defaultTimestamp <= timeWindowEndTimestampMs);
 
       final double alpha = alphas.getOrDefault(method, defaultAlpha);
-      // TODO Add warning when default is used?
+      // TODO Add warning when default is used? And if it's null, throw exception if missing.
       final long maxDistance = maxDistances.getOrDefault(method, defaultMaxDistance);
-      // TODO Add warning when default is used?
+      // TODO Add warning when default is used? And if it's null, throw exception if missing.
       final double degreeOfTimeliness =
           calculateTimeWindowedDecayedTimeliness(distance, maxDistance, alpha);
       degreeOfTimelinessMap.put(event.getSensorId(), degreeOfTimeliness);

@@ -12,6 +12,7 @@ import org.softwareforce.iotvm.eventengine.cep.PhysicalQuantity;
 public class AverageCalculationCompositeTransformationParameters
     extends CompositeTransformationParameters {
   public static final String ID_PREFIX = "w_avg_";
+  public static final String SEPARATOR = "_";
 
   // TODO as abstract method in abstract class!
   //  It must be unique across all to ensure uniqueness of ids.
@@ -170,51 +171,46 @@ public class AverageCalculationCompositeTransformationParameters
     return forecastingWindowSize;
   }
 
-  // TODO Temporarily enabled.
-  // TODO Not sure!
-  public int getFutureWindowsLookup() {
-    return futureWindowsLookup;
-  }
-
-  /** TODO EXPERIMENTAL. */
   public int getFutureWindowsLookupAlternative() {
-    // TODO Use only this!
-    if (this.futureWindowsLookup > 0 && this.pastWindowsLookup > 0) {
-      return this.futureWindowsLookup + this.pastWindowsLookup;
+    assert this.pastWindowsLookup >= 0;
+    assert this.futureWindowsLookup >= 0;
+    if (this.futureWindowsLookup == 0) {
+      return 0;
     }
-    return this.futureWindowsLookup;
+    return this.futureWindowsLookup + this.pastWindowsLookup;
   }
 
   /* ------------ Implementation ------------ */
 
   @Override
   public String getUniqueIdentifier() {
+    final String separator = SEPARATOR;
     //noinspection StringBufferReplaceableByString
     final StringBuilder sb = new StringBuilder(ID_PREFIX);
 
     sb.append(this.physicalQuantity.getName());
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.timeWindowSize.toString());
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.timeWindowGrace == null ? "null" : this.timeWindowGrace.toString());
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.timeWindowAdvance == null ? "null" : this.timeWindowAdvance.toString());
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.minimumNumberOfContributingSensors);
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.ignoreCompletenessFiltering);
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.pastWindowsLookup);
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.forecastingWindowSize.toString());
-    sb.append("_");
+    sb.append(separator);
 
     sb.append(this.futureWindowsLookup);
 

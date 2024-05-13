@@ -1,6 +1,11 @@
 package org.softwareforce.iotvm.eventengine.cep.fabrication;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,8 +88,18 @@ public class TimeWindowedTimeSeries {
     }
   }
 
+  public boolean hasMissingPoints() {
+    throw new UnsupportedOperationException(); // TODO Implement and use.
+  }
+
+  public boolean hasImputedPoints() {
+    throw new UnsupportedOperationException(); // TODO Implement and use.
+  }
+
   /**
-   * Handles missing points @TODO Optimize for real-time ops (continue from the last imputation
+   * TODO Introduce more imputation methods and compare. Choose the best.
+   *
+   * <p>Handles missing points @TODO Optimize for real-time ops (continue from the last imputation
    * point)
    */
   public boolean handleMissingPoints() {
@@ -98,7 +113,8 @@ public class TimeWindowedTimeSeries {
     // Fast check if contains missing points.
     // -------------------------------------------------------
 
-    // TODO Implement.
+    // TODO Implement:
+    //   this.hasMissingPoints
 
     // -------------------------------------------------------
 
@@ -161,10 +177,13 @@ public class TimeWindowedTimeSeries {
       if (prev >= 0 && next < series.length) {
         series[i] = series[prev] + (series[next] - series[prev]) * (i - prev) / (next - prev);
       } else {
+        LOGGER.warn("Edge Case: prev < 0 or next > series.length");
+        // TODO Add logger.
         // Handle edge cases or throw an error.
         // NOTE: Highly unexpected because
         // we have strong validations in the start of the method.
         series[i] = 0; // TODO Placeholder, consider better handling
+        // TODO Add eps instead of zero.
       }
     }
 

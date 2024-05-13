@@ -25,12 +25,13 @@ Copy `average-calculation-parameters-sets.json` from iotvm_extensions/local_data
 mvn clean package
 ```
 
-
+When performing simulations, run with enabled assertions ```java -ea -jar TARGET.jar```
 
 ```
 java -jar target/gateway-1.0.0-PROTOTYPE.1.jar server configuration.yml
 python -m iotvm_extensions.examples_cli start_server
 java -jar target/eventengine-1.0.0-PROTOTYPE.1.jar
+java -ea -jar target/eventengine-1.0.0-PROTOTYPE.1.jar
 python -m iotvm_extensions.examples_cli ensure_forecasters  # If has data.
 python -m iotvm_extensions.examples_cli run_sensor_simulation_example
 python -m iotvm_extensions.examples_cli ensure_forecasters

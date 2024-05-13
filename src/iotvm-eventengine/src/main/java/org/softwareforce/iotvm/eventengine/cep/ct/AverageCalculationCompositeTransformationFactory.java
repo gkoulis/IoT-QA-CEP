@@ -204,7 +204,7 @@ public class AverageCalculationCompositeTransformationFactory
         .windowedBy(timeWindowsDefinition)
         // .emitStrategy(EmitStrategy.onWindowClose())
         // .emitStrategy(EmitStrategy.onWindowUpdate())
-        // TODO try without named (materialized)
+        // TODO PRACTICAL IMPLICATION: If you do not add materialized, Kafka Streams will use the default impl. That means that will use the default SerDes too which use Registry, i.e., search in registry for the avro schema. So, it will fail!
         .aggregate(new InitializerImpl(physicalQuantity), new AggregatorImpl(), materialized)
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()
@@ -315,7 +315,7 @@ public class AverageCalculationCompositeTransformationFactory
                 return value;
               }
               if (this.parameters.getPastWindowsLookup() == 0
-                  && this.parameters.getFutureWindowsLookup() == 0) {
+                  && this.parameters.getFutureWindowsLookupAlternative() == 0) {
                 return value;
               }
 
@@ -329,7 +329,7 @@ public class AverageCalculationCompositeTransformationFactory
                       key.window().start(),
                       this.parameters.getMinimumNumberOfContributingSensors(),
                       this.parameters.getPastWindowsLookup(),
-                      this.parameters.getFutureWindowsLookup());
+                      this.parameters.getFutureWindowsLookupAlternative());
               final long endNs = System.nanoTime();
               final long durationNs = endNs - startNs;
 

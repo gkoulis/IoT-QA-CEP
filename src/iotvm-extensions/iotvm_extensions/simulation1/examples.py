@@ -6,11 +6,11 @@ Created at: Sunday 10 March 2024
 import os
 from pathlib import Path
 from typing import Optional
+import logging
 
 import numpy as np
 import pandas as pd
 
-from iotvm_extensions.constants import SEED
 from ._base import (
     t_min_to_sec,
     DistributionType,
@@ -20,13 +20,13 @@ from ._base import (
     MeasurementBasicGenerator,
     MultiMeasurementCombiner,
     Simulation,
-    Variation,
-    Iteration,
     AverageCalculationCompositeTransformationParametersSetsSpace,
     perform_evaluation,
 )
 from ._presets import Presets
 from ._visualization import plot_synthetic_time_series, plot_synthetic_time_series_loss_metrics
+
+_logger = logging.getLogger(__name__)
 
 
 def generator_and_combiner_example() -> None:
@@ -135,18 +135,22 @@ def setup_example() -> None:
     sample: np.ndarray = sample1_df["value"].values
 
     timezone: Optional[str] = None  # "Europe/Athens"
-    # TODO The starting dt must much with the dataset's point start dt.
+
+    # The first timestamp of the dataset we use.
+    # 2021-01-17 09:00:00
     start: pd.Timestamp = pd.Timestamp(
-        year=2024,
-        month=3,
-        day=9,
-        hour=0,
+        year=2021,
+        month=1,
+        day=17,
+        hour=9,
         minute=0,
         second=0,
         microsecond=0,
         tz=timezone,
         unit="sec",  # sec for simplicity, ns for precision
     )
+    start_from_dataset: pd.Timestamp = pd.Timestamp(sample1_df["timestamp"].iloc[0])
+    assert start == start_from_dataset
 
     presets: Presets = Presets()
     presets.sample = sample
@@ -170,15 +174,16 @@ def setup_example() -> None:
             physical_quantity_list=["TEMPERATURE"],
             time_window_size_list=[5],  # TODO always pass string... PT5M
             number_of_contributing_sensors_list=[2, 4, 6],
-            # number_of_contributing_sensors_list=[4],  # TODO Temporary.
             ignore_completeness_filtering_list=[False],
-            fabrication_past_events_steps_behind_list=[0, 2, 4, 6],  # TODO Re-run - todo add more... 8, 10, 12, 14
-            fabrication_forecasting_steps_ahead_list=[0, 2, 4, 6],  # TODO Re-run - todo add more ...
-            # fabrication_past_events_steps_behind_list=[4],  # TODO Temporary.
-            # fabrication_forecasting_steps_ahead_list=[4],  # TODO Temporary.
+            fabrication_past_events_steps_behind_list=[0, 2, 4, 6],
+            fabrication_forecasting_steps_ahead_list=[0, 2, 4, 6],
         ),
     )
-    # TODO Do not allow if directory already exists!
+
+    if simulation.check_directory_existence(base_directory=base_directory) is True:
+        _logger.warning(f"Directory for simulation `{simulation.name}` already exists! Aborting...")
+        return
+
     simulation.process(base_directory=base_directory)
 
 

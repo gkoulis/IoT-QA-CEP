@@ -1,7 +1,29 @@
 Changelog
 ===
 
-## v.1.0.-PROTOTYPE.18 Thursday 28 March 2024
+## v1.0.0-PROTOTYPE.19 Friday 29 March 2024 (Monday 15 April 2024)
+
+### Event Engine
+
+- Changed Java version in pom.xml from 19 to 21.
+- Replaced `assert` with `Preconditions.checkState`
+- **MAJOR**: Using `getFutureWindowsLookupAlternative` instead of `getFutureWindowsLookup`. 
+  That is, we use the **_sum_** of `futureWindowsLookup` and `pastWindowsLookup`.
+- Improved `AverageCalculationCompositeTransformationParameters`: added separator for consistent key generation (`getUniqueIdentifier`).
+- Improved `EventFabricationService`.
+- Improved `ExponentialSmoothingWithLinearTrendOptimization`: utilities for range generation, benchmarking, and multiple metric evaluation (MSE, MAE)
+- Non-trivial changes in `TimeWindowedTimeSeries` (notes, comments, logs).
+- Added method for calculating MAE to `CalculationUtils`.
+- Fixed assertion bug in `CalculationUtils`.
+
+### Extensions
+
+- **MAJOR**: Added one more row in `dataset-1-slice-9-13.csv` so Event Engine can calculate at most 50 complex events for the corresponding time windows instead of 49. 
+  The last time window complex event is omitted because the stream time does not move forward until a new event occurs.
+- A script to help me with heuristic analysis (nothing important)
+- Improved simulation preparation and results analysis: added missing parameters in parameters set combinations, directory check, styled excel, more metrics, more columns, bug fixes, and more.
+
+## v1.0.0-PROTOTYPE.18 Thursday 28 March 2024
 
 ### Event Engine
 

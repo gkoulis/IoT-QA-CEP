@@ -159,6 +159,11 @@ class CLI:
 
         evaluation_example()
 
+    def simulation1_heuristic_modeling_helpers(self) -> None:
+        from iotvm_extensions.simulation1.examples_heuristic import heuristic_modeling_helpers_example
+
+        heuristic_modeling_helpers_example()
+
 
 if __name__ == "__main__":
     set_up_logging()

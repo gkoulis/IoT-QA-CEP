@@ -11,8 +11,7 @@ public final class ApplicationConfiguration {
 
   /* ------------ Config: IoTVM Extensions ------------ */
 
-  private String extensionsHost;
-  private int extensionsPort;
+  // private String yourConfig = "";
 
   /* ------------ Constructors ------------ */
 
@@ -23,18 +22,9 @@ public final class ApplicationConfiguration {
   }
 
   public void load() {
-    // TODO Load from file (allow calling this method only once.).
-    this.extensionsHost = "localhost";
-    this.extensionsPort = 9003;
+    // TODO Load from file (only once).
+    // this.yourConfig = "value";
   }
 
   /* ------------ Getters ------------ */
-
-  public String getExtensionsHost() {
-    return extensionsHost;
-  }
-
-  public int getExtensionsPort() {
-    return extensionsPort;
-  }
 }

@@ -26,16 +26,15 @@ Modified at: Saturday 04 November 2023
 import json
 import logging
 import os
-import pprint
 import random
 import re
-import sys
 import uuid
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+import pandas.io.formats.style
 
 from iotvm_extensions.examples.average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id
 from iotvm_extensions.constants import EPS, SEED
@@ -49,12 +48,14 @@ _logger = logging.getLogger(__name__)
 # ####################################################################################################
 
 
-def _persist_dataframe(df: pd.DataFrame, directory: str, file_name: str) -> None:
+def _persist_dataframe(df: pd.DataFrame, styled_df, directory: str, file_name: str) -> None:
     path_to_file: str = os.path.join(directory, file_name)
     df.to_json(f"{path_to_file}.json", orient="records")
     df.to_parquet(f"{path_to_file}.parquet")
     df.to_csv(f"{path_to_file}.csv")
     df.to_excel(f"{path_to_file}.xlsx")
+    if styled_df is not None:
+        styled_df.to_excel(f"{path_to_file}-STYLED.xlsx")
 
 
 def _to_json(obj, directory: str, file_name: str) -> None:
@@ -687,6 +688,12 @@ class Simulation:
     variations: List[Variation]
     average_ct_ps_space: AverageCalculationCompositeTransformationParametersSetsSpace
 
+    def check_directory_existence(self, base_directory: str) -> bool:
+        simulation_directory = os.path.join(base_directory, self.name)
+        if os.path.exists(simulation_directory):
+            return True
+        return False
+
     def process(self, base_directory: str) -> None:
         baseline: Variation = Variation(
             name="baseline-0",
@@ -740,7 +747,8 @@ class Simulation:
                         interactions_distributions_seed: int = measurement.interactions.seed
 
                         if isinstance(y, str):
-                            y = np.random.uniform(low=20, high=30, size=100)  # TODO load from file.
+                            raise NotImplementedError  # TODO Load from file.
+                            # y = np.random.uniform(low=20, high=30, size=100)
                         elif isinstance(y, np.ndarray):
                             pass
                         else:
@@ -952,11 +960,41 @@ def _extract_iot_event_is_fabricated(ibo: Dict, sensor_id: str) -> Optional[floa
         return 0
 
 
+def _extract_iot_event_event_fabrication_method(ibo: Dict, sensor_id: str) -> Optional[str]:
+    try:
+        return ibo["events"][sensor_id]["additional"]["eventFabricationMethod"]["string"]
+    except KeyError:
+        return None
+
+
+def _extract_iot_event_event_fabrication_distance(ibo: Dict, sensor_id: str) -> Optional[int]:
+    try:
+        return ibo["events"][sensor_id]["additional"]["eventFabricationDistance"]["long"]
+    except KeyError:
+        return None
+
+
+def _calculate_time_window_index(start_timestamp_ms: int, current_timestamp_ms: int, time_window_size_ms: int) -> int:
+    elapsed_time_ms = current_timestamp_ms - start_timestamp_ms
+    window_index = elapsed_time_ms // time_window_size_ms
+    return window_index
+
+
 def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iteration_name: str) -> Dict:
     """
     IBO to Complex Event. IBO is also a Complex Event. However, it has too much information.
     This function creates a representation of a Complex Event for convenient processing and interpretation.
     """
+
+    start_timestamp_ms: int = 1610874000000  # TODO Automatically!
+    current_timestamp_ms: int = ibo["startTimestamp"]
+    time_window_size_ms: int = 300000  # TODO Automatically!
+    time_window_index: int = _calculate_time_window_index(
+        start_timestamp_ms=start_timestamp_ms,
+        current_timestamp_ms=current_timestamp_ms,
+        time_window_size_ms=time_window_size_ms,
+    )
+    time_window_index = time_window_index + 1
 
     ct_ps_id_str: str = ibo["compositeTransformationParametersIdentifier"]
     ct_ps_id_obj: CompositeTransformationParameterID = parse_ctp_id(ctp_id=ct_ps_id_str)
@@ -970,7 +1008,8 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
 
     naive_count: int = ibo["additional"]["eventFabricationNaiveCount"]["long"]
     ses_count: int = ibo["additional"]["eventFabricationSESCount"]["long"]
-    fabricated_events_count: int = naive_count + ses_count
+    eslt_count: int = ibo["additional"]["eventFabricationESLTCount"]["long"]
+    fabricated_events_count: int = naive_count + ses_count + eslt_count
     fabricated_events_duration: int = ibo["additional"]["eventFabricationDuration"]["long"]
 
     event: Dict[str, Any] = {
@@ -978,12 +1017,13 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         "simulation_name": simulation_name,
         "variation_name": variation_name,
         "iteration_name": iteration_name,
-        # TODO Keep one timestamp for ID and sorting and joining...
         # IDs and taxonomy: Composite Transformation ----------
+        "min_num_of_sensors": ct_ps_id_obj.number_of_contributing_sensors,
         "naive_max_distance_param": ct_ps_id_obj.fabrication_past_events_steps_behind,
         "expon_max_distance_param": ct_ps_id_obj.fabrication_forecasting_steps_ahead,
         "expon_max_distance_actual": ct_ps_id_obj.fabrication_past_events_steps_behind + ct_ps_id_obj.fabrication_forecasting_steps_ahead,
         # IDs and taxonomy: Time Window ----------
+        "time_window_index": time_window_index,
         "start_timestamp": ibo["startTimestamp"],
         "start_dt": str(pd.Timestamp(ibo["startTimestamp"], unit="ms", tz="UTC")),
         "end_timestamp": ibo["endTimestamp"],
@@ -1001,18 +1041,21 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         "accuracy_before": -1.0,  # We do not have the value yet.
         "accuracy_ef": -1.0,  # We do not have the value yet.
         "timeliness1": ibo["qualityProperties"]["metrics"]["timeliness1"]["double"],
-        "timeliness1_before": ibo["additional"]["timeliness1BeforeEventFabrication"]["double"],
+        # "timeliness1_before": ibo["additional"]["timeliness1BeforeEventFabrication"]["double"],
         "timeliness2": ibo["qualityProperties"]["metrics"]["timeliness2"]["double"],
-        "timeliness2_before": ibo["additional"]["timeliness2BeforeEventFabrication"]["double"],
+        # "timeliness2_before": ibo["additional"]["timeliness2BeforeEventFabrication"]["double"],
         # Event Fabrication ----------
         "naive_count": naive_count,
-        "ses_count": ses_count,
+        # "ses_count": ses_count,
+        "eslt_count": eslt_count,
         "fabricated_events_count": fabricated_events_count,
         # Benchmarking ----------
         "fabricated_events_duration": fabricated_events_duration,
         # IoT Events / Sensors / Event Fabrication ----------
         **{f"sensor-{i}": _extract_iot_event_value(ibo, f"sensor-{i}") for i in range(1, 7)},
         **{f"sensor-{i}-ef": _extract_iot_event_is_fabricated(ibo, f"sensor-{i}") for i in range(1, 7)},
+        **{f"sensor-{i}-ef-method": _extract_iot_event_event_fabrication_method(ibo, f"sensor-{i}") for i in range(1, 7)},
+        **{f"sensor-{i}-ef-distance": _extract_iot_event_event_fabrication_distance(ibo, f"sensor-{i}") for i in range(1, 7)},
         **{f"sensor-{i}-real": -1.0 for i in range(1, 7)},  # We do not have the value yet.
         # System-Specifics (they dropped after processing) ----------
         "uid": uid,
@@ -1109,9 +1152,25 @@ def _update_accuracy(df: pd.DataFrame) -> pd.DataFrame:
 
 def _multiply_percentage_and_round(df: pd.DataFrame, columns: List[str], round_n_digits: int) -> pd.DataFrame:
     for column in columns:
+        if column not in df.columns:
+            _logger.warning(f"column {column} not in df.columns {df.columns.tolist()}")
+            continue
         df[column] = df[column] * 100
         df[column] = df[column].round(round_n_digits)
     return df
+
+
+def _highlight_based_on_event_fabrication(df: pd.DataFrame) -> pd.DataFrame:
+    styles: pd.DataFrame = pd.DataFrame("", index=df.index, columns=df.columns)
+
+    # TODO Declare somewhere the min/max num of sensors.
+    for i in range(1, 7):
+        sensor_col: str = f"sensor-{i}"
+        real_col = f"sensor-{i}-ef"
+
+        if sensor_col in df.columns and real_col in df.columns:
+            styles[sensor_col] = df[real_col].map({1: "background-color: yellow", 0: ""})
+    return styles
 
 
 def perform_evaluation(directory: str, simulation_name) -> None:
@@ -1151,7 +1210,7 @@ def perform_evaluation(directory: str, simulation_name) -> None:
                     complex_event_list.append(complex_event)
 
     complex_event_df: pd.DataFrame = pd.DataFrame(data=complex_event_list)
-    _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-out")
+    _persist_dataframe(df=complex_event_df, styled_df=None, directory=simulation_directory, file_name="complex-event-out")
     complex_event_df = _update_ground_truth(df=complex_event_df)
     complex_event_df = _update_accuracy(df=complex_event_df)
     complex_event_df = _multiply_percentage_and_round(
@@ -1169,7 +1228,9 @@ def perform_evaluation(directory: str, simulation_name) -> None:
         ],
         round_n_digits=2,
     )
-    _persist_dataframe(df=complex_event_df, directory=simulation_directory, file_name="complex-event-eval")
+    styled_complex_event_df = complex_event_df.style.apply(_highlight_based_on_event_fabrication, axis=None)
+
+    _persist_dataframe(df=complex_event_df, styled_df=styled_complex_event_df, directory=simulation_directory, file_name="complex-event-eval")
 
 
 def perform_evaluation_aggregation(directory: str, simulation_name) -> None:
