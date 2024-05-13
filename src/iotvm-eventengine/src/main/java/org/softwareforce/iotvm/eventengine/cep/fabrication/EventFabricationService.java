@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Dimitris Gkoulis
  * @createdAt Wednesday 13 March 2024
+ * @todo WRITE DOCS: not thread safe...
  */
 public final class EventFabricationService {
 
@@ -112,7 +113,7 @@ public final class EventFabricationService {
   /* ------------ API ------------ */
 
   public boolean updateTimeWindowedTimeSeries(
-      final String sensorId, double value, long timestampMs) {
+      final String sensorId, final double value, final long timestampMs) {
     if (!this.timeSeriesBySensorId.containsKey(sensorId)) {
       LOGGER.warn("Sensor ID : {} is not registered! Aborting.", sensorId);
       return false;
@@ -358,6 +359,22 @@ public final class EventFabricationService {
     }
 
     return outputEventSet;
+  }
+
+  public int getTimeSeriesSizeBySensorId(final String sensorId) {
+    assert this.timeSeriesBySensorId.containsKey(sensorId);
+    return this.timeSeriesBySensorId.get(sensorId).getPoints().size();
+  }
+
+  public Optional<Integer> getDistanceFromLastPointInTimeSeriesBySensorId(final String sensorId, final long timeWindowTimestampMs) {
+    assert this.timeSeriesBySensorId.containsKey(sensorId);
+    if (this.timeSeriesBySensorId.get(sensorId).getPoints().isEmpty()) {
+      return Optional.empty();
+    }
+    final TimeWindowedTimeSeries.TimeWindow lastTimeWindow = this.timeSeriesBySensorId.get(sensorId).getPoints().lastKey();
+    final TimeWindowedTimeSeries.TimeWindow timeWindow = new TimeWindowedTimeSeries.TimeWindow(timeWindowTimestampMs, this.timeWindowSizeMs);
+    final long distance = timeWindow.distanceFrom(lastTimeWindow);
+    return Optional.of((int) distance);
   }
 
   private static final class Candidate implements Comparable<Candidate> {

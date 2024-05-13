@@ -1,6 +1,16 @@
 Changelog
 ===
 
+## v1.0.0-PROTOTYPE.20 Monday 13 May 2024
+
+### Event Engine
+
+- Added functionality (EventFabricationService, AverageCalculationCompositeTransformationFactory) to find and store in the Complex Event the size of each sensors rolling time-series as well as the distance (in time-windows) from last point for each sensor.
+
+### Extensions
+
+Changed evaluation functionality to include in dataframes/spreadsheets the TS size and distance for each sensor.
+
 ## v1.0.0-PROTOTYPE.19 Friday 29 March 2024 (Monday 15 April 2024)
 
 ### Event Engine

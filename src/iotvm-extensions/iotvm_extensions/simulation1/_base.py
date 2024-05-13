@@ -26,15 +26,16 @@ Modified at: Saturday 04 November 2023
 import json
 import logging
 import os
+import pprint
 import random
 import re
+import sys
 import uuid
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-import pandas.io.formats.style
 
 from iotvm_extensions.examples.average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id
 from iotvm_extensions.constants import EPS, SEED
@@ -1057,6 +1058,9 @@ def _to_complex_event(ibo: Dict, simulation_name: str, variation_name: str, iter
         **{f"sensor-{i}-ef-method": _extract_iot_event_event_fabrication_method(ibo, f"sensor-{i}") for i in range(1, 7)},
         **{f"sensor-{i}-ef-distance": _extract_iot_event_event_fabrication_distance(ibo, f"sensor-{i}") for i in range(1, 7)},
         **{f"sensor-{i}-real": -1.0 for i in range(1, 7)},  # We do not have the value yet.
+        # (rolling) Time-Series ----------
+        **{f"sensor-{i}-TS-distance": ibo['additional'][f'sensor-{i}_TS_distance']['int'] for i in range(1, 7)},
+        **{f"sensor-{i}-TS-size": ibo['additional'][f'sensor-{i}_TS_size']['int'] for i in range(1, 7)},
         # System-Specifics (they dropped after processing) ----------
         "uid": uid,
         "is_baseline": "baseline" in variation_name.lower(),

@@ -305,6 +305,17 @@ public class AverageCalculationCompositeTransformationFactory
                         ibo.getTimestamps().getDefaultTimestamp()));
               }
 
+              // Get Time-Series summaries.
+              // --------------------------------------------------
+
+              for (final String sensorId : Constants.SENSOR_IDS) {
+                additional.put(sensorId + "_TS_size", this.eventFabricationService.getTimeSeriesSizeBySensorId(sensorId));
+                // PRACTICAL IMPLICATION: as long as simulation ensures that the first time-window
+                // has value for each sensor, distance will never be `null`.
+                // PRACTICAL IMPLICATION: This is not the case if the time-series is rolling...
+                additional.put(sensorId + "_TS_distance", this.eventFabricationService.getDistanceFromLastPointInTimeSeriesBySensorId(sensorId, key.window().start()).orElse(null));
+              }
+
               // Check completeness.
               // --------------------------------------------------
 
