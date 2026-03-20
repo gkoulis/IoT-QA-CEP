@@ -199,7 +199,7 @@ Many changes and improvements.
 - Changed Kafka configuration path to kafka-streams directory (for Ubuntu).
 
 ### iotvm-gateway
-- 
+
 - Changed Java: from 20 to 19.
 
 ### iotvm-extensions

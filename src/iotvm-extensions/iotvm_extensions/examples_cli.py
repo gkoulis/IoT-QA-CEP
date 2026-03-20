@@ -159,10 +159,17 @@ class CLI:
 
         evaluation_example()
 
-    def simulation1_heuristic_modeling_helpers(self) -> None:
-        from iotvm_extensions.simulation1.examples_heuristic import heuristic_modeling_helpers_example
+    def simulation1_heuristic_modeling_helper1(self) -> None:
+        """TODO Temporary helper"""
+        from iotvm_extensions.simulation1.examples_heuristic import run_helper1
 
-        heuristic_modeling_helpers_example()
+        run_helper1()
+
+    def simulation1_heuristic_modeling_helper2(self) -> None:
+        """TODO Temporary helper"""
+        from iotvm_extensions.simulation1.examples_heuristic import run_helper2
+
+        run_helper2()
 
 
 if __name__ == "__main__":

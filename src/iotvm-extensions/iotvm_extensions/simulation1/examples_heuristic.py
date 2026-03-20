@@ -1,20 +1,18 @@
 """
 Author: Dimitris Gkoulis
 Created at: Wednesday 10 April 2024
+Updated at: Monday 13 May 2024
 """
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
-from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
-
-import numpy as np
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
 
-def heuristic_modeling_helpers_example() -> None:
+def run_helper1() -> None:
     base_directory: str = (
         Path(__file__).resolve().parent.parent.parent.parent.joinpath("iotvm-local-data", "simulations").__str__()
     )
@@ -81,3 +79,28 @@ def heuristic_modeling_helpers_example() -> None:
 
     plt.show()
     plt.close("all")
+
+
+def run_helper2() -> None:
+    base_directory: str = (
+        Path(__file__).resolve().parent.parent.parent.parent.joinpath("iotvm-local-data", "simulations").__str__()
+    )
+    simulation_name: str = "simulation-1"
+    path_to_parquet: str = os.path.join(base_directory, simulation_name, "fabricated-iot-event.parquet")
+
+    # --------------------------------------------------
+
+    df: pd.DataFrame = pd.read_parquet(path_to_parquet)
+    df = df.query("ef_method == 'EXPONENTIAL_SMOOTHING_WITH_LINEAR_TREND' and sensor_id == 'sensor-6'")
+
+    spearman_corr = df[["ts_distance", "ts_size", "relative_difference"]].corr(method='spearman')
+    print(spearman_corr)
+
+    sns.pairplot(df, hue='sensor_id', vars=["ts_distance", "ts_size", 'relative_difference'])
+    plt.show()
+
+    sns.boxplot(x="ts_distance", y="relative_difference", data=df)
+    plt.show()
+
+    sns.boxplot(x="ts_size", y="relative_difference", data=df)
+    plt.show()

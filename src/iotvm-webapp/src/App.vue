@@ -45,7 +45,7 @@ import { RouterLink, RouterView } from "vue-router";
     </main>
     <footer class="relative bg-black">
       <div class="text-center py-1 px-4">
-        <p class="text-white text-xs">© 2023 Software Force</p>
+        <p class="text-white text-xs">© 2023 - 2026 dg94.com</p>
       </div>
     </footer>
   </div>

@@ -26,19 +26,19 @@ Modified at: Saturday 04 November 2023
 import json
 import logging
 import os
-import pprint
 import random
 import re
-import sys
 import uuid
 from dataclasses import dataclass
+from itertools import chain
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from iotvm_extensions.examples.average_calculation_parameters_sets import CompositeTransformationParameterID, parse_ctp_id
 from iotvm_extensions.constants import EPS, SEED
+from iotvm_extensions.examples.average_calculation_parameters_sets import CompositeTransformationParameterID, \
+    parse_ctp_id
 from iotvm_extensions.examples.average_calculation_parameters_sets import generate_average_calculation_parameters_sets
 
 _logger = logging.getLogger(__name__)
@@ -1177,6 +1177,55 @@ def _highlight_based_on_event_fabrication(df: pd.DataFrame) -> pd.DataFrame:
     return styles
 
 
+def _complex_event_to_single_fabricated_iot_event(complex_event: Dict) -> List[Dict]:
+    data_list: List[Dict] = []
+
+    common = {
+        "simulation_name": complex_event["simulation_name"],
+        "variation_name": complex_event["variation_name"],
+        "iteration_name": complex_event["iteration_name"],
+        "min_num_of_sensors": complex_event["min_num_of_sensors"],
+        "naive_max_distance_param": complex_event["naive_max_distance_param"],
+        "expon_max_distance_param": complex_event["expon_max_distance_param"],
+        "expon_max_distance_actual": complex_event["expon_max_distance_actual"],
+        "time_window_index": complex_event["time_window_index"],
+        "start_dt": complex_event["start_dt"],
+    }
+
+    for i in range(1, 7):
+        is_fabricated: bool = complex_event[f"sensor-{i}-ef"] > 0
+        if is_fabricated is False:
+            continue
+
+        sensor_id: str = f"sensor-{i}"
+        real_value: float = complex_event[f"sensor-{i}-real"]
+        fabricated_value: float = complex_event[f"sensor-{i}"]
+        absolute_difference: float = abs(fabricated_value - real_value)  # TODO add to complex event as well!
+        absolute_difference = round(absolute_difference, 2)
+        relative_difference: float = 1.0 - (abs(fabricated_value - real_value) / real_value)
+        ef_method: str = complex_event[f"sensor-{i}-ef-method"]
+        ts_distance: int = complex_event[f"sensor-{i}-TS-distance"]
+        ts_size: int = complex_event[f"sensor-{i}-TS-size"]
+
+        row: Dict = {
+            "sensor_id": sensor_id,
+            "real_value": real_value,
+            "fabricated_value": fabricated_value,
+            "absolute_difference": absolute_difference,
+            "relative_difference": relative_difference,
+            "ef_method": ef_method,
+            "ts_distance": ts_distance,
+            "ts_size": ts_size,
+        }
+
+        data_list.append({
+            **common,
+            **row
+        })
+
+    return data_list
+
+
 def perform_evaluation(directory: str, simulation_name) -> None:
     simulation_directory: str = os.path.join(directory, simulation_name)
 
@@ -1213,6 +1262,8 @@ def perform_evaluation(directory: str, simulation_name) -> None:
                     )
                     complex_event_list.append(complex_event)
 
+    # --------------------------------------------------
+
     complex_event_df: pd.DataFrame = pd.DataFrame(data=complex_event_list)
     _persist_dataframe(df=complex_event_df, styled_df=None, directory=simulation_directory, file_name="complex-event-out")
     complex_event_df = _update_ground_truth(df=complex_event_df)
@@ -1235,6 +1286,20 @@ def perform_evaluation(directory: str, simulation_name) -> None:
     styled_complex_event_df = complex_event_df.style.apply(_highlight_based_on_event_fabrication, axis=None)
 
     _persist_dataframe(df=complex_event_df, styled_df=styled_complex_event_df, directory=simulation_directory, file_name="complex-event-eval")
+
+    # --------------------------------------------------
+
+    complex_event_list = complex_event_df.to_dict(orient="records")
+    fabricated_iot_event_list: List[Dict] = list(chain.from_iterable(_complex_event_to_single_fabricated_iot_event(complex_event=complex_event) for complex_event in complex_event_list))
+    fabricated_iot_event_df: pd.DataFrame = pd.DataFrame(data=fabricated_iot_event_list)
+    fabricated_iot_event_df = _multiply_percentage_and_round(
+        df=fabricated_iot_event_df,
+        columns=[
+            "relative_difference",
+        ],
+        round_n_digits=2,
+    )
+    _persist_dataframe(df=fabricated_iot_event_df, styled_df=None, directory=simulation_directory, file_name="fabricated-iot-event")
 
 
 def perform_evaluation_aggregation(directory: str, simulation_name) -> None:
