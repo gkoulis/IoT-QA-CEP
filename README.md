@@ -1,2 +1,2 @@
-DGk-PhD-Monorepo
+Internet of Things Quality-Aware Complex Event Processing
 ===

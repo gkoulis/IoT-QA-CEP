@@ -40,5 +40,9 @@ python -m iotvm_extensions.examples_cli ensure_forecasters
 Check the console after `python -m iotvm_extensions.examples_cli ensure_forecasters`
 Copy `simulation_name` value and change the value of `REPORT__SIMULATION_NAME_LIST` in your configuration.
 
+```shell
 python -m iotvm_extensions.examples_cli generate_report  
-python -m iotvm_extensions.examples_cli generate_report_cached  
+python -m iotvm_extensions.examples_cli generate_report_cached
+python -m iotvm_extensions.examples_cli simulation1_setup_example
+python -m iotvm_extensions.examples_cli simulation1_evaluation_example
+```
