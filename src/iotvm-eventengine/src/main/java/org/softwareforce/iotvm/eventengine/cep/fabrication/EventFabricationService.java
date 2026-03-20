@@ -15,9 +15,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Experimental Event Fabrication Service.
  *
+ * <p>It is not thread-safe.</p>
+ *
  * @author Dimitris Gkoulis
  * @createdAt Wednesday 13 March 2024
- * @todo WRITE DOCS: not thread safe...
  */
 public final class EventFabricationService {
 
@@ -119,7 +120,7 @@ public final class EventFabricationService {
       return false;
     }
     this.timeSeriesBySensorId.get(sensorId).update(timestampMs, value);
-    return true; // TODO Or return the value of the Time-Series update (i.e., boolean)?
+    return true;
   }
 
   public Set<OutputEvent> performEventFabrication(
@@ -153,9 +154,7 @@ public final class EventFabricationService {
     // Log duplicates.
     // --------------------------------------------------
 
-    if (inputEventSet.size() != inputEventList.size()) {
-      // TODO Log.
-    }
+    // if (inputEventSet.size() != inputEventList.size()) {}
 
     // For each registered Sensor ID, find its instance if exists.
     // Otherwise, mark it as missing.
@@ -388,8 +387,7 @@ public final class EventFabricationService {
 
     @Override
     public int compareTo(Candidate other) {
-      return Long.compare(
-          this.distance, other.distance); // TODO Okay (the order is important - write to docs)?
+      return Long.compare(this.distance, other.distance);
     }
 
     @Override

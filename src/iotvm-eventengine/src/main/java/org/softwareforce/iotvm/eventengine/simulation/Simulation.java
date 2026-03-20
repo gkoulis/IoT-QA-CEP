@@ -91,8 +91,7 @@ public class Simulation {
             (jsonNode) ->
                 new AverageCalculationCompositeTransformationParameters(
                     PhysicalQuantity.valueOf(jsonNode.physicalQuantity),
-                    // TODO It's better to always pass seconds - No pass ISO string! Period.
-                    Duration.ofMinutes(jsonNode.timeWindowSize),
+                    Duration.ofMinutes(jsonNode.timeWindowSize), // TODO Pass seconds. Much better. Not ISO string.
                     null,
                     null,
                     jsonNode.minimumNumberOfContributingSensors,

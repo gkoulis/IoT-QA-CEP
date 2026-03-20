@@ -63,7 +63,7 @@ class CompositeTransformationParameterID:
     ignore_completeness_filtering: bool  # TODO Remove.
     fabrication_past_events_steps_behind: int  # TODO Rename
     fabrication_forecasting_time_window_size: str  # TODO Remove
-    fabrication_forecasting_steps_ahead: int  # TODO Reename
+    fabrication_forecasting_steps_ahead: int  # TODO Rename
 
     def __str__(self) -> str:
         string: str = (

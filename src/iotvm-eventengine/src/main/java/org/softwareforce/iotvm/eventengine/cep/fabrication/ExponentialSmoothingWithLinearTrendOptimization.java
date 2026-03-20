@@ -37,7 +37,6 @@ public class ExponentialSmoothingWithLinearTrendOptimization
     this.MSE = Double.MAX_VALUE;
     this.MAE = Double.MAX_VALUE;
     this.bestForecasts = null;
-    // TODO Idea: Do not trust forecast if MAE is not in a specific range.
   }
 
   public double getSelectedAlpha() {

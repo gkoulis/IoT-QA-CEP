@@ -19,7 +19,6 @@ public final class Constants {
 
   public static final String UNDEFINED = "undefined";
 
-  /** TODO Replace: get {@code Sensor} instances by greenhouse or area. */
   public static final List<String> SENSOR_IDS =
       List.of("sensor-1", "sensor-2", "sensor-3", "sensor-4", "sensor-5", "sensor-6");
 

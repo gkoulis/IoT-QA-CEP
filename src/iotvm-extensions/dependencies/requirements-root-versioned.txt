@@ -1,5 +1,4 @@
 # Python 3.11.8
-# TODO add.
 openpyxl==3.1.2
 PyQt5==5.15.9
 seaborn==0.13.0

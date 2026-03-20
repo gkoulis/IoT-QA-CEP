@@ -23,10 +23,6 @@ public class InputEvent {
   /** The timestamp (ms) of the event. */
   private final long timestampMs;
 
-  // TODO Should we use the time window? Check also the equals...
-  //  and write docs that only one per sensor is
-  // required........................!!!!!!!!!!!!!!!!!!!!!!!!1
-
   /* ------------ Constructors ------------ */
 
   public InputEvent(final String sensorId, final double value, final long timestampMs) {

@@ -204,7 +204,9 @@ public class AverageCalculationCompositeTransformationFactory
         .windowedBy(timeWindowsDefinition)
         // .emitStrategy(EmitStrategy.onWindowClose())
         // .emitStrategy(EmitStrategy.onWindowUpdate())
-        // TODO PRACTICAL IMPLICATION: If you do not add materialized, Kafka Streams will use the default impl. That means that will use the default SerDes too which use Registry, i.e., search in registry for the avro schema. So, it will fail!
+        // TODO PRACTICAL IMPLICATION: If you do not add materialized, Kafka Streams will use the default impl.
+        //  That means that will use the default SerDes too which use Registry,
+        //  i.e., search in registry for the avro schema. So, it will fail!
         .aggregate(new InitializerImpl(physicalQuantity), new AggregatorImpl(), materialized)
         .suppress(Suppressed.untilWindowCloses(BufferConfig.unbounded()))
         .toStream()

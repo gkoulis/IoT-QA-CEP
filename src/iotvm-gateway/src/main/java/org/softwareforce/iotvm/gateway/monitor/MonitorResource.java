@@ -34,7 +34,6 @@ public class MonitorResource {
     this.sse = sse;
     this.sseBroadcaster = sse.newBroadcaster();
     this.outboundSseEventBuilder = sse.newEventBuilder();
-    System.out.println("CALLED! 1"); // TODO Remove.
 
     this.monitorConsumer = new MonitorConsumer(this.outboundSseEventBuilder, this.sseBroadcaster);
     this.monitorConsumer.initAndStart();

@@ -18,7 +18,7 @@ public class EventEngineApplicationSimulation {
   public void run() {
     ApplicationConfiguration.getInstance().load();
 
-    // TODO run it with enabled assertions.
+    // TODO run it with assertions enabled.
     // TODO validate the new event fabrication service -> tests etc. IMPORTANT.
 
     long start = System.nanoTime();

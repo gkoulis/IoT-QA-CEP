@@ -98,6 +98,6 @@ def execute_schedule(schedule_df: pd.DataFrame, dry_run: bool, fail_silently: bo
 
         schedule_df.loc[slice_df.index, "planned"] = True
 
-        time.sleep(0.85)  # TODO as param.
+        time.sleep(0.85)  # TODO param.
 
     _C.graceful_stop()
