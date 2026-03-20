@@ -1,5 +1,5 @@
 {
-  "namespace": "com.dgk94.iotvm.shared.event",
+  "namespace": "org.softwareforce.iotvm.shared.event",
   "type": "record",
   "name": "SensorTelemetryMeasurementsAverageEventIBO",
   "fields": [
@@ -28,27 +28,27 @@
     },
     {
       "name": "average",
-      "type": "com.dgk94.iotvm.shared.event.MeasurementIBO"
+      "type": "org.softwareforce.iotvm.shared.event.MeasurementIBO"
     },
     {
       "name": "events",
       "type": {
         "type": "map",
-        "values": "com.dgk94.iotvm.shared.event.SensorTelemetryMeasurementEventIBO",
+        "values": "org.softwareforce.iotvm.shared.event.SensorTelemetryMeasurementEventIBO",
         "avro.java.string": "String"
       }
     },
     {
       "name": "qualityProperties",
-      "type": "com.dgk94.iotvm.shared.event.QualityPropertiesIBO"
+      "type": "org.softwareforce.iotvm.shared.event.QualityPropertiesIBO"
     },
     {
       "name": "timestamps",
-      "type": "com.dgk94.iotvm.shared.event.TimestampsIBO"
+      "type": "org.softwareforce.iotvm.shared.event.TimestampsIBO"
     },
     {
       "name": "identifiers",
-      "type": "com.dgk94.iotvm.shared.event.IdentifiersIBO"
+      "type": "org.softwareforce.iotvm.shared.event.IdentifiersIBO"
     },
     {
       "name": "additional",

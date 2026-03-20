@@ -1,5 +1,5 @@
 {
-  "namespace": "com.dgk94.iotvm.shared.event",
+  "namespace": "org.softwareforce.iotvm.shared.event",
   "type": "record",
   "name": "MeasurementIBO",
   "fields": [
