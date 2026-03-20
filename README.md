@@ -8,6 +8,12 @@ This repository contains the source code, datasets, and evaluation results for o
   <img src="./docs/screenshot-0002.png" alt="Internet of Things - Dimitris Gkoulis - dgk94 - DGK94" width="60%"/>
 </p>
 
+**Publications**
+
+- [A Hybrid Simulation Platform for quality-aware evaluation of complex events in an IoT environment](https://www.sciencedirect.com/science/article/pii/S1569190X24000339)
+- [Assessing Event Fabrication Methods for Missing Events in Complex Event-Driven IoT Systems: A Smart Farming Case Study](https://ieeexplore.ieee.org/abstract/document/11083781)
+- [Transforming IoT Events to Meaningful Business Events on the Edge: Implementation for Smart Farming Application](https://www.mdpi.com/1999-5903/15/4/135)
+
 **BibTeX**
 
 ```bibtex
