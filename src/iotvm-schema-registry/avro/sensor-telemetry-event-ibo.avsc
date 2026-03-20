@@ -1,5 +1,5 @@
 {
-  "namespace": "org.softwareforce.iotvm.shared.event",
+  "namespace": "com.dgk94.iotvm.shared.event",
   "type": "record",
   "name": "SensorTelemetryEventIBO",
   "fields": [
@@ -12,17 +12,17 @@
       "name": "measurements",
       "type": {
         "type": "array",
-        "items": "org.softwareforce.iotvm.shared.event.MeasurementIBO",
+        "items": "com.dgk94.iotvm.shared.event.MeasurementIBO",
         "java-class": "java.util.List"
       }
     },
     {
       "name": "timestamps",
-      "type": "org.softwareforce.iotvm.shared.event.TimestampsIBO"
+      "type": "com.dgk94.iotvm.shared.event.TimestampsIBO"
     },
     {
       "name": "identifiers",
-      "type": "org.softwareforce.iotvm.shared.event.IdentifiersIBO"
+      "type": "com.dgk94.iotvm.shared.event.IdentifiersIBO"
     },
     {
       "name": "additional",
